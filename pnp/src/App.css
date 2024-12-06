@@ -6,6 +6,7 @@
   padding: 0;
   display: flex;
   flex-direction: column;
+  overflow-x: hidden;
 }
 
 /* Space for future navbar */
@@ -52,10 +53,13 @@
 .search-container {
   width: 100%;
   padding: 20px;
+  display: flex;
+  justify-content: center;
   background-color: rgba(0, 0, 0, 0.5);
 }
 
 .search-container form {
+  width: 100%;
   max-width: 800px;
   margin: 0 auto;
   display: flex;

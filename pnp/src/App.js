@@ -1,14 +1,17 @@
 import './App.css';
 import { useState } from 'react';
+import { BrowserRouter as Router, Route, Routes, useNavigate } from 'react-router-dom';
 import Navbar from './components/Navbar';
+import TokenPage from './pages/TokenPage';
 
-function App() {
+function HomePage() {
   const [address, setAddress] = useState('');
+  const navigate = useNavigate();
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    // Handle the blockchain address here
-    console.log('Submitted address:', address);
+    // Navigate to token page with the entered address
+    navigate(`/token/${address}`);
   };
 
   return (
@@ -29,6 +32,17 @@ function App() {
         </form>
       </div>
     </div>
+  );
+}
+
+function App() {
+  return (
+    <Router>
+      <Routes>
+        <Route path="/" element={<HomePage />} />
+        <Route path="/token/:tokenAddress" element={<TokenPage />} />
+      </Routes>
+    </Router>
   );
 }
 
