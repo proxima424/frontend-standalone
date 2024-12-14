@@ -4,21 +4,6 @@ import { createChart } from 'lightweight-charts';
 import Navbar from '../components/Navbar';
 import './TokenPage.css';
 
-const formatTimeByTimeframe = (timeframe) => {
-  const now = new Date();
-  switch(timeframe) {
-    case '24h':
-      return now.toISOString().slice(0, 19); // Format: YYYY-MM-DDTHH:mm:ss
-    case '7d':
-    case '30d':
-      return now.toISOString().slice(0, 16); // Format: YYYY-MM-DDTHH:mm
-    case '1y':
-      return now.toISOString().slice(0, 10); // Format: YYYY-MM-DD
-    default:
-      return now.toISOString().slice(0, 19);
-  }
-};
-
 const validatePriceData = (data) => {
   if (!Array.isArray(data)) return false;
   return data.every(point => (
@@ -42,9 +27,10 @@ const TokenPage = () => {
   const fetchHistoricalData = async () => {
     try {
       setError(null);
-      const response = await fetch(`http://localhost:YOUR_PORT/api/prices/${tokenAddress}?timeframe=${timeframe}`);
+      const response = await fetch(`http://localhost:8080/api/prices/${tokenAddress}?timeframe=${timeframe}`);
       const data = await response.json();
-      
+      console.log('Fetched historical data:', data); // Log the fetched data
+
       // Validate data format
       if (!validatePriceData(data)) {
         throw new Error('Invalid data format received from API');
@@ -61,7 +47,7 @@ const TokenPage = () => {
 
   // Setup WebSocket connection
   const setupWebSocket = () => {
-    const ws = new WebSocket(`ws://localhost:YOUR_PORT/ws/prices/${tokenAddress}`);
+    const ws = new WebSocket(`ws://localhost:8080/ws/prices/${tokenAddress}`);
     
     ws.onmessage = (event) => {
       try {
@@ -157,6 +143,17 @@ const TokenPage = () => {
       };
     }
   }, [tokenAddress, timeframe]);
+
+  useEffect(() => {
+    fetchHistoricalData();
+    setupWebSocket();
+    // Cleanup function
+    return () => {
+      if (wsRef.current) {
+        wsRef.current.close();
+      }
+    };
+  }, [fetchHistoricalData, setupWebSocket]);
 
   return (
     <div className="token-page">

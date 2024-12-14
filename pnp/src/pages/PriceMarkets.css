@@ -1,0 +1,147 @@
+.price-markets {
+  display: flex;
+  min-height: 100vh;
+  background-color: black;
+  color: white;
+  font-family: 'Poppins', sans-serif;
+}
+
+.main-content {
+  padding: 20px;
+  width: 100%;
+}
+
+.search-container {
+  display: flex;
+  justify-content: center;
+  padding: 20px 0;
+}
+
+.token-input {
+  width: 500px;
+  padding: 16px 20px;
+  font-size: 18px;
+  border: 2px solid #333;
+  border-radius: 8px;
+  background-color: #1a1a1a;
+  color: white;
+  font-family: 'Poppins', sans-serif;
+}
+
+.table-container {
+  margin: 20px;
+  overflow-x: auto;
+}
+
+.assets-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  margin-top: 20px;
+  font-size: 14px;
+}
+
+.assets-table th {
+  background-color: #1a1a1a;
+  color: #808080;
+  font-weight: 500;
+  padding: 12px 16px;
+  text-align: right;
+  border-bottom: 1px solid #333;
+}
+
+.assets-table td {
+  padding: 16px;
+  text-align: right;
+  border-bottom: 1px solid #222;
+}
+
+.rank-column {
+  width: 30px;
+  text-align: center !important;
+}
+
+.name-column {
+  text-align: left !important;
+}
+
+.token-info {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.token-logo {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+}
+
+.token-row:hover {
+  background-color: #1a1a1a;
+  cursor: pointer;
+}
+
+.positive {
+  color: #00b88c;
+}
+
+.negative {
+  color: #fe3957;
+}
+
+.price-column,
+.market-cap-column,
+.volume-column,
+.supply-column {
+  font-family: 'IBM Plex Mono', monospace;
+}
+
+.prediction-column {
+  text-align: center !important;
+}
+
+.create-market-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  background: linear-gradient(135deg, #676FFF 0%, #4B51FF 100%);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  padding: 8px 16px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-family: 'Poppins', sans-serif;
+  opacity: 0;
+}
+
+.token-row:hover .create-market-btn {
+  opacity: 1;
+}
+
+.create-market-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(103, 111, 255, 0.3);
+  background: linear-gradient(135deg, #7C83FF 0%, #5F64FF 100%);
+}
+
+.plus-icon {
+  font-size: 16px;
+  font-weight: bold;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 4px;
+  width: 20px;
+  height: 20px;
+  line-height: 1;
+}
+
+.btn-text {
+  margin-top: 1px;
+}
