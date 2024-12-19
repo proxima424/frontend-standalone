@@ -7,7 +7,7 @@ const Navbar = () => {
 
   return (
     <nav className="navbar">
-      {/* <div className="navbar-content">
+      <div className="navbar-content">
         <div className="navbar-brand">pnp protocol</div>
         <div className="navbar-right">
           {ready && !authenticated && (
@@ -16,7 +16,7 @@ const Navbar = () => {
             </button>
           )}
         </div>
-      </div> */}
+      </div>
     </nav>
   );
 };
