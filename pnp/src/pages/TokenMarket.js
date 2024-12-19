@@ -1,148 +1,81 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import './TokenMarket.css';
 
 const TokenMarket = () => {
   const { address } = useParams();
-  const [tokenData, setTokenData] = useState({
-    name: 'Bitcoin',
-    ticker: 'BTC',
-    logo: 'https://assets.coingecko.com/coins/images/1/small/bitcoin.png',
-    marketCap: '$843.2B',
-    volume24h: '$24.5B',
-    price: '$43,215.23'
-  });
-
-  const [priceChange, setPriceChange] = useState('neutral'); // 'up', 'down', or 'neutral'
-  const prevPrice = useRef(tokenData.price);
-  const ws = useRef(null);
+  const [tokenData, setTokenData] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
-    // Initialize WebSocket connection
-    ws.current = new WebSocket('wss://websocket-server-url');
-
-    ws.current.onopen = () => {
-      console.log('WebSocket Connected');
-      // Subscribe to token updates
-      ws.current.send(JSON.stringify({
-        type: 'subscribe',
-        token: address
-      }));
-    };
-
-    ws.current.onmessage = (event) => {
-      const data = JSON.parse(event.data);
-      
-      // Update token data
-      setTokenData(prevData => {
-        const newData = { ...prevData, ...data };
-        
-        // Compare prices and set animation
-        const oldPrice = parseFloat(prevData.price.replace(/[$,]/g, ''));
-        const newPrice = parseFloat(data.price.replace(/[$,]/g, ''));
-        
-        if (newPrice > oldPrice) {
-          setPriceChange('up');
-        } else if (newPrice < oldPrice) {
-          setPriceChange('down');
-        }
-        
-        // Reset animation after a delay
-        setTimeout(() => setPriceChange('neutral'), 1000);
-        
-        prevPrice.current = data.price;
-        return newData;
-      });
-    };
-
-    ws.current.onerror = (error) => {
-      console.error('WebSocket Error:', error);
-    };
-
-    ws.current.onclose = () => {
-      console.log('WebSocket Disconnected');
-      // Attempt to reconnect after 5 seconds
-      setTimeout(() => {
-        console.log('Attempting to reconnect...');
-        setTokenData(prevData => ({ ...prevData })); // Trigger useEffect to reconnect
-      }, 5000);
-    };
-
-    // Cleanup function
-    return () => {
-      if (ws.current) {
-        ws.current.close();
+    const fetchTokenData = async () => {
+      try {
+        const response = await fetch(`https://api.geckoterminal.com/api/v2/networks/base/tokens/${address}`);
+        const data = await response.json();
+        console.log('Token Data:', data.data); // Log the response data
+        setTokenData(data.data);
+        setLoading(false);
+      } catch (err) {
+        console.error('Error fetching token data:', err);
+        setError('Failed to fetch token data');
+        setLoading(false);
       }
     };
-  }, [address]); // Reconnect if address changes
 
-  // Format numbers with commas
-  const formatNumber = (str) => {
-    const num = parseFloat(str.replace(/[$,]/g, ''));
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD',
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2
-    }).format(num);
-  };
+    fetchTokenData(); // Initial fetch
+    const intervalId = setInterval(fetchTokenData, 5000); // Fetch every 5 seconds
+
+    return () => clearInterval(intervalId); // Cleanup on unmount
+  }, [address]);
+
+  useEffect(() => {
+    const updatePrice = async () => {
+      try {
+        const response = await fetch(`https://api.geckoterminal.com/api/v2/networks/base/tokens/${address}`);
+        const data = await response.json();
+        console.log('Token Data:', data.data); // Log the response data
+        setTokenData(data.data);
+      } catch (err) {
+        console.error('Error updating price:', err);
+      }
+    };
+
+    const intervalId = setInterval(updatePrice, 10000); // Update price every 5 seconds
+
+    return () => clearInterval(intervalId); // Cleanup on unmount
+  }, [address]);
+
+  if (loading) return <div className="loading">Loading token data...</div>;
+  if (error) return <div className="error">{error}</div>;
 
   return (
-    <div className="token-market-container">
-      <div className="token-header">
-        <div className="token-basic-info">
-          <img src={tokenData.logo} alt={tokenData.name} className="token-logo" />
-          <div className="token-name-container">
-            <h1>{tokenData.name}</h1>
-            <span className="token-ticker">{tokenData.ticker}</span>
-          </div>
-        </div>
-        <div className="token-price-container">
-          <div className="current-price">
-            <span className="label">Price</span>
-            <span className={`value price ${priceChange}`}>
-              {formatNumber(tokenData.price)}
-            </span>
-          </div>
-          <div className="market-stats">
-            <div className="stat-item">
-              <span className="label">Market Cap</span>
-              <span className="value">{formatNumber(tokenData.marketCap)}</span>
-            </div>
-            <div className="stat-item">
-              <span className="label">24h Volume</span>
-              <span className="value">{formatNumber(tokenData.volume24h)}</span>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div className="token-content">
-        <div className="chart-section">
-          <div className="price-chart">
-            {/* Price chart will be implemented later */}
-            <div className="chart-placeholder">Price Chart Coming Soon</div>
-          </div>
-        </div>
-
-        <div className="markets-section">
-          <div className="section-header">
-            <h2>Prediction Markets</h2>
-            <button className="create-market-btn">
-              <span className="plus-icon">+</span>
-              Create Market
-            </button>
-          </div>
-          <div className="markets-list">
-            {/* Markets list will be populated later */}
-            <div className="empty-markets">
-              No prediction markets yet. Create one!
-            </div>
-          </div>
-        </div>
-      </div>
+    <div>
+    <div className="chart-container">
+      <iframe
+        id="geckoterminal-embed"
+        title="GeckoTerminal Embed"
+        src={`https://www.geckoterminal.com/base/pools/${address}?embed=1&info=1&swaps=1&grayscale=0&light_chart=0`}
+        frameBorder="0"
+        allow="clipboard-write"
+        allowFullScreen
+        className="chart-iframe"
+      ></iframe>
+      
     </div>
+    <div className="button-container">
+    <button className="create-prediction-market-btn">Create New Prediction Market</button>
+  </div></div>
   );
+};
+
+// Utility function to format large numbers
+const formatNumber = (num) => {
+  if (!num) return '0';
+  if (num >= 1e9) return (num / 1e9).toFixed(2) + 'B';
+  if (num >= 1e6) return (num / 1e6).toFixed(2) + 'M';
+  if (num >= 1e3) return (num / 1e3).toFixed(2) + 'K';
+  return num.toFixed(2);
 };
 
 export default TokenMarket;

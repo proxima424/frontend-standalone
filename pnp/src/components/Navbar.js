@@ -7,6 +7,15 @@ const Navbar = () => {
 
   return (
     <nav className="navbar">
+      <div className="moving-strip">
+        <div className="scroll-text">
+          <span>🌐 PRICE MARKETS LIVE ON BASE</span>
+          <span>🔄 PERMISSIONLESS MARKETS</span>
+          <span>📊 LAUNCH MARKET ON ANY TOKEN</span>
+          <span>🌐 ETHEREUM ALIGNED</span>   
+          <span>📊 PNP PROTOCOL</span>
+        </div>
+      </div>
       <div className="navbar-content">
         <div className="navbar-brand">pnp protocol</div>
         <div className="navbar-right">
