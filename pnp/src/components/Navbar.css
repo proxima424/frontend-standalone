@@ -23,6 +23,11 @@
   justify-content: space-between;
 }
 
+.navbar-left {
+  display: flex;
+  align-items: center;
+}
+
 .navbar-brand {
   font-family: 'Orbitron', sans-serif;
   font-size: 28px;
@@ -42,6 +47,37 @@
 .navbar-right {
   display: flex;
   align-items: center;
+}
+
+.search-button {
+  background: none;
+  border: none;
+  font-size: 24px;
+  color: #4CAF50; /* Unique color for the search icon */
+  cursor: pointer;
+  margin-right: 10px;
+}
+
+.search-box {
+  position: relative;
+}
+
+.search-input {
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  width: 200px;
+  font-size: 16px;
+  color: black;
+  background-color: white;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  transition: width 0.3s ease;
+}
+
+.search-input:focus {
+  width: 300px;
+  outline: none;
+  border-color: #4CAF50;
 }
 
 .login-button {

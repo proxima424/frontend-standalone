@@ -7,6 +7,7 @@ const TokenMarket = () => {
   const [tokenData, setTokenData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [showModal, setShowModal] = useState(false);
 
   useEffect(() => {
     const fetchTokenData = async () => {
@@ -51,21 +52,45 @@ const TokenMarket = () => {
 
   return (
     <div>
-    <div className="chart-container">
-      <iframe
-        id="geckoterminal-embed"
-        title="GeckoTerminal Embed"
-        src={`https://www.geckoterminal.com/base/pools/${address}?embed=1&info=1&swaps=1&grayscale=0&light_chart=0`}
-        frameBorder="0"
-        allow="clipboard-write"
-        allowFullScreen
-        className="chart-iframe"
-      ></iframe>
-      
+      <div className="enter-token-container">
+        <input type="text" placeholder="Enter Token Address" className="enter-token-input" />
+      </div>
+      <div className="chart-container">
+        <iframe
+          id="geckoterminal-embed"
+          title="GeckoTerminal Embed"
+          src={`https://www.geckoterminal.com/base/pools/${address}?embed=1&info=1&swaps=1&grayscale=0&light_chart=0`}
+          frameBorder="0"
+          allow="clipboard-write"
+          allowFullScreen
+          className="chart-iframe"
+        ></iframe>
+      </div>
+      <div className="button-container">
+        <button 
+          className="create-prediction-market-btn"
+          onClick={() => setShowModal(true)}
+        >
+          Create New Prediction Market
+        </button>
+      </div>
+
+      {/* Modal */}
+      {showModal && (
+        <div className="modal-overlay">
+          <div className="modal-content">
+            <button 
+              className="modal-close-btn"
+              onClick={() => setShowModal(false)}
+            >
+              ✕
+            </button>
+            <h2>Create New Prediction Market</h2>
+            {/* Add your form content here */}
+          </div>
+        </div>
+      )}
     </div>
-    <div className="button-container">
-    <button className="create-prediction-market-btn">Create New Prediction Market</button>
-  </div></div>
   );
 };
 
