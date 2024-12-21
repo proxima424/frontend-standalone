@@ -1,0 +1,237 @@
+.pools-plate-container {
+  background: var(--spotify-dark-gray);
+  border-radius: 12px;
+  padding: 1.5rem;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.pools-plate-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  overflow-y: auto;
+}
+
+.pool-plate {
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 8px;
+  padding: 1rem;
+  transition: all 0.2s ease;
+  cursor: pointer;
+}
+
+.pool-plate:hover {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.pool-plate.expanded {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.pool-plate-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.pool-main-info {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.pool-quick-stats {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.quick-price {
+  font-weight: 500;
+  color: var(--spotify-white);
+}
+
+.quick-change {
+  font-weight: 500;
+  min-width: 70px;
+  text-align: right;
+}
+
+.pool-rank {
+  background: var(--spotify-green);
+  color: var(--spotify-black);
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  font-weight: 600;
+  font-size: 0.875rem;
+}
+
+.pool-name {
+  font-weight: 600;
+  color: var(--spotify-white);
+  font-size: 1rem;
+}
+
+.pool-plate-stats {
+  margin-top: 1rem;
+  display: grid;
+  gap: 0.5rem;
+  animation: slideDown 0.2s ease-out;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.stat-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.5rem;
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 4px;
+}
+
+.stat-label {
+  color: var(--spotify-light-gray);
+  font-size: 0.875rem;
+}
+
+.stat-value {
+  font-weight: 500;
+  font-size: 0.875rem;
+}
+
+.positive {
+  color: var(--spotify-green);
+}
+
+.negative {
+  color: #ff4444;
+}
+
+.pools-table-container {
+  max-height: none;
+  background: var(--spotify-dark-gray);
+  border-radius: 20px;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.table-wrapper {
+  margin-top: 1rem;
+  width: 100%;
+  overflow-x: auto;
+  overflow-y: auto;
+}
+
+table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  min-width: 900px;
+}
+
+thead {
+  position: sticky;
+  top: 0;
+  background: #1e1e1e;
+  z-index: 1;
+}
+
+th {
+  text-align: right;
+  padding: 1rem;
+  color: #808080;
+  font-weight: 500;
+  font-size: 14px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* First header (Pool) should be left-aligned */
+th:first-child {
+  text-align: left;
+}
+
+td {
+  padding: 1rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  white-space: nowrap;
+  font-size: 14px;
+  color: #fff;
+  text-align: right;
+}
+
+/* First column (Pool) should be left-aligned */
+td:first-child {
+  text-align: left;
+}
+
+/* Column widths */
+th:nth-child(1), td:nth-child(1) { width: 150px; }  /* Pool */
+th:nth-child(2), td:nth-child(2) { width: 150px; }  /* Price */
+th:nth-child(3), td:nth-child(3) { width: 150px; }  /* Change */
+th:nth-child(4), td:nth-child(4) { width: 150px; }  /* Volume */
+th:nth-child(5), td:nth-child(5) { width: 150px; }  /* Liquidity */
+
+.pool-name-cell {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Header and navigation */
+.table-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 1rem;
+}
+
+.header-controls {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.timeframe-select {
+  background: rgba(255, 255, 255, 0.1);
+  border: none;
+  color: #fff;
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  font-size: 12px;
+  margin-left: 0.5rem;
+  cursor: pointer;
+}
+
+.timeframe-select:hover {
+  background: rgba(255, 255, 255, 0.15);
+}
+
+.positive { color: #00f6a0; }
+.negative { color: #ff4444; }
+
+tr {
+  height: 52px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+tr:hover {
+  background: rgba(255, 255, 255, 0.05);
+}
