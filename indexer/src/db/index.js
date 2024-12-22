@@ -1,5 +1,5 @@
-const { Sequelize } = require('sequelize');
-const config = require('../config');
+import { Sequelize } from 'sequelize';
+import config from '../config.js';
 
 const sequelize = new Sequelize(config.DATABASE_URL, {
     dialect: 'postgres',
@@ -19,13 +19,12 @@ const connectDB = async () => {
         
         // Sync all models
         await sequelize.sync();
-        console.log('Database synchronized');
-        
+        return sequelize;
     } catch (error) {
-        console.error('PostgreSQL connection error:', error);
-        process.exit(1);
+        console.error('Unable to connect to the database:', error);
+        throw error;
     }
 };
 
-module.exports = sequelize;
-module.exports.connectDB = connectDB;
+export default sequelize;
+export { connectDB };

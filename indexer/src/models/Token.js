@@ -1,19 +1,23 @@
 import { DataTypes } from 'sequelize';
-import sequelize from '../db';
+import sequelize from '../db/index.js';
 
 const Token = sequelize.define('Token', {
-    tokenAddress: {
+    tokenaddress: {
         type: DataTypes.STRING,
         allowNull: false,
         unique: true
     },
-    deployer: DataTypes.STRING,
+    deployer: {
+        type: DataTypes.STRING,
+        allowNull: false
+    },
     name: DataTypes.STRING,
     symbol: DataTypes.STRING,
-    supply: DataTypes.BIGINT,
-    image_url: DataTypes.STRING // New field for image URL
+    supply: DataTypes.STRING, // Changed to STRING to match TEXT in SQL
+    image_url: DataTypes.STRING
 }, {
-    timestamps: true // Adds createdAt and updatedAt fields
+    timestamps: true,
+    underscored: true
 });
 
 export default Token;
