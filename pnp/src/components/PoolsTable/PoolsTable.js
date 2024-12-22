@@ -3,13 +3,23 @@ import { FiRefreshCw, FiChevronDown, FiChevronUp, FiChevronsLeft, FiChevronsRigh
 import { useNavigate } from 'react-router-dom';
 import './PoolsTable.css';
 
-const ITEMS_PER_PAGE = 6;
+const getItemsPerPage = (variant) => {
+  switch (variant) {
+    case 'trending':
+      return 4;
+    case 'top':
+      return 6;
+    default:
+      return 4;
+  }
+};
 
 const PoolsTable = ({ title, pools, timeframe, onRefresh, refreshing, variant = 'default' }) => {
   const navigate = useNavigate();
   const [expandedPool, setExpandedPool] = useState(null);
   const [currentPage, setCurrentPage] = useState(0);
 
+  const ITEMS_PER_PAGE = getItemsPerPage(variant);
   const totalPages = Math.ceil(pools.length / ITEMS_PER_PAGE);
   const currentPools = pools.slice(
     currentPage * ITEMS_PER_PAGE,

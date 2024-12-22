@@ -1,3 +1,4 @@
 .env
 pnp/node_modules
 node_modules/
+indexer/node_modules

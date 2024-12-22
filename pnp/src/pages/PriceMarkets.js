@@ -16,6 +16,7 @@ const PriceMarkets = () => {
   });
   const [timeframe, setTimeframe] = useState('h24');
   const [searchInput, setSearchInput] = useState('');
+  const [tokens, setTokens] = useState([]);
   const navigate = useNavigate();
 
   const handleSearch = (e) => {
@@ -55,6 +56,26 @@ const PriceMarkets = () => {
     return () => clearInterval(interval);
   }, []);
 
+  useEffect(() => {
+    // Fetch token data from the server
+    const fetchTokens = async () => {
+      try {
+        const response = await fetch('http://localhost:3001/api/tokens');
+        const data = await response.json();
+        setTokens(data.tokens);
+      } catch (error) {
+        console.error('Error fetching tokens:', error);
+      }
+    };
+
+    fetchTokens();
+  }, []);
+
+  // Navigate to token details page
+  const handleTokenClick = (tokenAddress) => {
+    navigate(`/price_markets/${tokenAddress}`);
+  };
+
   if (loading) {
     return <div className="loading">Loading markets data...</div>;
   }
@@ -65,7 +86,7 @@ const PriceMarkets = () => {
         <form onSubmit={handleSearch} className="search-bar">
           <input
             type="text"
-            placeholder="Enter an address or transaction hash"
+            placeholder="Enter token address to bet on....."
             value={searchInput}
             onChange={(e) => setSearchInput(e.target.value)}
           />
@@ -84,10 +105,25 @@ const PriceMarkets = () => {
       </div>
       <div className="right-section">
         <div className="white-rectangle-container">
-          {/* Content will be designed later */}
+          <div className="token-container">
+            {tokens.map((token) => (
+              <div key={token.tokenAddress} className="token-plate" onClick={() => handleTokenClick(token.tokenAddress)}>
+                <img src={token.image_url} alt={token.name} className="token-image" />
+                <div className="token-details">
+                  <h3>{token.name}</h3>
+                  <p>Launched: {new Date(token.createdAt).toLocaleDateString()}</p>
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
         <PoolsTable
-          title="🔥 Trending Pools on Base"
+          title={
+            <div className="pools-table-title">
+              🔥 Trending Pools on Base
+              <span className="flame-icon">🔥</span>
+            </div>
+          }
           pools={trendingPools}
           timeframe={timeframe}
           onRefresh={() => setTimeframe('h24')}

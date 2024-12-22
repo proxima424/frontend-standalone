@@ -49,38 +49,169 @@ body {
 }
 
 .pools-table-container {
-  flex: 1;
-  background: #1e1e1e;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-  border-radius: 12px;
+  background: linear-gradient(145deg, #1e1e1e 0%, #121212 100%);
+  border-radius: 16px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+  transition: all 0.3s ease;
   padding: 1.5rem;
+}
+
+.left-section .pools-table-container {
+  height: fit-content;
+}
+
+.right-section .pools-table-container {
+  height: fit-content;
+}
+
+.pools-table-title {
   display: flex;
-  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #ffffff;
+  margin-bottom: 1rem;
+}
+
+.pools-table-title .flame-icon {
+  font-size: 1.75rem;
+  color: #ff6b6b;
+  animation: flame-pulse 2s infinite alternate;
+}
+
+@keyframes flame-pulse {
+  0% {
+    transform: scale(1);
+    opacity: 0.7;
+  }
+  100% {
+    transform: scale(1.1);
+    opacity: 1;
+  }
 }
 
 .table-wrapper {
-  flex: 1;
-  overflow-y: auto;
+  margin-top: 1rem;
+  overflow-x: auto;
+  position: relative;
+}
+
+/* Table layout improvements */
+.table-wrapper table {
+  min-width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+}
+
+.table-wrapper th,
+.table-wrapper td {
+  padding: 1rem;
+  white-space: nowrap;
+  text-align: left;
+}
+
+/* Fixed column widths */
+.table-wrapper th:nth-child(1),
+.table-wrapper td:nth-child(1) {
+  min-width: 200px;
+  max-width: 200px;
+  position: sticky;
+  left: 0;
+  background: inherit;
+  z-index: 1;
+}
+
+.table-wrapper th:nth-child(2),
+.table-wrapper td:nth-child(2) {
+  min-width: 100px;
+  max-width: 100px;
+}
+
+.table-wrapper th:nth-child(3),
+.table-wrapper td:nth-child(3) {
+  min-width: 100px;
+  max-width: 100px;
+}
+
+.table-wrapper th:nth-child(4),
+.table-wrapper td:nth-child(4) {
+  min-width: 100px;
+  max-width: 100px;
+}
+
+/* Column headers styling */
+.table-wrapper th {
+  text-transform: uppercase;
+  font-weight: 600;
+  font-size: 0.875rem;
+  color: #b3b3b3;
+  background-color: #1e1e1e;
+  position: sticky;
+  top: 0;
+  z-index: 2;
+}
+
+/* Ensure first column header stays on top */
+.table-wrapper th:first-child {
+  z-index: 3;
+}
+
+/* Add gradient fade for horizontal scroll indication */
+.table-wrapper::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  right: 0;
+  height: 100%;
+  width: 30px;
+  background: linear-gradient(to right, transparent, rgba(0,0,0,0.3));
+  pointer-events: none;
+}
+
+/* Customize scrollbar */
+.table-wrapper::-webkit-scrollbar {
+  height: 6px;
+}
+
+.table-wrapper::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.table-wrapper::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 3px;
+}
+
+.table-wrapper::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.3);
+}
+
+.pagination-container {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 0.5rem;
   margin-top: 1rem;
 }
 
-.table-wrapper table {
-  width: 100%;
-  border-collapse: collapse;
+.pagination-btn {
+  background-color: rgba(255, 255, 255, 0.1);
+  border: none;
+  color: white;
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
 }
 
-.table-wrapper th, .table-wrapper td {
-  padding: 1rem;
-  text-align: left;
-  border-bottom: 1px solid #333;
+.pagination-btn:hover {
+  background-color: rgba(255, 255, 255, 0.2);
 }
 
-.table-wrapper th {
-  background-color: #282828;
-}
-
-.table-wrapper tr:hover {
-  background-color: rgba(255, 255, 255, 0.05);
+.pagination-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 
 /* Timeframe selector styling */
@@ -120,21 +251,21 @@ body {
 }
 
 /* Scrollbar styling */
-.table-wrapper::-webkit-scrollbar {
+.price-markets-container::-webkit-scrollbar {
   width: 8px;
 }
 
-.table-wrapper::-webkit-scrollbar-track {
+.price-markets-container::-webkit-scrollbar-track {
   background: rgba(255, 255, 255, 0.05);
   border-radius: 4px;
 }
 
-.table-wrapper::-webkit-scrollbar-thumb {
+.price-markets-container::-webkit-scrollbar-thumb {
   background: rgba(255, 255, 255, 0.1);
   border-radius: 4px;
 }
 
-.table-wrapper::-webkit-scrollbar-thumb:hover {
+.price-markets-container::-webkit-scrollbar-thumb:hover {
   background: rgba(255, 255, 255, 0.2);
 }
 
@@ -326,10 +457,6 @@ tr:hover {
 .search-bar input:focus {
   background-color: rgba(255, 255, 255, 0.1);
   border-color: #1DB954;
-}
-
-.left-section .pools-table-container {
-  height: calc(100vh - 250px);  /* Keep the original flexible height for left section */
 }
 
 .login-button {
