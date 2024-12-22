@@ -1,13 +1,23 @@
 import React, { useEffect, useState } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import './TokenMarket.css';
 
 const TokenMarket = () => {
   const { address } = useParams();
+  const navigate = useNavigate();
   const [tokenData, setTokenData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [showModal, setShowModal] = useState(false);
+  const [searchInput, setSearchInput] = useState('');
+  const [predictionForm, setPredictionForm] = useState({
+    tokenName: '',
+    currentPrice: '',
+    targetPrice: '',
+    currentBaseBlockTimestamp: '',
+    endTimestamp: '',
+    collateralAmount: ''
+  });
 
   useEffect(() => {
     const fetchTokenData = async () => {
@@ -47,14 +57,41 @@ const TokenMarket = () => {
     return () => clearInterval(intervalId); // Cleanup on unmount
   }, [address]);
 
+  const handleSearch = (e) => {
+    e.preventDefault();
+    if (searchInput.trim()) {
+      navigate(`/price_markets/${searchInput.trim()}`);
+    }
+  };
+
+  const handlePredictionFormChange = (e) => {
+    const { name, value } = e.target;
+    setPredictionForm(prev => ({
+      ...prev,
+      [name]: value
+    }));
+  };
+
+  const handleCreatePredictionMarket = (e) => {
+    e.preventDefault();
+    // TODO: Implement prediction market creation logic
+    console.log('Prediction Market Form Data:', predictionForm);
+    setShowModal(false);
+  };
+
   if (loading) return <div className="loading">Loading token data...</div>;
   if (error) return <div className="error">{error}</div>;
 
   return (
     <div>
-      <div className="enter-token-container">
-        <input type="text" placeholder="Enter Token Address" className="enter-token-input" />
-      </div>
+      <form onSubmit={handleSearch} className="search-bar">
+        <input
+          type="text"
+          placeholder="Enter an address or transaction hash"
+          value={searchInput}
+          onChange={(e) => setSearchInput(e.target.value)}
+        />
+      </form>
       <div className="chart-container">
         <iframe
           id="geckoterminal-embed"
@@ -79,14 +116,92 @@ const TokenMarket = () => {
       {showModal && (
         <div className="modal-overlay">
           <div className="modal-content">
-            <button 
-              className="modal-close-btn"
-              onClick={() => setShowModal(false)}
+            <div className="modal-header">
+              <h2>Create New Prediction Market</h2>
+              <button 
+                className="modal-close-btn"
+                onClick={() => setShowModal(false)}
+              >
+                ✕
+              </button>
+            </div>
+            <form 
+              className="prediction-market-form"
+              onSubmit={handleCreatePredictionMarket}
             >
-              ✕
-            </button>
-            <h2>Create New Prediction Market</h2>
-            {/* Add your form content here */}
+              <div className="form-group">
+                <label>Token Name</label>
+                <input
+                  type="text"
+                  name="tokenName"
+                  value={predictionForm.tokenName}
+                  onChange={handlePredictionFormChange}
+                  placeholder="Enter token name"
+                  required
+                />
+              </div>
+              <div className="form-group">
+                <label>Current Price</label>
+                <input
+                  type="text"
+                  name="currentPrice"
+                  value={predictionForm.currentPrice}
+                  onChange={handlePredictionFormChange}
+                  placeholder="Current token price"
+                  required
+                />
+              </div>
+              <div className="form-group">
+                <label>Target Price</label>
+                <input
+                  type="text"
+                  name="targetPrice"
+                  value={predictionForm.targetPrice}
+                  onChange={handlePredictionFormChange}
+                  placeholder="Enter target price"
+                  required
+                />
+              </div>
+              <div className="form-group">
+                <label>Current Base Block Timestamp</label>
+                <input
+                  type="text"
+                  name="currentBaseBlockTimestamp"
+                  value={predictionForm.currentBaseBlockTimestamp}
+                  onChange={handlePredictionFormChange}
+                  placeholder="Current base block timestamp"
+                  required
+                />
+              </div>
+              <div className="form-group">
+                <label>End Timestamp</label>
+                <input
+                  type="text"
+                  name="endTimestamp"
+                  value={predictionForm.endTimestamp}
+                  onChange={handlePredictionFormChange}
+                  placeholder="Enter end timestamp"
+                  required
+                />
+              </div>
+              <div className="form-group">
+                <label>Collateral Amount (USDC/USDT)</label>
+                <input
+                  type="text"
+                  name="collateralAmount"
+                  value={predictionForm.collateralAmount}
+                  onChange={handlePredictionFormChange}
+                  placeholder="Enter collateral amount"
+                  required
+                />
+              </div>
+              <button 
+                type="submit"
+                className="create-market-btn"
+              >
+                Create Prediction Market
+              </button>
+            </form>
           </div>
         </div>
       )}

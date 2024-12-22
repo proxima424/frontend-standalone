@@ -83,6 +83,9 @@ const PriceMarkets = () => {
         />
       </div>
       <div className="right-section">
+        <div className="white-rectangle-container">
+          {/* Content will be designed later */}
+        </div>
         <PoolsTable
           title="🔥 Trending Pools on Base"
           pools={trendingPools}
