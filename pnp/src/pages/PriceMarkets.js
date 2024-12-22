@@ -3,6 +3,16 @@ import { useNavigate } from 'react-router-dom';
 import './PriceMarkets.css';
 import axios from 'axios';
 import PoolsTable from '../components/PoolsTable/PoolsTable';
+import { motion, AnimatePresence } from 'framer-motion';
+
+const TOKEN_ADDRESSES = [
+  {
+    name: "cbBTC",
+    address: "0xcbB7C0000aB88B473b1f5aFd9ef808440eed33Bf"
+  }
+];
+
+const BASE_API_URL = 'https://api.geckoterminal.com/api/v2';
 
 const PriceMarkets = () => {
   const [trendingPools, setTrendingPools] = useState([]);
@@ -29,7 +39,7 @@ const PriceMarkets = () => {
   const fetchPools = async (endpoint, setter, type) => {
     try {
       setRefreshing(prev => ({ ...prev, [type]: true }));
-      const response = await axios.get(`https://api.geckoterminal.com/api/v2/networks/base/${endpoint}`);
+      const response = await axios.get(`${BASE_API_URL}/networks/base/${endpoint}`);
       if (type === 'trending') {
         console.log('Trending Pools Response:', JSON.stringify(response.data, null, 2));
       }
@@ -76,6 +86,93 @@ const PriceMarkets = () => {
     navigate(`/price_markets/${tokenAddress}`);
   };
 
+  const TokenCarousel = () => {
+    const [token, setToken] = useState(null);
+    const [loading, setLoading] = useState(true);
+
+    const fetchTokenData = async () => {
+      try {
+        const response = await axios.get(`${BASE_API_URL}/networks/base/tokens/${TOKEN_ADDRESSES[0].address}`);
+        const { data } = response.data;
+        const { attributes } = data;
+        
+        const tokenData = {
+          name: TOKEN_ADDRESSES[0].name,
+          address: attributes.address,
+          symbol: attributes.symbol || 'N/A',
+          currentPrice: attributes.price_usd ? `$${parseFloat(attributes.price_usd).toFixed(4)}` : 'N/A',
+          marketCap: attributes.market_cap_usd ? `$${parseFloat(attributes.market_cap_usd).toLocaleString()}` : 'N/A',
+          volume24h: attributes.volume_usd?.["24h"] ? `$${parseFloat(attributes.volume_usd["24h"]).toLocaleString()}` : 'N/A',
+          totalSupply: attributes.total_supply ? parseFloat(attributes.total_supply).toLocaleString() : 'N/A',
+          fdv: attributes.fdv_usd ? `$${parseFloat(attributes.fdv_usd).toLocaleString()}` : 'N/A',
+          totalReserve: attributes.total_reserve_in_usd ? `$${parseFloat(attributes.total_reserve_in_usd).toLocaleString()}` : 'N/A'
+        };
+        
+        console.log('Processed Token Data:', tokenData);
+        setToken(tokenData);
+        setLoading(false);
+      } catch (error) {
+        console.error('Error fetching token data:', error);
+        setLoading(false);
+      }
+    };
+
+    useEffect(() => {
+      fetchTokenData();
+    }, []);
+
+    if (loading || !token) {
+      return <div className="loading-container">Loading token data...</div>;
+    }
+
+    return (
+      <div className="carousel-container">
+        <div className="token-slide">
+          <div className="token-content">
+            <div className="token-header">
+              <div>
+                <h2>{token.name}</h2>
+                <span className="token-symbol">{token.symbol}</span>
+              </div>
+              <div className="current-price">
+                {token.currentPrice}
+              </div>
+            </div>
+            
+            <div className="token-stats">
+              <div className="stat-row">
+                <span className="stat-label">Market Cap</span>
+                <span className="stat-value">{token.marketCap}</span>
+              </div>
+              <div className="stat-row">
+                <span className="stat-label">24h Volume</span>
+                <span className="stat-value">{token.volume24h}</span>
+              </div>
+              <div className="stat-row">
+                <span className="stat-label">Total Supply</span>
+                <span className="stat-value">{token.totalSupply}</span>
+              </div>
+              <div className="stat-row">
+                <span className="stat-label">FDV</span>
+                <span className="stat-value">{token.fdv}</span>
+              </div>
+              <div className="stat-row">
+                <span className="stat-label">Total Reserve</span>
+                <span className="stat-value">{token.totalReserve}</span>
+              </div>
+            </div>
+            
+            <div className="chart-placeholder">
+              <span>Price chart coming soon</span>
+            </div>
+            
+            <button className="make-bet-btn">make bet</button>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
   if (loading) {
     return <div className="loading">Loading markets data...</div>;
   }
@@ -105,17 +202,7 @@ const PriceMarkets = () => {
       </div>
       <div className="right-section">
         <div className="white-rectangle-container">
-          <div className="token-container">
-            {tokens.map((token) => (
-              <div key={token.tokenAddress} className="token-plate" onClick={() => handleTokenClick(token.tokenAddress)}>
-                <img src={token.image_url} alt={token.name} className="token-image" />
-                <div className="token-details">
-                  <h3>{token.name}</h3>
-                  <p>Launched: {new Date(token.createdAt).toLocaleDateString()}</p>
-                </div>
-              </div>
-            ))}
-          </div>
+          <TokenCarousel />
         </div>
         <PoolsTable
           title={
