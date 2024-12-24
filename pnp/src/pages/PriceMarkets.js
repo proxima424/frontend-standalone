@@ -168,7 +168,7 @@ const PriceMarkets = () => {
           {/* Stats content */}
         </div>
         <PoolsTable
-          title="💎 Top Pools on Base"
+          title="TOP POOLS ON BASE"
           pools={topPools}
           timeframe={timeframe}
           onRefresh={() => setTimeframe('h24')}
@@ -184,8 +184,8 @@ const PriceMarkets = () => {
         <PoolsTable
           title={
             <div className="pools-table-title">
-              🔥 Trending Pools on Base
-              <span className="flame-icon">🔥</span>
+              🔥 TRENDING POOLS ON BASE
+
             </div>
           }
           pools={trendingPools}
