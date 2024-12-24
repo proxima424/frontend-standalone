@@ -9,15 +9,7 @@ const TokenMarket = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [showModal, setShowModal] = useState(false);
-  const [searchInput, setSearchInput] = useState('');
-  const [predictionForm, setPredictionForm] = useState({
-    tokenName: '',
-    currentPrice: '',
-    targetPrice: '',
-    currentBaseBlockTimestamp: '',
-    endTimestamp: '',
-    collateralAmount: ''
-  });
+  const [latestBlockNumber, setLatestBlockNumber] = useState('');
 
   useEffect(() => {
     const fetchTokenData = async () => {
@@ -41,42 +33,37 @@ const TokenMarket = () => {
   }, [address]);
 
   useEffect(() => {
-    const updatePrice = async () => {
+    const fetchLatestBlockNumber = async () => {
       try {
-        const response = await fetch(`https://api.geckoterminal.com/api/v2/networks/base/tokens/${address}`);
-        const data = await response.json();
-        console.log('Token Data:', data.data); // Log the response data
-        setTokenData(data.data);
+        // Simulate fetching the latest block number
+        const blockNumber = await fetchLatestBlockNumberFromAPI();
+        setLatestBlockNumber(blockNumber);
       } catch (err) {
-        console.error('Error updating price:', err);
+        console.error('Error fetching latest block number:', err);
       }
     };
 
-    const intervalId = setInterval(updatePrice, 10000); // Update price every 5 seconds
+    const intervalId = setInterval(fetchLatestBlockNumber, 5000); // Update every 5 seconds
 
     return () => clearInterval(intervalId); // Cleanup on unmount
-  }, [address]);
+  }, []);
 
   const handleSearch = (e) => {
     e.preventDefault();
-    if (searchInput.trim()) {
-      navigate(`/price_markets/${searchInput.trim()}`);
-    }
-  };
-
-  const handlePredictionFormChange = (e) => {
-    const { name, value } = e.target;
-    setPredictionForm(prev => ({
-      ...prev,
-      [name]: value
-    }));
+    // TODO: Implement search functionality
   };
 
   const handleCreatePredictionMarket = (e) => {
     e.preventDefault();
     // TODO: Implement prediction market creation logic
-    console.log('Prediction Market Form Data:', predictionForm);
+    console.log('Prediction Market Form Data:');
     setShowModal(false);
+  };
+
+  // Simulate fetching the latest block number
+  const fetchLatestBlockNumberFromAPI = async () => {
+    // This is a placeholder function. Replace with actual API call.
+    return '1234567';
   };
 
   if (loading) return <div className="loading">Loading token data...</div>;
@@ -88,15 +75,13 @@ const TokenMarket = () => {
         <input
           type="text"
           placeholder="Enter an address or transaction hash"
-          value={searchInput}
-          onChange={(e) => setSearchInput(e.target.value)}
         />
       </form>
       <div className="chart-container">
         <iframe
           id="geckoterminal-embed"
           title="GeckoTerminal Embed"
-          src={`https://www.geckoterminal.com/base/pools/${address}?embed=1&info=1&swaps=1&grayscale=0&light_chart=0`}
+          src={`https://www.geckoterminal.com/base/pools/${address}?embed=1&info=1&swaps=0&grayscale=0&light_chart=0`}
           frameBorder="0"
           allow="clipboard-write"
           allowFullScreen
@@ -108,7 +93,12 @@ const TokenMarket = () => {
           className="create-prediction-market-btn"
           onClick={() => setShowModal(true)}
         >
-          Create New Prediction Market
+          View Token Details
+        </button>
+        <button 
+          className="view-markets-btn"
+        >
+          View Existing Markets
         </button>
       </div>
 
@@ -117,7 +107,7 @@ const TokenMarket = () => {
         <div className="modal-overlay">
           <div className="modal-content">
             <div className="modal-header">
-              <h2>Create New Prediction Market</h2>
+              <h2>Token Details</h2>
               <button 
                 className="modal-close-btn"
                 onClick={() => setShowModal(false)}
@@ -125,83 +115,11 @@ const TokenMarket = () => {
                 ✕
               </button>
             </div>
-            <form 
-              className="prediction-market-form"
-              onSubmit={handleCreatePredictionMarket}
-            >
-              <div className="form-group">
-                <label>Token Name</label>
-                <input
-                  type="text"
-                  name="tokenName"
-                  value={predictionForm.tokenName}
-                  onChange={handlePredictionFormChange}
-                  placeholder="Enter token name"
-                  required
-                />
-              </div>
-              <div className="form-group">
-                <label>Current Price</label>
-                <input
-                  type="text"
-                  name="currentPrice"
-                  value={predictionForm.currentPrice}
-                  onChange={handlePredictionFormChange}
-                  placeholder="Current token price"
-                  required
-                />
-              </div>
-              <div className="form-group">
-                <label>Target Price</label>
-                <input
-                  type="text"
-                  name="targetPrice"
-                  value={predictionForm.targetPrice}
-                  onChange={handlePredictionFormChange}
-                  placeholder="Enter target price"
-                  required
-                />
-              </div>
-              <div className="form-group">
-                <label>Current Base Block Timestamp</label>
-                <input
-                  type="text"
-                  name="currentBaseBlockTimestamp"
-                  value={predictionForm.currentBaseBlockTimestamp}
-                  onChange={handlePredictionFormChange}
-                  placeholder="Current base block timestamp"
-                  required
-                />
-              </div>
-              <div className="form-group">
-                <label>End Timestamp</label>
-                <input
-                  type="text"
-                  name="endTimestamp"
-                  value={predictionForm.endTimestamp}
-                  onChange={handlePredictionFormChange}
-                  placeholder="Enter end timestamp"
-                  required
-                />
-              </div>
-              <div className="form-group">
-                <label>Collateral Amount (USDC/USDT)</label>
-                <input
-                  type="text"
-                  name="collateralAmount"
-                  value={predictionForm.collateralAmount}
-                  onChange={handlePredictionFormChange}
-                  placeholder="Enter collateral amount"
-                  required
-                />
-              </div>
-              <button 
-                type="submit"
-                className="create-market-btn"
-              >
-                Create Prediction Market
-              </button>
-            </form>
+            <div className="token-info">
+              <h3>Token Address: {tokenData?.attributes?.address || 'N/A'}</h3>
+              <h3>Token Name: {tokenData?.attributes?.name || 'N/A'}</h3>
+              <h3>Current Price: ${tokenData?.attributes?.price_usd || 'N/A'}</h3>
+            </div>
           </div>
         </div>
       )}

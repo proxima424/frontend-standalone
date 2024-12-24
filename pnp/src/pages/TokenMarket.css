@@ -232,53 +232,32 @@
 
 .button-container {
   display: flex;
+  gap: 1rem;
+  margin-top: 2rem;
   justify-content: center;
-  margin-top: 20px;
 }
 
-.create-prediction-market-btn {
-  background-color: #4CAF50; /* Green */
-  border: none;
-  color: white;
-  padding: 15px 32px;
-  text-align: center;
-  text-decoration: none;
-  display: inline-block;
-  font-size: 16px;
-  margin: 4px 2px;
-  cursor: pointer;
+.create-prediction-market-btn,
+.view-markets-btn {
+  padding: 0.8rem 1.5rem;
+  border: 2px solid #1DB954;
   border-radius: 8px;
-  transition: background-color 0.3s ease;
-}
-
-.create-prediction-market-btn:hover {
-  background-color: #45a049; /* Darker green */
-}
-
-.create-market-btn {
-  width: 100%;
-  background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%);
-  border: none;
-  border-radius: 8px;
-  color: white;
-  padding: 1rem;
+  font-weight: 600;
   font-size: 1rem;
-  font-weight: 500;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.5rem;
   cursor: pointer;
   transition: all 0.3s ease;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  background: rgba(29, 185, 84, 0.1);
+  color: #1DB954;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 }
 
-.create-market-btn:hover {
+.create-prediction-market-btn:hover,
+.view-markets-btn:hover {
+  background: rgba(29, 185, 84, 0.2);
   transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
-}
-
-.plus-icon {
-  font-size: 1.2rem;
+  box-shadow: 0 6px 8px rgba(29, 185, 84, 0.1);
 }
 
 .price-container {
@@ -387,7 +366,19 @@
   padding: 0.5rem;
 }
 
+.token-info {
+  background: rgba(26, 26, 26, 0.8);
+  border-radius: 16px;
+  padding: 1.5rem;
+  margin-bottom: 2rem;
+  color: #ffffff;
+}
+
 .prediction-market-form {
+  background: rgba(26, 26, 26, 0.8);
+  border-radius: 16px;
+  padding: 2rem;
+  color: #ffffff;
   display: flex;
   flex-direction: column;
   gap: 1rem;
@@ -399,23 +390,31 @@
   gap: 0.5rem;
 }
 
-.form-group label {
-  color: #b3b3b3;
-  font-size: 0.875rem;
+.adjust-buttons {
+  display: flex;
+  gap: 0.5rem;
 }
 
-.form-group input {
-  width: 100%;
-  padding: 0.75rem;
-  background-color: rgba(255, 255, 255, 0.1);
+.adjust-buttons button {
+  background-color: #3b82f6;
+  color: #ffffff;
   border: none;
+  padding: 0.5rem 1rem;
   border-radius: 8px;
-  color: white;
-  font-size: 1rem;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
 }
 
-.form-group input::placeholder {
-  color: rgba(255, 255, 255, 0.5);
+.adjust-buttons button:hover {
+  background-color: #2563eb;
+}
+
+input[type="text"] {
+  padding: 0.75rem;
+  border-radius: 8px;
+  border: 1px solid #555555;
+  background-color: #1a1a1a;
+  color: #ffffff;
 }
 
 .create-market-btn {

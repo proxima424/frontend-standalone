@@ -86,92 +86,68 @@ const PriceMarkets = () => {
     navigate(`/price_markets/${tokenAddress}`);
   };
 
-  const TokenCarousel = () => {
-    const [token, setToken] = useState(null);
-    const [loading, setLoading] = useState(true);
+  // Comment out or remove the TokenCarousel component
+  // const TokenCarousel = () => {
+  //   const [token, setToken] = useState(null);
+  //   const [prevToken, setPrevToken] = useState(null);
+  //   const [valueChanges, setValueChanges] = useState({
+  //     price: null,
+  //     marketCap: null,
+  //     fdv: null,
+  //     totalReserve: null
+  //   });
+  //   const [isInitialLoading, setIsInitialLoading] = useState(true);
 
-    const fetchTokenData = async () => {
-      try {
-        const response = await axios.get(`${BASE_API_URL}/networks/base/tokens/${TOKEN_ADDRESSES[0].address}`);
-        const { data } = response.data;
-        const { attributes } = data;
+  //   const getNumericValue = (str) => {
+  //     if (!str) return null;
+  //     return parseFloat(str.replace(/[^0-9.-]+/g, ''));
+  //   };
+
+  //   const fetchTokenData = async () => {
+  //     try {
+  //       const response = await axios.get(`${BASE_API_URL}/networks/base/tokens/${TOKEN_ADDRESSES[0].address}`);
+  //       const { data } = response.data;
+  //       const { attributes } = data;
         
-        const tokenData = {
-          name: TOKEN_ADDRESSES[0].name,
-          address: attributes.address,
-          symbol: attributes.symbol || 'N/A',
-          currentPrice: attributes.price_usd ? `$${parseFloat(attributes.price_usd).toFixed(4)}` : 'N/A',
-          marketCap: attributes.market_cap_usd ? `$${parseFloat(attributes.market_cap_usd).toLocaleString()}` : 'N/A',
-          volume24h: attributes.volume_usd?.["24h"] ? `$${parseFloat(attributes.volume_usd["24h"]).toLocaleString()}` : 'N/A',
-          totalSupply: attributes.total_supply ? parseFloat(attributes.total_supply).toLocaleString() : 'N/A',
-          fdv: attributes.fdv_usd ? `$${parseFloat(attributes.fdv_usd).toLocaleString()}` : 'N/A',
-          totalReserve: attributes.total_reserve_in_usd ? `$${parseFloat(attributes.total_reserve_in_usd).toLocaleString()}` : 'N/A'
-        };
-        
-        console.log('Processed Token Data:', tokenData);
-        setToken(tokenData);
-        setLoading(false);
-      } catch (error) {
-        console.error('Error fetching token data:', error);
-        setLoading(false);
-      }
-    };
+  //       if (attributes) {
+  //         setPrevToken(token);
+  //         const newTokenData = {
+  //           name: TOKEN_ADDRESSES[0].name,
+  //           symbol: attributes.symbol || token?.symbol,
+  //           price: attributes.price_usd ? 
+  //             `$${parseFloat(attributes.price_usd).toFixed(4)}` : 
+  //             token?.price,
+  //           marketCap: attributes.market_cap_usd ? 
+  //             `$${parseFloat(attributes.market_cap_usd).toLocaleString()}` : 
+  //             token?.marketCap,
+  //           fdv: attributes.fdv_usd ? 
+  //             `$${parseFloat(attributes.fdv_usd).toLocaleString()}` : 
+  //             token?.fdv,
+  //           totalReserve: attributes.total_reserve_in_usd ? 
+  //             `$${parseFloat(attributes.total_reserve_in_usd).toLocaleString()}` : 
+  //             token?.totalReserve
+  //         };
 
-    useEffect(() => {
-      fetchTokenData();
-    }, []);
+  //         if (newTokenData.marketCap || newTokenData.fdv || newTokenData.totalReserve) {
+  //           const changes = {
+  //           };
+  //         }
+  //       }
+  //     } catch (error) {
+  //       console.error('Error fetching token data:', error);
+  //     }
+  //   };
 
-    if (loading || !token) {
-      return <div className="loading-container">Loading token data...</div>;
-    }
+  //   useEffect(() => {
+  //     fetchTokenData();
+  //   }, []);
 
-    return (
-      <div className="carousel-container">
-        <div className="token-slide">
-          <div className="token-content">
-            <div className="token-header">
-              <div>
-                <h2>{token.name}</h2>
-                <span className="token-symbol">{token.symbol}</span>
-              </div>
-              <div className="current-price">
-                {token.currentPrice}
-              </div>
-            </div>
-            
-            <div className="token-stats">
-              <div className="stat-row">
-                <span className="stat-label">Market Cap</span>
-                <span className="stat-value">{token.marketCap}</span>
-              </div>
-              <div className="stat-row">
-                <span className="stat-label">24h Volume</span>
-                <span className="stat-value">{token.volume24h}</span>
-              </div>
-              <div className="stat-row">
-                <span className="stat-label">Total Supply</span>
-                <span className="stat-value">{token.totalSupply}</span>
-              </div>
-              <div className="stat-row">
-                <span className="stat-label">FDV</span>
-                <span className="stat-value">{token.fdv}</span>
-              </div>
-              <div className="stat-row">
-                <span className="stat-label">Total Reserve</span>
-                <span className="stat-value">{token.totalReserve}</span>
-              </div>
-            </div>
-            
-            <div className="chart-placeholder">
-              <span>Price chart coming soon</span>
-            </div>
-            
-            <button className="make-bet-btn">make bet</button>
-          </div>
-        </div>
-      </div>
-    );
-  };
+  //   return (
+  //     <div className="token-carousel">
+  //       {/* Render token data here */}
+  //     </div>
+  //   );
+  // };
 
   if (loading) {
     return <div className="loading">Loading markets data...</div>;
@@ -202,7 +178,8 @@ const PriceMarkets = () => {
       </div>
       <div className="right-section">
         <div className="white-rectangle-container">
-          <TokenCarousel />
+          {/* Remove the TokenCarousel component from the render */}
+          {/* <TokenCarousel /> */}
         </div>
         <PoolsTable
           title={

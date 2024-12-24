@@ -1,3 +1,10 @@
+/* Reset and common styles */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
 :root {
   --spotify-green: #1DB954;
   --spotify-black: #121212;
@@ -8,8 +15,8 @@
 
 body {
   font-family: 'Roboto', sans-serif;
-  background-color: #121212;
-  color: #e0e0e0;
+  background-color: var(--spotify-black);
+  color: var(--spotify-white);
 }
 
 .price-markets-container {
@@ -474,7 +481,7 @@ tr:hover {
 .white-rectangle-container {
   background-color: white;
   border-radius: 12px;
-  margin-bottom: 10px;
+  
   min-height: 270px;
   width: 100%;
 }
@@ -554,6 +561,34 @@ tr:hover {
   margin-top: 0.25rem;
 }
 
+.token-stats {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1rem;
+  padding: 1rem 0;
+}
+
+.token-price {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 0.75rem;
+  padding: 0.5rem 0.75rem;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 8px;
+}
+
+.token-price span:first-child {
+  color: #666;
+  font-size: 0.875rem;
+}
+
+.token-price span:last-child {
+  color: #1DB954;
+  font-weight: 600;
+  font-size: 1.25rem;
+}
+
 .current-price {
   font-size: 2rem;
   font-weight: 700;
@@ -561,13 +596,6 @@ tr:hover {
   text-align: right;
   display: flex;
   flex-direction: column;
-}
-
-.token-stats {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 1rem;
-  padding: 1rem 0;
 }
 
 .stat-row {
@@ -632,4 +660,116 @@ tr:hover {
 .make-bet-btn:active {
   transform: translateY(0);
   box-shadow: 0 4px 15px rgba(29, 185, 84, 0.3);
+}
+
+.token-plate {
+  background: #121212;
+  border-radius: 12px;
+  padding: 1.5rem;
+  max-width: 600px;
+  height: 270px;
+  margin: 2rem auto;
+  color: white;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.token-info {
+  flex-shrink: 0;
+}
+
+.token-name {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: #1DB954;
+}
+
+.token-symbol {
+  font-size: 1rem;
+  color: #666;
+  margin-top: 0.25rem;
+}
+
+.token-stats {
+  display: grid;
+  gap: 0.75rem;
+  flex-grow: 1;
+  padding: 1rem 0;
+}
+
+.loading {
+  text-align: center;
+  color: #1DB954;
+  padding: 2rem;
+}
+
+.text-right {
+  text-align: right;
+}
+
+.text-center {
+  text-align: center;
+}
+
+.mt-1 {
+  margin-top: 1rem;
+}
+
+.mb-1 {
+  margin-bottom: 1rem;
+}
+
+.loading-spinner {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100%;
+}
+
+.spinner {
+  width: 40px;
+  height: 40px;
+  border: 3px solid rgba(29, 185, 84, 0.1);
+  border-radius: 50%;
+  border-top-color: #1DB954;
+  animation: spin 1s ease-in-out infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Value change animations */
+@keyframes valueIncrease {
+  0% {
+    color: #1DB954;
+  }
+  100% {
+    color: inherit;
+  }
+}
+
+@keyframes valueDecrease {
+  0% {
+    color: #ff4444;
+  }
+  100% {
+    color: inherit;
+  }
+}
+
+.value-increase {
+  animation: valueIncrease 1s ease-out;
+}
+
+.value-decrease {
+  animation: valueDecrease 1s ease-out;
+}
+
+/* Add transition for smooth color changes */
+.stat span:last-child {
+  transition: color 0.3s ease;
 }
