@@ -467,15 +467,15 @@ tr:hover {
 }
 
 .login-button {
-  background-color: #1DB954;
+  background-color: rgb(236 72 153 / var(--tw-text-opacity, 1));
   color: #fff;
-  border-radius: 20px;
+  border-radius: 12px;
   padding: 0.5rem 1rem;
   transition: background-color 0.3s;
 }
 
 .login-button:hover {
-  background-color: #1ed760;
+  background-color: rgb(236 72 153 / 0.8);
 }
 
 .white-rectangle-container {
