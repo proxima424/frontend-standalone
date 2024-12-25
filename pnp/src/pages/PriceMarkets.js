@@ -184,7 +184,7 @@ const PriceMarkets = () => {
         <PoolsTable
           title={
             <div className="pools-table-title">
-              🔥 TRENDING POOLS ON BASE
+              TRENDING POOLS ON BASE
 
             </div>
           }
