@@ -3,7 +3,7 @@
   background-color: #000000;
   color: #ffffff;
   padding: 2rem;
-  font-family: 'Poppins', sans-serif;
+  font-family: 'Roboto Mono', monospace;
 }
 
 .loading, .error {
@@ -13,6 +13,7 @@
   min-height: 50vh;
   font-size: 1.2rem;
   color: #808080;
+  font-family: 'Roboto Mono', monospace;
 }
 
 .error {
@@ -24,6 +25,7 @@
   border-radius: 16px;
   padding: 2rem;
   margin-bottom: 2rem;
+  font-family: 'Roboto Mono', monospace;
 }
 
 .token-info-grid {
@@ -31,12 +33,14 @@
   grid-template-columns: 1fr 2fr;
   gap: 2rem;
   padding: 2rem;
+  font-family: 'Roboto Mono', monospace;
 }
 
 .token-info-left {
   background: rgba(26, 26, 26, 0.6);
   border-radius: 16px;
   padding: 2rem;
+  font-family: 'Roboto Mono', monospace;
 }
 
 .token-basic-info {
@@ -44,6 +48,7 @@
   align-items: center;
   gap: 1rem;
   margin-bottom: 2rem;
+  font-family: 'Roboto Mono', monospace;
 }
 
 .token-basic-info img {
@@ -59,6 +64,7 @@
   padding: 8px;
   backdrop-filter: blur(8px);
   transition: transform 0.2s ease;
+  font-family: 'Roboto Mono', monospace;
 }
 
 .token-logo-large:hover {
@@ -69,19 +75,24 @@
   font-size: 1.8rem;
   margin: 0;
   font-weight: 600;
+  font-family: 'Roboto Mono', monospace;
+  letter-spacing: -0.5px;
 }
 
 .token-ticker {
   color: #808080;
   font-size: 1rem;
+  font-family: 'Roboto Mono', monospace;
 }
 
 .token-price-container {
   margin-bottom: 2rem;
+  font-family: 'Roboto Mono', monospace;
 }
 
 .current-price {
   margin-bottom: 1.5rem;
+  font-family: 'Roboto Mono', monospace;
 }
 
 .current-price .label {
@@ -89,11 +100,14 @@
   font-size: 0.9rem;
   display: block;
   margin-bottom: 0.5rem;
+  font-family: 'Roboto Mono', monospace;
+  letter-spacing: -0.3px;
 }
 
 .current-price .value {
   font-size: 2rem;
   font-weight: 600;
+  font-family: 'Roboto Mono', monospace;
 }
 
 .market-stats {
@@ -101,12 +115,14 @@
   grid-template-columns: repeat(2, 1fr);
   gap: 1rem;
   margin-top: 1rem;
+  font-family: 'Roboto Mono', monospace;
 }
 
 .stat-item {
   background: rgba(255, 255, 255, 0.05);
   padding: 1rem;
   border-radius: 12px;
+  font-family: 'Roboto Mono', monospace;
 }
 
 .stat-item .label {
@@ -114,11 +130,14 @@
   font-size: 0.8rem;
   display: block;
   margin-bottom: 0.5rem;
+  font-family: 'Roboto Mono', monospace;
+  letter-spacing: -0.3px;
 }
 
 .stat-item .value {
   font-size: 1rem;
   font-weight: 500;
+  font-family: 'Roboto Mono', monospace;
 }
 
 .chart-container {
@@ -127,6 +146,7 @@
   overflow: hidden;
   height: 600px;
   position: relative;
+  font-family: 'Roboto Mono', monospace;
 }
 
 .chart-iframe {
@@ -134,6 +154,7 @@
   height: 100%;
   border: none;
   pointer-events: none; /* This prevents scrolling */
+  font-family: 'Roboto Mono', monospace;
 }
 
 /* Enable pointer events only for the chart area */
@@ -151,6 +172,7 @@
   height: 100px; /* Adjust this value to control how much of the bottom content to hide */
   background: linear-gradient(to bottom, transparent, rgba(26, 26, 26, 0.95));
   pointer-events: none;
+  font-family: 'Roboto Mono', monospace;
 }
 
 .pools-section {
@@ -158,17 +180,20 @@
   border-radius: 16px;
   padding: 2rem;
   margin-bottom: 2rem;
+  font-family: 'Roboto Mono', monospace;
 }
 
 .pools-section h2 {
   margin-bottom: 1.5rem;
   font-size: 1.5rem;
+  font-family: 'Roboto Mono', monospace;
 }
 
 .pools-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
   gap: 1.5rem;
+  font-family: 'Roboto Mono', monospace;
 }
 
 .pool-card {
@@ -176,6 +201,7 @@
   border-radius: 12px;
   padding: 1.5rem;
   transition: transform 0.2s ease;
+  font-family: 'Roboto Mono', monospace;
 }
 
 .pool-card:hover {
@@ -187,11 +213,13 @@
   justify-content: space-between;
   align-items: center;
   margin-bottom: 1rem;
+  font-family: 'Roboto Mono', monospace;
 }
 
 .pool-header h3 {
   margin: 0;
   font-size: 1.2rem;
+  font-family: 'Roboto Mono', monospace;
 }
 
 .pool-dex {
@@ -200,34 +228,41 @@
   padding: 0.25rem 0.75rem;
   border-radius: 999px;
   font-size: 0.875rem;
+  font-family: 'Roboto Mono', monospace;
 }
 
 .pool-stats {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 1rem;
+  font-family: 'Roboto Mono', monospace;
 }
 
 .stat {
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
+  font-family: 'Roboto Mono', monospace;
 }
 
 .stat label {
   color: #808080;
   font-size: 0.875rem;
+  font-family: 'Roboto Mono', monospace;
+  letter-spacing: -0.3px;
 }
 
 .stat value {
   font-size: 1rem;
   font-weight: 500;
+  font-family: 'Roboto Mono', monospace;
 }
 
 .markets-section {
   background: rgba(26, 26, 26, 0.6);
   border-radius: 16px;
   padding: 2rem;
+  font-family: 'Roboto Mono', monospace;
 }
 
 .button-container {
@@ -235,6 +270,7 @@
   gap: 1rem;
   margin-top: 2rem;
   justify-content: center;
+  font-family: 'Roboto Mono', monospace;
 }
 
 .create-prediction-market-btn,
@@ -251,6 +287,7 @@
   background: rgba(29, 185, 84, 0.1);
   color: #1DB954;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  font-family: 'Roboto Mono', monospace;
 }
 
 .create-prediction-market-btn:hover,
@@ -265,11 +302,13 @@
   padding: 1rem;
   border-radius: 12px;
   margin-top: 1rem;
+  font-family: 'Roboto Mono', monospace;
 }
 
 .token-description {
   margin-top: 1rem;
   color: #808080;
+  font-family: 'Roboto Mono', monospace;
 }
 
 .open-dexscreener-btn {
@@ -283,6 +322,7 @@
   font-weight: 500;
   cursor: pointer;
   transition: background 0.3s ease;
+  font-family: 'Roboto Mono', monospace;
 }
 
 .open-dexscreener-btn:hover {
@@ -295,6 +335,7 @@
   padding: 10px;
   border-radius: 5px;
   box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  font-family: 'Roboto Mono', monospace;
 }
 
 .enter-token-input {
@@ -305,10 +346,12 @@
   border-radius: 8px;
   color: #ffffff;
   font-size: 1rem;
+  font-family: 'Roboto Mono', monospace;
 }
 
 .search-bar {
   margin-bottom: 2rem;
+  font-family: 'Roboto Mono', monospace;
 }
 
 .search-bar input {
@@ -319,51 +362,185 @@
   border-radius: 8px;
   color: #ffffff;
   font-size: 1rem;
+  font-family: 'Roboto Mono', monospace;
 }
 
 .search-bar input::placeholder {
   color: rgba(255, 255, 255, 0.5);
+  font-family: 'Roboto Mono', monospace;
 }
 
 .modal-overlay {
   position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: rgba(0, 0, 0, 0.6);
+  inset: 0;  /* shorthand for top: 0, right: 0, bottom: 0, left: 0 */
+  background-color: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(4px);
   display: flex;
-  justify-content: center;
   align-items: center;
-  z-index: 1000;
+  justify-content: center;
+  padding: 1rem;
+  z-index: 50;
+  font-family: 'Roboto Mono', monospace;
 }
 
 .modal-content {
-  background: #1e1e1e;
-  border-radius: 16px;
-  padding: 2rem;
-  width: 600px;
-  max-width: 90%;
-  max-height: 90%;
-  overflow-y: auto;
+  width: 100%;
+  max-width: 28rem;  /* max-w-md */
+  background: rgba(0, 0, 0, 0.9);
+  border: 1px solid rgb(38, 38, 38);  /* border-neutral-800 */
+  border-radius: 0.75rem;
   color: white;
-  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  font-family: 'Roboto Mono', monospace;
+}
+
+.modal-inner {
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  font-family: 'Roboto Mono', monospace;
 }
 
 .modal-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 2rem;
+  font-family: 'Roboto Mono', monospace;
 }
 
-.modal-close-btn {
-  background: none;
-  border: none;
-  color: white;
-  font-size: 1.5rem;
-  cursor: pointer;
+.modal-title {
+  font-size: 1.25rem;
+  font-weight: 700;
+  background: linear-gradient(to right, #0ea5e9, #22c55e);  /* sky-500 to green-500 */
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  font-family: 'Roboto Mono', monospace;
+  letter-spacing: -0.5px;
+}
+
+.modal-close-button {
   padding: 0.5rem;
+  color: rgb(163, 163, 163);  /* neutral-400 */
+  border-radius: 0.375rem;
+  transition: all 0.2s;
+  font-family: 'Roboto Mono', monospace;
+}
+
+.modal-close-button:hover {
+  color: white;
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.token-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0.5rem;
+  font-size: 0.875rem;
+  margin-bottom: 1rem;
+  font-family: 'Roboto Mono', monospace;
+}
+
+.input-group {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+  font-family: 'Roboto Mono', monospace;
+}
+
+.input-label {
+  font-size: 0.875rem;
+  white-space: nowrap;
+  color: rgb(229, 229, 229);  /* neutral-200 */
+  font-family: 'Roboto Mono', monospace;
+  letter-spacing: -0.3px;
+}
+
+.input-container {
+  flex: 1;
+  display: flex;
+  gap: 0.5rem;
+  font-family: 'Roboto Mono', monospace;
+}
+
+.modal-input {
+  width: 100%;
+  padding: 0.5rem 0.75rem;
+  background: transparent;
+  border: 1px solid rgb(64, 64, 64);  /* neutral-700 */
+  border-radius: 0.375rem;
+  color: white;
+  font-size: 0.875rem;
+  font-family: 'Roboto Mono', monospace;
+}
+
+.modal-input:focus {
+  outline: none;
+  border-color: #0ea5e9;  /* sky-500 */
+  ring: 2px solid rgba(14, 165, 233, 0.2);  /* sky-500 with opacity */
+}
+
+.modal-input::placeholder {
+  color: rgb(163, 163, 163);
+  font-family: 'Roboto Mono', monospace;
+}
+
+select.modal-input {
+  appearance: none;
+  background-image: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3E%3Cpath stroke='%23A3A3A3' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3E%3C/svg%3E");
+  background-position: right 0.5rem center;
+  background-repeat: no-repeat;
+  background-size: 1.5em 1.5em;
+  padding-right: 2.5rem;
+  font-family: 'Roboto Mono', monospace;
+}
+
+.percentage-buttons {
+  display: flex;
+  gap: 0.25rem;
+}
+
+.percentage-button {
+  padding: 0.5rem 0.75rem;
+  font-family: 'Roboto Mono', monospace;
+  font-size: 0.875rem;
+  color: rgb(163, 163, 163);
+  background: rgba(64, 64, 64, 0.4);
+  border: 1px solid rgb(64, 64, 64);
+  border-radius: 0.375rem;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.percentage-button:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: white;
+}
+
+.percentage-button.active {
+  background: #0ea5e9;
+  color: white;
+}
+
+.create-market-button {
+  width: 100%;
+  padding: 0.75rem;
+  background: linear-gradient(to right, #0ea5e9, #22c55e);
+  border-radius: 0.5rem;
+  color: white;
+  font-weight: 500;
+  font-size: 0.875rem;
+  transition: all 0.3s ease-in-out;
+  transform: scale(1);
+  font-family: 'Roboto Mono', monospace;
+  letter-spacing: -0.3px;
+}
+
+.create-market-button:hover {
+  transform: scale(1.02);
+  background: linear-gradient(to right, #0284c7, #16a34a);
 }
 
 .token-info {
@@ -372,6 +549,7 @@
   padding: 1.5rem;
   margin-bottom: 2rem;
   color: #ffffff;
+  font-family: 'Roboto Mono', monospace;
 }
 
 .prediction-market-form {
@@ -382,17 +560,20 @@
   display: flex;
   flex-direction: column;
   gap: 1rem;
+  font-family: 'Roboto Mono', monospace;
 }
 
 .form-group {
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
+  font-family: 'Roboto Mono', monospace;
 }
 
 .adjust-buttons {
   display: flex;
   gap: 0.5rem;
+  font-family: 'Roboto Mono', monospace;
 }
 
 .adjust-buttons button {
@@ -403,6 +584,7 @@
   border-radius: 8px;
   cursor: pointer;
   transition: background-color 0.2s ease;
+  font-family: 'Roboto Mono', monospace;
 }
 
 .adjust-buttons button:hover {
@@ -415,6 +597,8 @@ input[type="text"] {
   border: 1px solid #555555;
   background-color: #1a1a1a;
   color: #ffffff;
+  font-size: 1rem;
+  font-family: 'Roboto Mono', monospace;
 }
 
 .create-market-btn {
@@ -428,10 +612,95 @@ input[type="text"] {
   cursor: pointer;
   margin-top: 1rem;
   transition: background-color 0.3s ease;
+  font-family: 'Roboto Mono', monospace;
 }
 
 .create-market-btn:hover {
   background-color: #1ed760;
+}
+
+.deadline-container {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  width: 100%;
+}
+
+.deadline-input-group {
+  display: flex;
+  width: 100%;
+  gap: 0.5rem;
+}
+
+.deadline-input {
+  flex: 1;
+  background: transparent;
+  border: 1px solid rgb(64, 64, 64);
+  border-radius: 0.375rem;
+  color: white;
+  font-family: 'Roboto Mono', monospace;
+  padding: 0.5rem 0.75rem;
+  font-size: 0.875rem;
+}
+
+.denomination-toggle {
+  display: flex;
+  background: rgba(64, 64, 64, 0.4);
+  border: 1px solid rgb(64, 64, 64);
+  border-radius: 0.375rem;
+  overflow: hidden;
+  min-width: 140px;
+}
+
+.denomination-button {
+  flex: 1;
+  padding: 0.5rem 1rem;
+  font-family: 'Roboto Mono', monospace;
+  font-size: 0.875rem;
+  color: rgb(163, 163, 163);
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.denomination-button.active {
+  background: #0ea5e9;
+  color: white;
+}
+
+.denomination-button:hover:not(.active) {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.quick-add-container {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 0.25rem;
+  width: 100%;
+}
+
+.quick-add-button {
+  padding: 0.375rem;
+  font-family: 'Roboto Mono', monospace;
+  font-size: 0.75rem;
+  color: rgb(163, 163, 163);
+  background: rgba(64, 64, 64, 0.4);
+  border: 1px solid rgb(64, 64, 64);
+  border-radius: 0.375rem;
+  cursor: pointer;
+  transition: all 0.2s;
+  text-align: center;
+}
+
+.quick-add-button:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: white;
+}
+
+.quick-add-button.active {
+  background: #0ea5e9;
+  color: white;
 }
 
 @media (max-width: 1024px) {

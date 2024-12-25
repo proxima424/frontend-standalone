@@ -14,16 +14,16 @@
   height: 100%;
   display: flex;
   flex-direction: row;
-  justify-content: space-between; /* Align title to the left and Spline to the right */
+  justify-content: space-between;
 }
 
 .title-container {
   position: absolute;
   top: 7%;
   left: 10%;
-  margin-top: 5%; /* Added margin to create space above the titles */
+  margin-top: 5%;
   z-index: 1;
-  transition: opacity 0.5s ease; /* Smooth transition for opacity */
+  transition: opacity 0.5s ease;
 }
 
 .title {
@@ -37,15 +37,14 @@
 
 .subheading {
   font-family: 'Poppins', sans-serif;
-  font-size: 1.5rem; /* Smaller font size */
+  font-size: 1.5rem;
   color: white;
-  font-weight: 200; /* Lighter font weight */
-  margin-top: 20px; /* Increased space above the subheading */
-  margin-left: 20px; /* Align with title */
-  max-width: 600px; /* Set maximum width for the subheading */
+  font-weight: 200;
+  margin-top: 20px;
+  margin-left: 20px;
+  max-width: 600px;
 }
 
-/* Style for the Spline component */
 .spline-container {
   position: absolute !important;
   top: 0 !important;

@@ -10,6 +10,11 @@ const TokenMarket = () => {
   const [error, setError] = useState(null);
   const [showModal, setShowModal] = useState(false);
   const [latestBlockNumber, setLatestBlockNumber] = useState('');
+  const [targetPrice, setTargetPrice] = useState("");
+  const [deadlineValue, setDeadlineValue] = useState("");
+  const [deadlineUnit, setDeadlineUnit] = useState("days"); // 'days' or 'hours'
+  const [selectedToken, setSelectedToken] = useState("USDT");
+  const [lastClickedPercentage, setLastClickedPercentage] = useState(null);
 
   useEffect(() => {
     const fetchTokenData = async () => {
@@ -66,17 +71,25 @@ const TokenMarket = () => {
     return '1234567';
   };
 
+  const calculatePercentagePrice = (percentage) => {
+    const currentPrice = parseFloat(tokenData?.attributes?.price_usd || 0);
+    const newPrice = currentPrice * (1 + percentage / 100);
+    setTargetPrice(newPrice.toFixed(8));
+    setLastClickedPercentage(percentage);
+  };
+
+  const handleQuickAdd = (value) => {
+    setDeadlineValue((prev) => {
+      const currentValue = prev === "" ? 0 : parseFloat(prev);
+      return (currentValue + value).toString();
+    });
+  };
+
   if (loading) return <div className="loading">Loading token data...</div>;
   if (error) return <div className="error">{error}</div>;
 
   return (
     <div>
-      <form onSubmit={handleSearch} className="search-bar">
-        <input
-          type="text"
-          placeholder="Enter an address or transaction hash"
-        />
-      </form>
       <div className="chart-container">
         <iframe
           id="geckoterminal-embed"
@@ -106,19 +119,126 @@ const TokenMarket = () => {
       {showModal && (
         <div className="modal-overlay">
           <div className="modal-content">
-            <div className="modal-header">
-              <h2>Token Details</h2>
-              <button 
-                className="modal-close-btn"
-                onClick={() => setShowModal(false)}
-              >
-                ✕
+            <div className="modal-inner">
+              {/* Header */}
+              <div className="modal-header">
+                <h2 className="modal-title">Token Details</h2>
+                <button 
+                  onClick={() => setShowModal(false)}
+                  className="modal-close-button"
+                >
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <line x1="18" y1="6" x2="6" y2="18"></line>
+                    <line x1="6" y1="6" x2="18" y2="18"></line>
+                  </svg>
+                </button>
+              </div>
+
+              {/* Token Info */}
+              <div className="token-grid">
+                <p className="font-medium">{tokenData?.attributes?.name || 'Loading...'}</p>
+                <p className="font-medium text-right">${tokenData?.attributes?.price_usd || '0.00'}</p>
+              </div>
+
+              {/* Target Price */}
+              <div className="input-group">
+                <label className="input-label">Target Price</label>
+                <div className="input-container">
+                  <input 
+                    type="number"
+                    placeholder="Enter target price"
+                    className="modal-input"
+                    value={targetPrice}
+                    onChange={(e) => {
+                      setTargetPrice(e.target.value);
+                      setLastClickedPercentage(null);
+                    }}
+                  />
+                  <div className="percentage-buttons">
+                    <button 
+                      className={`percentage-button ${lastClickedPercentage === 5 ? 'active' : ''}`}
+                      onClick={() => calculatePercentagePrice(5)}
+                    >
+                      +5%
+                    </button>
+                    <button 
+                      className={`percentage-button ${lastClickedPercentage === -5 ? 'active' : ''}`}
+                      onClick={() => calculatePercentagePrice(-5)}
+                    >
+                      -5%
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              {/* Deadline */}
+              <div className="input-group">
+                <label className="input-label">Deadline</label>
+                <div className="deadline-container">
+                  <div className="deadline-input-group">
+                    <input 
+                      type="number"
+                      placeholder="Enter duration"
+                      className="deadline-input"
+                      value={deadlineValue}
+                      onChange={(e) => setDeadlineValue(e.target.value)}
+                    />
+                    <div className="denomination-toggle">
+                      <button 
+                        className={`denomination-button ${deadlineUnit === 'days' ? 'active' : ''}`}
+                        onClick={() => setDeadlineUnit('days')}
+                      >
+                        days
+                      </button>
+                      <button 
+                        className={`denomination-button ${deadlineUnit === 'hours' ? 'active' : ''}`}
+                        onClick={() => setDeadlineUnit('hours')}
+                      >
+                        hours
+                      </button>
+                    </div>
+                  </div>
+                  <div className="quick-add-container">
+                    <button className="quick-add-button" onClick={() => handleQuickAdd(1)}>+1</button>
+                    <button className="quick-add-button" onClick={() => handleQuickAdd(2)}>+2</button>
+                    <button className="quick-add-button" onClick={() => handleQuickAdd(3)}>+3</button>
+                    <button className="quick-add-button" onClick={() => handleQuickAdd(5)}>+5</button>
+                    <button className="quick-add-button" onClick={() => handleQuickAdd(7)}>+7</button>
+                    <button className="quick-add-button" onClick={() => handleQuickAdd(12)}>+12</button>
+                  </div>
+                </div>
+              </div>
+
+              {/* Collateral */}
+              <div className="input-group">
+                <label className="input-label">Collateral Amount</label>
+                <div className="input-container">
+                  <input 
+                    type="number"
+                    placeholder="Enter amount"
+                    className="modal-input"
+                  />
+                  <div className="denomination-toggle">
+                    <button 
+                      className={`denomination-button ${selectedToken === 'USDT' ? 'active' : ''}`}
+                      onClick={() => setSelectedToken('USDT')}
+                    >
+                      USDT
+                    </button>
+                    <button 
+                      className={`denomination-button ${selectedToken === 'USDC' ? 'active' : ''}`}
+                      onClick={() => setSelectedToken('USDC')}
+                    >
+                      USDC
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              {/* Create Market Button */}
+              <button className="create-market-button">
+                Create Market
               </button>
-            </div>
-            <div className="token-info">
-              <h3>Token Address: {tokenData?.attributes?.address || 'N/A'}</h3>
-              <h3>Token Name: {tokenData?.attributes?.name || 'N/A'}</h3>
-              <h3>Current Price: ${tokenData?.attributes?.price_usd || 'N/A'}</h3>
             </div>
           </div>
         </div>

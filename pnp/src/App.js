@@ -1,5 +1,4 @@
-import './App.css';
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import Spline from '@splinetool/react-spline';
 import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
 import { motion } from 'framer-motion';
@@ -8,26 +7,10 @@ import PriceMarkets from './pages/PriceMarkets';
 import TokenMarket from './pages/TokenMarket';
 
 function HomePage() {
-  const [opacity, setOpacity] = useState(1);
-
-  const handleScroll = () => {
-    const scrollPosition = window.scrollY;
-    const maxScroll = window.innerHeight;
-    const newOpacity = Math.max(1 - scrollPosition / maxScroll, 0);
-    setOpacity(newOpacity);
-  };
-
-  useEffect(() => {
-    window.addEventListener('scroll', handleScroll);
-    return () => {
-      window.removeEventListener('scroll', handleScroll);
-    };
-  }, []);
-
   return (
     <div className="main-container">
       <div className="content">
-        <div className="title-container" style={{ opacity: opacity }}>
+        <div className="title-container">
           <motion.h1 className="title" initial={{ opacity: 0, y: -50 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8 }}>Permissionless</motion.h1>
           <motion.h1 className="title poppins-font" initial={{ opacity: 0, y: -50 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8, delay: 0.2 }}>Prediction</motion.h1>
           <motion.h1 className="title poppins-font" initial={{ opacity: 0, y: -50 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8, delay: 0.4 }}>Markets</motion.h1>
