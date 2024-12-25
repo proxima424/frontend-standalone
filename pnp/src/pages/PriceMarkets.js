@@ -14,6 +14,69 @@ const TOKEN_ADDRESSES = [
 
 const BASE_API_URL = 'https://api.geckoterminal.com/api/v2';
 
+const PredictionButton = ({ option, multiplier, isSelected, onClick }) => {
+  return (
+    <button
+      onClick={onClick}
+      className={`prediction-button ${isSelected ? 'selected' : ''}`}
+      option={option}
+    >
+      {option}
+      <span>x{multiplier}</span>
+    </button>
+  );
+};
+
+const WhiteRectangleContainer = () => {
+  const [selectedOption, setSelectedOption] = useState(null);
+  const [reserveAmount, setReserveAmount] = useState('');
+
+  // Placeholder data
+  const btcPrice = 30000;
+  const targetPrice = 35000;
+  const timeframe = 30;
+  const volume = 1000000;
+  const yesMultiplier = 5.6;
+  const noMultiplier = 4.2;
+
+  return (
+    <div className='white-rectangle-container'>
+      <h2 className='white-rectangle-title'>
+        Will $BTC reach ${targetPrice} by {timeframe} days?
+      </h2>
+      <p className='white-rectangle-current-price'>Current BTC Price: ${btcPrice}</p>
+      <div className='white-rectangle-button-container'>
+        <PredictionButton
+          option="YES"
+          multiplier={yesMultiplier}
+          isSelected={selectedOption === 'YES'}
+          onClick={() => setSelectedOption('YES')}
+        />
+        <PredictionButton
+          option="NO"
+          multiplier={noMultiplier}
+          isSelected={selectedOption === 'NO'}
+          onClick={() => setSelectedOption('NO')}
+        />
+      </div>
+      <div className='white-rectangle-input-container'>
+        <input
+          type="number"
+          placeholder="Reserve amount"
+          value={reserveAmount}
+          onChange={(e) => setReserveAmount(e.target.value)}
+          className='white-rectangle-input'
+        />
+        <button className='white-rectangle-add-reserve-button'>Add Reserve</button>
+      </div>
+      <div className='white-rectangle-footer'>
+        <span>Volume: ${volume.toLocaleString()}</span>
+        <button className='white-rectangle-settlement-button'>Price Settlement Module</button>
+      </div>
+    </div>
+  );
+};
+
 const PriceMarkets = () => {
   const [trendingPools, setTrendingPools] = useState([]);
   const [topPools, setTopPools] = useState([]);
@@ -86,69 +149,6 @@ const PriceMarkets = () => {
     navigate(`/price_markets/${tokenAddress}`);
   };
 
-  // Comment out or remove the TokenCarousel component
-  // const TokenCarousel = () => {
-  //   const [token, setToken] = useState(null);
-  //   const [prevToken, setPrevToken] = useState(null);
-  //   const [valueChanges, setValueChanges] = useState({
-  //     price: null,
-  //     marketCap: null,
-  //     fdv: null,
-  //     totalReserve: null
-  //   });
-  //   const [isInitialLoading, setIsInitialLoading] = useState(true);
-
-  //   const getNumericValue = (str) => {
-  //     if (!str) return null;
-  //     return parseFloat(str.replace(/[^0-9.-]+/g, ''));
-  //   };
-
-  //   const fetchTokenData = async () => {
-  //     try {
-  //       const response = await axios.get(`${BASE_API_URL}/networks/base/tokens/${TOKEN_ADDRESSES[0].address}`);
-  //       const { data } = response.data;
-  //       const { attributes } = data;
-        
-  //       if (attributes) {
-  //         setPrevToken(token);
-  //         const newTokenData = {
-  //           name: TOKEN_ADDRESSES[0].name,
-  //           symbol: attributes.symbol || token?.symbol,
-  //           price: attributes.price_usd ? 
-  //             `$${parseFloat(attributes.price_usd).toFixed(4)}` : 
-  //             token?.price,
-  //           marketCap: attributes.market_cap_usd ? 
-  //             `$${parseFloat(attributes.market_cap_usd).toLocaleString()}` : 
-  //             token?.marketCap,
-  //           fdv: attributes.fdv_usd ? 
-  //             `$${parseFloat(attributes.fdv_usd).toLocaleString()}` : 
-  //             token?.fdv,
-  //           totalReserve: attributes.total_reserve_in_usd ? 
-  //             `$${parseFloat(attributes.total_reserve_in_usd).toLocaleString()}` : 
-  //             token?.totalReserve
-  //         };
-
-  //         if (newTokenData.marketCap || newTokenData.fdv || newTokenData.totalReserve) {
-  //           const changes = {
-  //           };
-  //         }
-  //       }
-  //     } catch (error) {
-  //       console.error('Error fetching token data:', error);
-  //     }
-  //   };
-
-  //   useEffect(() => {
-  //     fetchTokenData();
-  //   }, []);
-
-  //   return (
-  //     <div className="token-carousel">
-  //       {/* Render token data here */}
-  //     </div>
-  //   );
-  // };
-
   if (loading) {
     return <div className="loading">Loading markets data...</div>;
   }
@@ -177,10 +177,7 @@ const PriceMarkets = () => {
         />
       </div>
       <div className="right-section">
-        <div className="white-rectangle-container">
-          {/* Remove the TokenCarousel component from the render */}
-          {/* <TokenCarousel /> */}
-        </div>
+        <WhiteRectangleContainer />
         <PoolsTable
           title={
             <div className="pools-table-title">

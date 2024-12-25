@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { FiRefreshCw, FiChevronDown, FiChevronUp, FiChevronsLeft, FiChevronsRight } from 'react-icons/fi';
+import { GiPodium } from 'react-icons/gi';
 import { useNavigate } from 'react-router-dom';
 import './PoolsTable.css';
 
@@ -65,17 +66,17 @@ const PoolsTable = ({ title, pools, timeframe, onRefresh, refreshing, variant = 
         onClick={handlePrevPage}
         disabled={currentPage === 0}
       >
-        <FiChevronsLeft />
+        <FiChevronDown className="rotate-90" />
       </button>
-      <span className="page-indicator">
-        Page {currentPage + 1} of {totalPages}
+      <span className="page-number">
+        {currentPage + 1}
       </span>
       <button 
         className="nav-btn"
         onClick={handleNextPage}
         disabled={currentPage === totalPages - 1}
       >
-        <FiChevronsRight />
+        <FiChevronDown className="rotate-270" />
       </button>
     </div>
   );
@@ -84,7 +85,10 @@ const PoolsTable = ({ title, pools, timeframe, onRefresh, refreshing, variant = 
     return (
       <div className="pools-plate-container">
         <div className="table-header">
-          <h2>{title}</h2>
+          <h2>
+            {title}
+            {variant === 'top' && <GiPodium className="podium-icon" />}
+          </h2>
           <div className="header-controls">
             <NavigationControls />
             <button 
@@ -144,7 +148,10 @@ const PoolsTable = ({ title, pools, timeframe, onRefresh, refreshing, variant = 
   return (
     <div className="pools-table-container">
       <div className="table-header">
-        <h2>{title}</h2>
+        <h2>
+          {title}
+          {variant === 'top' && <GiPodium className="podium-icon" />}
+        </h2>
         <div className="header-controls">
           <NavigationControls />
           <button 

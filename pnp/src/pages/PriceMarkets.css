@@ -479,11 +479,104 @@ tr:hover {
 }
 
 .white-rectangle-container {
-  background-color: white;
+  background-color: #111827;
   border-radius: 12px;
-  
-  min-height: 270px;
+  height: auto;
+  width: 100%; /* Adjusted to fit the container */
+  margin: 0 auto;
+  border: 2px solid #ec4899;
+  color: white;
+  font-family: 'Orbitron', sans-serif;
+  position: relative;
+  overflow: hidden;
+  padding: 1rem; /* Added padding for better spacing */
+}
+
+.white-rectangle-title {
+  font-size: 2rem;
+  text-align: center;
+  color: #f9a8d4;
+  margin-bottom: 1rem;
+  font-weight: 700;
+  text-shadow: 0 0 10px rgba(249, 168, 212, 0.3);
+}
+
+.white-rectangle-current-price {
+  font-size: 1.25rem;
+  margin-bottom: 1rem;
+  font-weight: 500;
+}
+
+.white-rectangle-button-container {
+  display: flex;
+  justify-content: center;
+  gap: 2rem;
+  margin: 1.5rem 0;
+  padding: 0 1rem;
+}
+
+.white-rectangle-prediction-button {
+  padding: 0.5rem 1rem;
+  border-radius: 0.5rem;
+  font-size: 1rem;
+  transition: all 0.3s ease;
+  cursor: pointer;
+  font-family: 'Orbitron', sans-serif;
+  font-weight: 600;
+  background-color: #1f2937; /* Default background */
+  color: #f9a8d4; /* Default text color */
+}
+
+.white-rectangle-prediction-button.selected {
+  background-color: #22c55e; /* Green for YES */
+  color: white;
+}
+
+.white-rectangle-input-container {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
   width: 100%;
+  justify-content: center;
+}
+
+.white-rectangle-input {
+  width: 60%;
+  padding: 0.5rem;
+  border-radius: 0.25rem;
+  background-color: #1f2937;
+  border: 1px solid #ec4899;
+  color: white;
+  font-family: 'Orbitron', sans-serif;
+}
+
+.white-rectangle-add-reserve-button {
+  background-color: #ec4899; /* Pink background */
+  color: white;
+  padding: 0.5rem 1rem;
+  border-radius: 0.5rem;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.white-rectangle-add-reserve-button:hover {
+  background-color: #d81b60; /* Darker pink on hover */
+}
+
+.white-rectangle-footer {
+  display: flex;
+  justify-content: space-between;
+  padding: 1rem;
+  font-size: 0.875rem;
+  color: #9ca3af;
+  font-weight: 400;
+}
+
+.white-rectangle-settlement-button {
+  background: transparent;
+  color: #ec4899; /* Pink text */
+  border: none;
+  cursor: pointer;
 }
 
 .carousel-container {
@@ -772,4 +865,92 @@ tr:hover {
 /* Add transition for smooth color changes */
 .stat span:last-child {
   transition: color 0.3s ease;
+}
+
+.prediction-button {
+  flex: 1;
+  padding: 0.75rem 1.5rem;
+  border-radius: 0.5rem;
+  font-size: 1.1rem;
+  transition: all 0.3s ease;
+  cursor: pointer;
+  font-family: 'Orbitron', sans-serif;
+  font-weight: 600;
+  border: none;
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.25rem;
+  min-width: 120px;
+}
+
+.prediction-button:before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(45deg, rgba(255,255,255,0.1), rgba(255,255,255,0));
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.prediction-button:hover:before {
+  opacity: 1;
+}
+
+.prediction-button.selected {
+  transform: scale(1.05);
+  box-shadow: 0 0 20px rgba(236, 72, 153, 0.3);
+}
+
+/* YES button specific styles */
+.prediction-button[option="YES"] {
+  background-color: #059669;
+  color: white;
+}
+
+.prediction-button[option="YES"]:hover {
+  background-color: #047857;
+}
+
+.prediction-button[option="YES"].selected {
+  background-color: #059669;
+  box-shadow: 0 0 20px rgba(5, 150, 105, 0.4);
+}
+
+/* NO button specific styles */
+.prediction-button[option="NO"] {
+  background-color: #dc2626;
+  color: white;
+}
+
+.prediction-button[option="NO"]:hover {
+  background-color: #b91c1c;
+}
+
+.prediction-button[option="NO"].selected {
+  background-color: #dc2626;
+  box-shadow: 0 0 20px rgba(220, 38, 38, 0.4);
+}
+
+/* Multiplier styles */
+.prediction-button span {
+  font-size: 0.9rem;
+  opacity: 0.9;
+  background: rgba(255, 255, 255, 0.1);
+  padding: 0.2rem 0.5rem;
+  border-radius: 0.25rem;
+  margin-top: 0.25rem;
+}
+
+.white-rectangle-button-container {
+  display: flex;
+  justify-content: center;
+  gap: 2rem;
+  margin: 1.5rem 0;
+  padding: 0 1rem;
 }
