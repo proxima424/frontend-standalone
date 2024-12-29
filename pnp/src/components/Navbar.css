@@ -88,7 +88,7 @@
 .moving-strip {
   width: 100%;
   height: 20px;
-  background-color: white;
+  background-color: black;
   overflow: hidden;
   position: relative;
 }
@@ -102,8 +102,8 @@
 .scroll-text span {
   display: inline-block;
   padding: 0 20px;
-  color: black;
-  font-size: 14px;
+  color: white;
+  font-size: 18px;
 }
 
 @keyframes scroll-left {
