@@ -106,7 +106,7 @@ const TokenMarket = () => {
           className="create-prediction-market-btn"
           onClick={() => setShowModal(true)}
         >
-          View Token Details
+          Create Prediction Market
         </button>
         <button 
           className="view-markets-btn"

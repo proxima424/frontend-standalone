@@ -72,7 +72,7 @@ function HomePage() {
                 }
               }}
             >
-              Create auto-settling prediction markets without any third party approval or fees or optimistic faith in the oracle.
+              <div>No orderbook, No illiquid markets.</div> <div> Trade your sentiments directly against the bonding curve permissionlesly</div>
             </motion.h2>
             <motion.div 
               className="button-container-land"

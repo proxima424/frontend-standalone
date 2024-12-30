@@ -29,49 +29,77 @@ const PredictionButton = ({ option, multiplier, isSelected, onClick }) => {
 
 const WhiteRectangleContainer = () => {
   const [selectedOption, setSelectedOption] = useState(null);
-  const [reserveAmount, setReserveAmount] = useState('');
+  const [collateral, setCollateral] = useState('');
 
   // Placeholder data
   const btcPrice = 30000;
-  const targetPrice = 35000;
+  const targetPrice = 150000;
   const timeframe = 30;
   const volume = 1000000;
   const yesMultiplier = 5.6;
   const noMultiplier = 4.2;
+  const poolAddress = "0x1234...ef99";
 
   return (
     <div className='white-rectangle-container'>
-      <h2 className='white-rectangle-title'>
-        Will $BTC reach ${targetPrice} by {timeframe} days?
-      </h2>
-      <p className='white-rectangle-current-price'>Current BTC Price: ${btcPrice}</p>
-      <div className='white-rectangle-button-container'>
-        <PredictionButton
-          option="YES"
-          multiplier={yesMultiplier}
-          isSelected={selectedOption === 'YES'}
-          onClick={() => setSelectedOption('YES')}
-        />
-        <PredictionButton
-          option="NO"
-          multiplier={noMultiplier}
-          isSelected={selectedOption === 'NO'}
-          onClick={() => setSelectedOption('NO')}
-        />
+      <div className='question-section'>
+        <h2 className='white-rectangle-title'>
+          Will <span>$BTC</span> reach ${targetPrice.toLocaleString()} by {timeframe} days?
+        </h2>
       </div>
-      <div className='white-rectangle-input-container'>
-        <input
-          type="number"
-          placeholder="Reserve amount"
-          value={reserveAmount}
-          onChange={(e) => setReserveAmount(e.target.value)}
-          className='white-rectangle-input'
-        />
-        <button className='white-rectangle-add-reserve-button'>Add Reserve</button>
+      
+      <div className='prediction-section'>
+        <div className='prediction-controls'>
+          <div className='options-section'>
+            <PredictionButton
+              option="YES"
+              multiplier={yesMultiplier}
+              isSelected={selectedOption === 'YES'}
+              onClick={() => setSelectedOption('YES')}
+            />
+            <PredictionButton
+              option="NO"
+              multiplier={noMultiplier}
+              isSelected={selectedOption === 'NO'}
+              onClick={() => setSelectedOption('NO')}
+            />
+          </div>
+
+          <div className='mint-controls'>
+            <input
+              type="number"
+              placeholder="Collateral Amount"
+              value={collateral}
+              onChange={(e) => setCollateral(e.target.value)}
+              className={`collateral-input ${!selectedOption ? 'disabled' : ''}`}
+              disabled={!selectedOption}
+            />
+            <button 
+              className={`mint-button ${!selectedOption ? 'disabled' : ''}`}
+              disabled={!selectedOption}
+            >
+              Mint Position
+            </button>
+          </div>
+        </div>
       </div>
-      <div className='white-rectangle-footer'>
-        <span>Volume: ${volume.toLocaleString()}</span>
-        <button className='white-rectangle-settlement-button'>Price Settlement Module</button>
+
+      <div className='footer-info'>
+        <div className='market-stats'>
+          <div className='volume-info'>24h Volume : ${volume.toLocaleString()}</div>
+          <div className='volume-info'>Current Price : <span className='price-color'>${btcPrice.toLocaleString()}</span></div>
+        </div>
+        <div className='pool-info'>
+          <span className='pool-label'>Pool tracked: </span>
+          <a 
+            href={`https://basescan.org/address/${poolAddress}`} 
+            target="_blank" 
+            rel="noopener noreferrer"
+            className='pool-address'
+          >
+            {poolAddress}
+          </a>
+        </div>
       </div>
     </div>
   );

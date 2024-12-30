@@ -11,6 +11,7 @@
   --spotify-dark-gray: #282828;
   --spotify-light-gray: #B3B3B3;
   --spotify-white: #FFFFFF;
+  --bitcoin-orange: #f7931a;
 }
 
 body {
@@ -479,104 +480,223 @@ tr:hover {
 }
 
 .white-rectangle-container {
-  background-color: #111827;
-  border-radius: 12px;
-  height: auto;
-  width: 100%; /* Adjusted to fit the container */
-  margin: 0 auto;
-  border: 2px solid #ec4899;
-  color: white;
-  font-family: 'Orbitron', sans-serif;
+  background: rgba(20, 20, 20, 0.7);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 24px;
+  padding: 1.8rem;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
   position: relative;
   overflow: hidden;
-  padding: 1rem; /* Added padding for better spacing */
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  height: 320px;
+}
+
+.question-section {
+  text-align: center;
+  margin-bottom: 1rem;
 }
 
 .white-rectangle-title {
-  font-size: 2rem;
-  text-align: center;
-  color: #f9a8d4;
-  margin-bottom: 1rem;
-  font-weight: 700;
-  text-shadow: 0 0 10px rgba(249, 168, 212, 0.3);
-}
-
-.white-rectangle-current-price {
-  font-size: 1.25rem;
-  margin-bottom: 1rem;
-  font-weight: 500;
-}
-
-.white-rectangle-button-container {
-  display: flex;
-  justify-content: center;
-  gap: 2rem;
-  margin: 1.5rem 0;
-  padding: 0 1rem;
-}
-
-.white-rectangle-prediction-button {
-  padding: 0.5rem 1rem;
-  border-radius: 0.5rem;
-  font-size: 1rem;
-  transition: all 0.3s ease;
-  cursor: pointer;
   font-family: 'Orbitron', sans-serif;
+  font-size: 1.7rem;
   font-weight: 600;
-  background-color: #1f2937; /* Default background */
-  color: #f9a8d4; /* Default text color */
-}
-
-.white-rectangle-prediction-button.selected {
-  background-color: #22c55e; /* Green for YES */
   color: white;
+  text-shadow: 0 0 10px rgba(255, 255, 255, 0.1);
+  letter-spacing: 0.5px;
+  line-height: 1.4;
+  text-align: center;
 }
 
-.white-rectangle-input-container {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-  width: 100%;
-  justify-content: center;
+.white-rectangle-title span {
+  color: var(--bitcoin-orange);
+  text-shadow: 0 0 10px rgba(247, 147, 26, 0.3);
 }
 
-.white-rectangle-input {
-  width: 60%;
-  padding: 0.5rem;
-  border-radius: 0.25rem;
-  background-color: #1f2937;
-  border: 1px solid #ec4899;
-  color: white;
+.current-price {
   font-family: 'Orbitron', sans-serif;
-}
-
-.white-rectangle-add-reserve-button {
-  background-color: #ec4899; /* Pink background */
+  font-size: 2rem;
+  font-weight: 700;
   color: white;
-  padding: 0.5rem 1rem;
-  border-radius: 0.5rem;
+  text-align: center;
+  background: linear-gradient(90deg, var(--bitcoin-orange), #ffd700);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  text-shadow: 0 0 20px rgba(247, 147, 26, 0.2);
+  margin-bottom: 1.5rem;
+}
+
+.prediction-section {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.prediction-controls {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 2rem;
+}
+
+.options-section {
+  display: flex;
+  justify-content: center;
+  gap: 1.5rem;
+}
+
+.prediction-button {
+  font-family: 'Orbitron', sans-serif;
+  padding: 0.8rem 3rem;
+  border: none;
+  border-radius: 12px;
+  color: white;
   cursor: pointer;
-  transition: background-color 0.3s;
+  transition: all 0.3s ease;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.4rem;
+  min-width: 140px;
+  position: relative;
+  overflow: hidden;
+  font-size: 1.1rem;
+  font-weight: 600;
+  letter-spacing: 1px;
 }
 
-.white-rectangle-add-reserve-button:hover {
-  background-color: #d81b60; /* Darker pink on hover */
+.prediction-button[option="YES"] {
+  background: rgba(16, 185, 129, 0.15);
+  border: 1px solid rgba(16, 185, 129, 0.3);
+  box-shadow: 0 0 20px rgba(16, 185, 129, 0.1);
 }
 
-.white-rectangle-footer {
+.prediction-button[option="YES"]:hover {
+  background: rgba(16, 185, 129, 0.25);
+  transform: translateY(-2px);
+  box-shadow: 0 0 30px rgba(16, 185, 129, 0.2);
+}
+
+.prediction-button[option="YES"].selected {
+  background: rgba(16, 185, 129, 0.35);
+  box-shadow: 0 0 40px rgba(16, 185, 129, 0.3);
+}
+
+.prediction-button[option="NO"] {
+  background: rgba(239, 68, 68, 0.15);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  box-shadow: 0 0 20px rgba(239, 68, 68, 0.1);
+}
+
+.prediction-button[option="NO"]:hover {
+  background: rgba(239, 68, 68, 0.25);
+  transform: translateY(-2px);
+  box-shadow: 0 0 30px rgba(239, 68, 68, 0.2);
+}
+
+.prediction-button[option="NO"].selected {
+  background: rgba(239, 68, 68, 0.35);
+  box-shadow: 0 0 40px rgba(239, 68, 68, 0.3);
+}
+
+.prediction-button span {
+  font-size: 0.9rem;
+  opacity: 0.9;
+  padding: 0.3rem 0.6rem;
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.1);
+  letter-spacing: normal;
+}
+
+.mint-controls {
+  display: flex;
+  gap: 1rem;
+}
+
+.collateral-input {
+  font-family: 'Orbitron', sans-serif;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  padding: 0.6rem 1rem;
+  color: white;
+  width: 150px;
+  font-size: 0.9rem;
+  transition: all 0.3s ease;
+}
+
+.collateral-input:focus {
+  outline: none;
+  border-color: var(--bitcoin-orange);
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.collateral-input::placeholder {
+  color: #666;
+}
+
+.collateral-input.disabled {
+  cursor: not-allowed;
+  opacity: 0.7;
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.mint-button {
+  font-family: 'Orbitron', sans-serif;
+  background: var(--bitcoin-orange);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  padding: 0.6rem 1.2rem;
+  cursor: pointer;
+  font-size: 0.9rem;
+  font-weight: 500;
+  transition: all 0.3s ease;
+}
+
+.mint-button:hover:not(.disabled) {
+  background: #ff9f2a;
+  transform: translateY(-2px);
+}
+
+.mint-button.disabled {
+  background: #995c1d;
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+
+.footer-info {
   display: flex;
   justify-content: space-between;
-  padding: 1rem;
-  font-size: 0.875rem;
-  color: #9ca3af;
-  font-weight: 400;
+  align-items: flex-end;
+  margin-top: 1rem;
 }
 
-.white-rectangle-settlement-button {
-  background: transparent;
-  color: #ec4899; /* Pink text */
-  border: none;
-  cursor: pointer;
+.market-stats {
+  display: flex;
+  flex-direction: column;
+  gap: 4 rem;
+}
+
+.volume-info {
+  font-family: 'Orbitron', sans-serif;
+  font-size: 0.9rem;
+  color: #888;
+}
+
+.price-color {
+  color: var(--bitcoin-orange);
+}
+
+.pool-info {
+  font-family: 'Orbitron', sans-serif;
+  font-size: 0.8rem;
+  color: #888;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
 }
 
 .carousel-container {
@@ -826,7 +946,7 @@ tr:hover {
   border: 3px solid rgba(29, 185, 84, 0.1);
   border-radius: 50%;
   border-top-color: #1DB954;
-  animation: spin 1s ease-in-out infinite;
+  animation: spin 1s linear infinite;
 }
 
 @keyframes spin {
@@ -865,86 +985,6 @@ tr:hover {
 /* Add transition for smooth color changes */
 .stat span:last-child {
   transition: color 0.3s ease;
-}
-
-.prediction-button {
-  flex: 1;
-  padding: 0.75rem 1.5rem;
-  border-radius: 0.5rem;
-  font-size: 1.1rem;
-  transition: all 0.3s ease;
-  cursor: pointer;
-  font-family: 'Orbitron', sans-serif;
-  font-weight: 600;
-  border: none;
-  position: relative;
-  overflow: hidden;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 0.25rem;
-  min-width: 120px;
-}
-
-.prediction-button:before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: linear-gradient(45deg, rgba(255,255,255,0.1), rgba(255,255,255,0));
-  opacity: 0;
-  transition: opacity 0.3s ease;
-}
-
-.prediction-button:hover:before {
-  opacity: 1;
-}
-
-.prediction-button.selected {
-  transform: scale(1.05);
-  box-shadow: 0 0 20px rgba(236, 72, 153, 0.3);
-}
-
-/* YES button specific styles */
-.prediction-button[option="YES"] {
-  background-color: #059669;
-  color: white;
-}
-
-.prediction-button[option="YES"]:hover {
-  background-color: #047857;
-}
-
-.prediction-button[option="YES"].selected {
-  background-color: #059669;
-  box-shadow: 0 0 20px rgba(5, 150, 105, 0.4);
-}
-
-/* NO button specific styles */
-.prediction-button[option="NO"] {
-  background-color: #dc2626;
-  color: white;
-}
-
-.prediction-button[option="NO"]:hover {
-  background-color: #b91c1c;
-}
-
-.prediction-button[option="NO"].selected {
-  background-color: #dc2626;
-  box-shadow: 0 0 20px rgba(220, 38, 38, 0.4);
-}
-
-/* Multiplier styles */
-.prediction-button span {
-  font-size: 0.9rem;
-  opacity: 0.9;
-  background: rgba(255, 255, 255, 0.1);
-  padding: 0.2rem 0.5rem;
-  border-radius: 0.25rem;
-  margin-top: 0.25rem;
 }
 
 .white-rectangle-button-container {
