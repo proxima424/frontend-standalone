@@ -4,6 +4,8 @@ import './index.css';
 import App from './App';
 import { PrivyProvider } from '@privy-io/react-auth';
 
+const ALCHEMY_API_KEY = process.env.REACT_APP_ALCHEMY_API_KEY ;
+
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(
   <React.StrictMode>
@@ -19,6 +21,12 @@ root.render(
         embeddedWallets: {
           createOnLogin: 'users-without-wallets',
         },
+        defaultChain: {
+          id: 8453,  // Base Mainnet chain ID
+          name: 'Base',
+          network: 'base',
+          rpcUrl: `https://base-mainnet.g.alchemy.com/v2/${ALCHEMY_API_KEY}`
+        }
       }}
     >
       <App />

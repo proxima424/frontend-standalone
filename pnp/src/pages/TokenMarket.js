@@ -15,6 +15,7 @@ const TokenMarket = () => {
   const [deadlineUnit, setDeadlineUnit] = useState("days"); // 'days' or 'hours'
   const [selectedToken, setSelectedToken] = useState("USDT");
   const [lastClickedPercentage, setLastClickedPercentage] = useState(null);
+  const [collateralAmount, setCollateralAmount] = useState('');
 
   useEffect(() => {
     const fetchTokenData = async () => {
@@ -58,10 +59,53 @@ const TokenMarket = () => {
     // TODO: Implement search functionality
   };
 
-  const handleCreatePredictionMarket = (e) => {
+  const handleCreatePredictionMarket = async (e) => {
     e.preventDefault();
-    // TODO: Implement prediction market creation logic
-    console.log('Prediction Market Form Data:');
+    
+    // Extract pool address from the top pools data
+    const poolAddress = tokenData?.relationships?.top_pools?.data[0]?.id?.replace('base_0x', '0x');
+    const tokenAddress = tokenData?.attributes?.address;
+    
+    // Convert deadline to seconds based on unit
+    const deadlineInSeconds = deadlineUnit === 'days' 
+      ? Number(deadlineValue) * 24 * 60 * 60 
+      : Number(deadlineValue) * 60 * 60;
+    
+    // Convert target price to wei format (multiply by 10^18)
+    const targetPriceInWei = ethers.parseUnits(targetPrice, 18);
+    
+    // Prepare market parameters array
+    const marketParams = [
+      targetPriceInWei,          // target price in wei
+      deadlineInSeconds,         // deadline in seconds
+      0                          // placeholder for any additional params if needed
+    ];
+
+    try {
+      const createMarketParams = {
+        collateralAmount: collateralAmount,
+        collateralToken: selectedToken,
+        tokenAddress: tokenAddress,
+        poolAddress: poolAddress,
+        marketParams: marketParams
+      };
+
+      console.log('Creating Prediction Market with params:', {
+        initialLiquidity: collateralAmount,
+        tokenInQuestion: tokenAddress,
+        moduleId: 1,
+        collateralToken: selectedToken,
+        marketParams: marketParams,
+        pool: poolAddress
+      });
+
+      // Call the createPredictionMarket function from usePnpFactory
+      // TODO: Add the actual contract call here
+      
+    } catch (error) {
+      console.error('Error creating prediction market:', error);
+    }
+    
     setShowModal(false);
   };
 
@@ -217,6 +261,8 @@ const TokenMarket = () => {
                     type="number"
                     placeholder="Enter amount"
                     className="modal-input"
+                    value={collateralAmount}
+                    onChange={(e) => setCollateralAmount(e.target.value)}
                   />
                   <div className="denomination-toggle">
                     <button 
@@ -236,7 +282,7 @@ const TokenMarket = () => {
               </div>
 
               {/* Create Market Button */}
-              <button className="create-market-button">
+              <button className="create-market-button" onClick={handleCreatePredictionMarket}>
                 Create Market
               </button>
             </div>

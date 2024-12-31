@@ -1,11 +1,30 @@
-import React from 'react';
+import React, { useState } from 'react';
 import './Navbar.css';
-import { usePrivy } from '@privy-io/react-auth';
+import { usePrivy, useWallets } from '@privy-io/react-auth';
 import { useNavigate } from 'react-router-dom';
 
 const Navbar = () => {
-  const { login, ready, authenticated } = usePrivy();
+  const { login, ready, authenticated, logout } = usePrivy();
+  const { wallets } = useWallets();
   const navigate = useNavigate();
+  const [showLogout, setShowLogout] = useState(false);
+
+  const truncateAddress = (address) => {
+    if (!address) return '';
+    return `${address.slice(0, 6)}...${address.slice(-4)}`;
+  };
+
+  const getWalletAddress = () => {
+    if (wallets && wallets.length > 0) {
+      return truncateAddress(wallets[0].address);
+    }
+    return '';
+  };
+
+  const handleLogout = async () => {
+    await logout();
+    setShowLogout(false);
+  };
 
   return (
     <nav className="navbar">
@@ -36,10 +55,27 @@ const Navbar = () => {
           <button className="nav-button">Twitter Markets</button>
         </div>
         <div className="navbar-right">
-          {ready && !authenticated && (
+          {ready && !authenticated ? (
             <button onClick={login} className="login-button">
               Login
             </button>
+          ) : (
+            <div className="wallet-container">
+              <button 
+                className="login-button address-button"
+                onClick={() => setShowLogout(!showLogout)}
+              >
+                {getWalletAddress()}
+              </button>
+              {showLogout && (
+                <button 
+                  className="logout-button"
+                  onClick={handleLogout}
+                >
+                  Logout
+                </button>
+              )}
+            </div>
           )}
         </div>
       </div>

@@ -87,7 +87,7 @@ function HomePage() {
                 }
               }}
             >
-              <a className="btn-primary" href="/trade">Start Trading</a>
+              <a className="btn-primary" href="/price_markets">Start Trading</a>
               <a className="btn-secondary" href="/dashboard">View Dashboard</a>
             </motion.div>
           </motion.div>

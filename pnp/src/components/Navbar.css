@@ -112,7 +112,13 @@
   font-size: 18px;
   text-transform: uppercase;
   letter-spacing: 2px;
-  padding: 10px 20px;
+  padding: 8px 16px;
+  min-width: 120px;
+  max-width: 160px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-family: 'Courier New', monospace;
   border: 2px solid white;
   background: transparent;
   color: white;
@@ -124,6 +130,40 @@
   background: white;
   color: black;
   text-shadow: none;
+}
+
+.address-button {
+  font-size: 0.9em;
+  letter-spacing: 0.5px;
+}
+
+.wallet-container {
+  position: relative;
+  display: inline-block;
+}
+
+.logout-button {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  margin-top: 4px;
+  padding: 8px 16px;
+  background: #1a1a1a;
+  border: 2px solid white;
+  color: white;
+  cursor: pointer;
+  font-size: 16px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  transition: all 0.3s ease;
+  width: 100%;
+  z-index: 1000;
+}
+
+.logout-button:hover {
+  background: white;
+  color: black;
 }
 
 .moving-strip {
