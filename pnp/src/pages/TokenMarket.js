@@ -224,8 +224,11 @@ const TokenMarket = () => {
       // Convert collateral amount to wei (assuming 6 decimals for USDC/USDT)
       const collateralInWei = ethers.parseUnits(collateralAmount, 6);
 
+      // Convert expiry timestamp to ethers BigNumber
+      const expiryBigNumber = ethers.getBigInt(expiryTimestamp);
+
       // Prepare market parameters array (just price and expiry)
-      const marketParams = [targetPriceInWei, BigInt(expiryTimestamp)];
+      const marketParams = [targetPriceInWei, expiryBigNumber];
 
       console.log('Creating market with params:', {
         initialLiquidity: collateralInWei.toString(),
