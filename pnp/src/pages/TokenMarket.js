@@ -2,6 +2,15 @@ import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { ethers } from 'ethers';
 import './TokenMarket.css';
+import { getPoolAddressFromTokenData, getPriceFromModule } from '../contracts/priceModule';
+import { usePrivy } from '@privy-io/react-auth';
+import { usePnpFactory } from '../hooks/usePnpFactory';
+
+const PRICE_MODULE_ADDRESS = "0x400695188F9dd5d8EA2b45Af8Ce086E0181832dd";
+const TOKEN_ADDRESSES = {
+  USDT: "0xfde4C96c8593536E31F229EA8f37b2ADa2699bb2",
+  USDC: "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913"
+};
 
 const TokenMarket = () => {
   const { address } = useParams();
@@ -11,19 +20,128 @@ const TokenMarket = () => {
   const [error, setError] = useState(null);
   const [showModal, setShowModal] = useState(false);
   const [latestBlockNumber, setLatestBlockNumber] = useState('');
-  const [targetPrice, setTargetPrice] = useState("");
   const [deadlineValue, setDeadlineValue] = useState("");
-  const [deadlineUnit, setDeadlineUnit] = useState("days"); // 'days' or 'hours'
+  const [deadlineUnit, setDeadlineUnit] = useState("days");
   const [selectedToken, setSelectedToken] = useState("USDT");
   const [lastClickedPercentage, setLastClickedPercentage] = useState(null);
   const [collateralAmount, setCollateralAmount] = useState('');
+  const [targetPrice, setTargetPrice] = useState(""); 
+  const [priceChangePercent, setPriceChangePercent] = useState('');
+  const [currentPrice, setCurrentPrice] = useState(null);
+  const [calculatedTargetPrice, setCalculatedTargetPrice] = useState(null);
+  
+  // Get all required Privy hooks
+  const { 
+    ready,
+    authenticated,
+    user,
+    login,
+    connectWallet,
+    createWallet
+  } = usePrivy();
+
+  // Add PnP Factory hook
+  const { createPredictionMarket } = usePnpFactory();
+
+  // Handle wallet connection
+  const ensureWalletConnection = async () => {
+    try {
+      if (!authenticated) {
+        console.log("Not authenticated, logging in...");
+        await login();
+        return;
+      }
+
+      if (!user?.wallet) {
+        console.log("No wallet, connecting...");
+        await connectWallet();
+        return;
+      }
+
+      console.log("Wallet status:", {
+        authenticated,
+        hasWallet: !!user?.wallet,
+        hasProvider: !!user?.wallet?.provider
+      });
+    } catch (error) {
+      console.error("Error ensuring wallet connection:", error);
+      setError("Failed to connect wallet: " + error.message);
+    }
+  };
+
+  // Check wallet connection on component mount
+  useEffect(() => {
+    if (ready) {
+      ensureWalletConnection();
+    }
+  }, [ready, authenticated, user]);
+
+  // Update prices when percentage changes
+  const updatePrices = async () => {
+    try {
+      if (!user?.wallet?.provider) {
+        await ensureWalletConnection();
+        return;
+      }
+
+      if (!tokenData || !priceChangePercent) {
+        console.warn('Missing required data for price update:', {
+          hasTokenData: !!tokenData,
+          hasPriceChange: !!priceChangePercent,
+        });
+        return;
+      }
+
+      setLoading(true);
+
+      const provider = user.wallet.provider;
+      console.log("Using provider:", provider);
+
+      const price = await getPriceFromModule(
+        PRICE_MODULE_ADDRESS,
+        tokenData,
+        provider
+      );
+
+      const currentPriceInEth = ethers.formatUnits(price, 18);
+      setCurrentPrice(currentPriceInEth);
+
+      const multiplier = 1 + (parseFloat(priceChangePercent) / 100);
+      const targetPrice = parseFloat(currentPriceInEth) * multiplier;
+      setCalculatedTargetPrice(targetPrice);
+      setTargetPrice(targetPrice.toString()); 
+
+      console.log('Price Data Updated:', {
+        currentPrice: currentPriceInEth,
+        percentageChange: priceChangePercent + '%',
+        calculatedTargetPrice: targetPrice
+      });
+    } catch (error) {
+      console.error('Error updating prices:', error);
+      setError(error.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Update prices when percentage changes or provider becomes available
+  useEffect(() => {
+    if (ready && authenticated && user?.wallet?.provider && tokenData && priceChangePercent) {
+      updatePrices();
+    }
+  }, [ready, authenticated, user?.wallet?.provider, tokenData, priceChangePercent]);
+
+  const calculatePercentagePrice = (percentage) => {
+    setPriceChangePercent(percentage.toString());
+    setLastClickedPercentage(percentage);
+  };
 
   useEffect(() => {
     const fetchTokenData = async () => {
       try {
         const response = await fetch(`https://api.geckoterminal.com/api/v2/networks/base/tokens/${address}`);
         const data = await response.json();
-        console.log('Token Data:', data.data); // Log the response data
+        console.log('Token Data:', data.data); 
         setTokenData(data.data);
         setLoading(false);
       } catch (err) {
@@ -33,16 +151,15 @@ const TokenMarket = () => {
       }
     };
 
-    fetchTokenData(); // Initial fetch
-    const intervalId = setInterval(fetchTokenData, 5000); // Fetch every 5 seconds
+    fetchTokenData(); 
+    const intervalId = setInterval(fetchTokenData, 5000); 
 
-    return () => clearInterval(intervalId); // Cleanup on unmount
+    return () => clearInterval(intervalId); 
   }, [address]);
 
   useEffect(() => {
     const fetchLatestBlockNumber = async () => {
       try {
-        // Simulate fetching the latest block number
         const blockNumber = await fetchLatestBlockNumberFromAPI();
         setLatestBlockNumber(blockNumber);
       } catch (err) {
@@ -50,77 +167,106 @@ const TokenMarket = () => {
       }
     };
 
-    const intervalId = setInterval(fetchLatestBlockNumber, 5000); // Update every 5 seconds
+    const intervalId = setInterval(fetchLatestBlockNumber, 5000); 
 
-    return () => clearInterval(intervalId); // Cleanup on unmount
+    return () => clearInterval(intervalId); 
   }, []);
 
   const handleSearch = (e) => {
     e.preventDefault();
-    // TODO: Implement search functionality
   };
 
   const handleCreatePredictionMarket = async (e) => {
     e.preventDefault();
     
-    // Extract pool address from the top pools data
-    const poolAddress = tokenData?.relationships?.top_pools?.data[0]?.id?.replace('base_0x', '0x');
-    const tokenAddress = tokenData?.attributes?.address;
-    
-    // Convert deadline to seconds based on unit
-    const deadlineInSeconds = deadlineUnit === 'days' 
-      ? Number(deadlineValue) * 24 * 60 * 60 
-      : Number(deadlineValue) * 60 * 60;
-    
-    // Convert target price to wei format (multiply by 10^18)
-    const targetPriceInWei = ethers.parseUnits(targetPrice, 18);
-    
-    // Prepare market parameters array
-    const marketParams = [
-      targetPriceInWei,          // target price in wei
-      deadlineInSeconds,         // deadline in seconds
-      0                          // placeholder for any additional params if needed
-    ];
-
     try {
-      const createMarketParams = {
-        collateralAmount: collateralAmount,
-        collateralToken: selectedToken,
-        tokenAddress: tokenAddress,
-        poolAddress: poolAddress,
-        marketParams: marketParams
-      };
+      if (!user?.wallet?.provider) {
+        await ensureWalletConnection();
+        return;
+      }
 
-      console.log('Creating Prediction Market with params:', {
-        initialLiquidity: collateralAmount,
-        tokenInQuestion: tokenAddress,
+      if (!calculatedTargetPrice) {
+        console.error('Target price not calculated. Please set a price change percentage.');
+        setError('Please set a price change percentage');
+        return;
+      }
+
+      if (!collateralAmount || parseFloat(collateralAmount) <= 0) {
+        setError('Please enter a valid collateral amount');
+        return;
+      }
+
+      setLoading(true);
+      setError(null);
+
+      const poolAddress = getPoolAddressFromTokenData(tokenData);
+      
+      // Convert deadline to seconds and validate
+      const deadlineInSeconds = deadlineUnit === 'days' 
+        ? Number(deadlineValue) * 24 * 60 * 60
+        : Number(deadlineValue) * 60 * 60;
+
+      if (deadlineInSeconds <= 0) {
+        throw new Error('Invalid deadline value');
+      }
+
+      // Get current timestamp and validate deadline is in future
+      const currentTimestamp = Math.floor(Date.now() / 1000);
+      const expiryTimestamp = currentTimestamp + deadlineInSeconds;
+      
+      if (expiryTimestamp <= currentTimestamp) {
+        throw new Error('Deadline must be in the future');
+      }
+
+      // Convert target price to wei
+      const targetPriceInWei = ethers.parseUnits(calculatedTargetPrice.toString(), 18);
+      
+      // Convert collateral amount to wei (assuming 6 decimals for USDC/USDT)
+      const collateralInWei = ethers.parseUnits(collateralAmount, 6);
+
+      // Prepare market parameters array (just price and expiry)
+      const marketParams = [targetPriceInWei, BigInt(expiryTimestamp)];
+
+      console.log('Creating market with params:', {
+        initialLiquidity: collateralInWei.toString(),
+        tokenInQuestion: tokenData?.attributes?.address,
         moduleId: 1,
-        collateralToken: selectedToken,
-        marketParams: marketParams,
+        collateralToken: TOKEN_ADDRESSES[selectedToken],
+        marketParams: marketParams.map(p => p.toString()),
         pool: poolAddress
       });
 
-      // Call the createPredictionMarket function from usePnpFactory
-      // TODO: Add the actual contract call here
+      // Call the contract
+      const tx = await createPredictionMarket(
+        collateralInWei,
+        tokenData?.attributes?.address,
+        1, // moduleId for price module
+        TOKEN_ADDRESSES[selectedToken],
+        marketParams,
+        poolAddress
+      );
+
+      console.log('Transaction sent:', tx.hash);
       
+      // Wait for transaction confirmation
+      const receipt = await tx.wait();
+      console.log('Transaction confirmed:', receipt);
+
+      // Show success message
+      setError(null);
+      alert('Market created successfully!');
+      setShowModal(false);
+
     } catch (error) {
       console.error('Error creating prediction market:', error);
+      setError(error.message || 'Failed to create market. Please try again.');
+    } finally {
+      setLoading(false);
     }
-    
-    setShowModal(false);
   };
 
-  // Simulate fetching the latest block number
   const fetchLatestBlockNumberFromAPI = async () => {
-    // This is a placeholder function. Replace with actual API call.
     return '1234567';
-  };
-
-  const calculatePercentagePrice = (percentage) => {
-    const currentPrice = parseFloat(tokenData?.attributes?.price_usd || 0);
-    const newPrice = currentPrice * (1 + percentage / 100);
-    setTargetPrice(newPrice.toFixed(8));
-    setLastClickedPercentage(percentage);
   };
 
   const handleQuickAdd = (value) => {
@@ -134,167 +280,160 @@ const TokenMarket = () => {
   if (error) return <div className="error">{error}</div>;
 
   return (
-    <div>
-      <div className="chart-container">
-        <iframe
-          id="geckoterminal-embed"
-          title="GeckoTerminal Embed"
-          src={`https://www.geckoterminal.com/base/pools/${address}?embed=1&info=1&swaps=0&grayscale=0&light_chart=0`}
-          frameBorder="0"
-          allow="clipboard-write"
-          allowFullScreen
-          className="chart-iframe"
-        ></iframe>
-      </div>
-      <div className="button-container">
-        <button 
-          className="create-prediction-market-btn"
-          onClick={() => setShowModal(true)}
-        >
-          Create Prediction Market
-        </button>
-        <button 
-          className="view-markets-btn"
-        >
-          View Existing Markets
-        </button>
-      </div>
+    <div className="token-market-container">
+      {!authenticated ? (
+        <div className="connect-wallet-prompt">
+          <h2>Please connect your wallet</h2>
+          <button onClick={ensureWalletConnection}>Connect Wallet</button>
+        </div>
+      ) : (
+        <div>
+          <div className="chart-container">
+            <iframe
+              id="geckoterminal-embed"
+              title="GeckoTerminal Embed"
+              src={`https://www.geckoterminal.com/base/pools/${address}?embed=1&info=1&swaps=0&grayscale=0&light_chart=0`}
+              frameBorder="0"
+              allow="clipboard-write"
+              allowFullScreen
+              className="chart-iframe"
+            ></iframe>
+          </div>
+          <div className="button-container">
+            <button 
+              className="create-prediction-market-btn"
+              onClick={() => setShowModal(true)}
+            >
+              Create Prediction Market
+            </button>
+            <button 
+              className="view-markets-btn"
+            >
+              View Existing Markets
+            </button>
+          </div>
 
-      {/* Modal */}
-      {showModal && (
-        <div className="modal-overlay">
-          <div className="modal-content">
-            <div className="modal-inner">
-              {/* Header */}
-              <div className="modal-header">
-                <h2 className="modal-title">Token Details</h2>
-                <button 
-                  onClick={() => setShowModal(false)}
-                  className="modal-close-button"
-                >
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <line x1="18" y1="6" x2="6" y2="18"></line>
-                    <line x1="6" y1="6" x2="18" y2="18"></line>
-                  </svg>
-                </button>
-              </div>
-
-              {/* Token Info */}
-              <div className="token-grid">
-                <p className="font-medium">{tokenData?.attributes?.name || 'Loading...'}</p>
-                <p className="font-medium text-right">${tokenData?.attributes?.price_usd || '0.00'}</p>
-              </div>
-
-              {/* Target Price */}
-              <div className="input-group">
-                <label className="input-label">Target Price</label>
-                <div className="input-container">
-                  <input 
-                    type="number"
-                    placeholder="Enter target price"
-                    className="modal-input"
-                    value={targetPrice}
-                    onChange={(e) => {
-                      setTargetPrice(e.target.value);
-                      setLastClickedPercentage(null);
-                    }}
-                  />
-                  <div className="percentage-buttons">
+          {showModal && (
+            <div className="modal-overlay">
+              <div className="modal-content">
+                <div className="modal-inner">
+                  <div className="modal-header">
+                    <h2 className="modal-title">Token Details</h2>
                     <button 
-                      className={`percentage-button ${lastClickedPercentage === 5 ? 'active' : ''}`}
-                      onClick={() => calculatePercentagePrice(5)}
+                      onClick={() => setShowModal(false)}
+                      className="modal-close-button"
                     >
-                      +5%
-                    </button>
-                    <button 
-                      className={`percentage-button ${lastClickedPercentage === -5 ? 'active' : ''}`}
-                      onClick={() => calculatePercentagePrice(-5)}
-                    >
-                      -5%
+                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <line x1="18" y1="6" x2="6" y2="18"></line>
+                        <line x1="6" y1="6" x2="18" y2="18"></line>
+                      </svg>
                     </button>
                   </div>
-                </div>
-              </div>
 
-              {/* Deadline */}
-              <div className="input-group">
-                <label className="input-label">Deadline</label>
-                <div className="deadline-container">
-                  <div className="deadline-input-group">
-                    <input 
-                      type="number"
-                      placeholder="Enter duration"
-                      className="deadline-input"
-                      value={deadlineValue}
-                      onChange={(e) => setDeadlineValue(e.target.value)}
-                    />
-                    <div className="denomination-toggle">
-                      <button 
-                        className={`denomination-button ${deadlineUnit === 'days' ? 'active' : ''}`}
-                        onClick={() => setDeadlineUnit('days')}
-                      >
-                        days
-                      </button>
-                      <button 
-                        className={`denomination-button ${deadlineUnit === 'hours' ? 'active' : ''}`}
-                        onClick={() => setDeadlineUnit('hours')}
-                      >
-                        hours
-                      </button>
+                  <div className="token-grid">
+                    <p className="font-medium">{tokenData?.attributes?.name || 'Loading...'}</p>
+                    <p className="font-medium text-right">${tokenData?.attributes?.price_usd || '0.00'}</p>
+                  </div>
+
+                  <div className="input-group">
+                    <label className="input-label">Target Price Change (%)</label>
+                    <div className="input-container">
+                      <input 
+                        type="number"
+                        placeholder="Enter target price change in %"
+                        className="modal-input"
+                        value={priceChangePercent}
+                        onChange={(e) => setPriceChangePercent(e.target.value)}
+                      />
                     </div>
                   </div>
-                  <div className="quick-add-container">
-                    <button className="quick-add-button" onClick={() => handleQuickAdd(1)}>+1</button>
-                    <button className="quick-add-button" onClick={() => handleQuickAdd(2)}>+2</button>
-                    <button className="quick-add-button" onClick={() => handleQuickAdd(3)}>+3</button>
-                    <button className="quick-add-button" onClick={() => handleQuickAdd(5)}>+5</button>
-                    <button className="quick-add-button" onClick={() => handleQuickAdd(7)}>+7</button>
-                    <button className="quick-add-button" onClick={() => handleQuickAdd(12)}>+12</button>
+
+                  {currentPrice && (
+                    <div className="price-info">
+                      <h3>Price Information (Testing)</h3>
+                      <p>Current Price: {currentPrice} ETH</p>
+                      <p>Target Price Change: {priceChangePercent}%</p>
+                      <p>Calculated Target Price: {calculatedTargetPrice} ETH</p>
+                    </div>
+                  )}
+
+                  <div className="input-group">
+                    <label className="input-label">Deadline</label>
+                    <div className="deadline-container">
+                      <div className="deadline-input-group">
+                        <input 
+                          type="number"
+                          placeholder="Enter duration"
+                          className="deadline-input"
+                          value={deadlineValue}
+                          onChange={(e) => setDeadlineValue(e.target.value)}
+                        />
+                        <div className="denomination-toggle">
+                          <button 
+                            className={`denomination-button ${deadlineUnit === 'days' ? 'active' : ''}`}
+                            onClick={() => setDeadlineUnit('days')}
+                          >
+                            days
+                          </button>
+                          <button 
+                            className={`denomination-button ${deadlineUnit === 'hours' ? 'active' : ''}`}
+                            onClick={() => setDeadlineUnit('hours')}
+                          >
+                            hours
+                          </button>
+                        </div>
+                      </div>
+                      <div className="quick-add-container">
+                        <button className="quick-add-button" onClick={() => handleQuickAdd(1)}>+1</button>
+                        <button className="quick-add-button" onClick={() => handleQuickAdd(2)}>+2</button>
+                        <button className="quick-add-button" onClick={() => handleQuickAdd(3)}>+3</button>
+                        <button className="quick-add-button" onClick={() => handleQuickAdd(5)}>+5</button>
+                        <button className="quick-add-button" onClick={() => handleQuickAdd(7)}>+7</button>
+                        <button className="quick-add-button" onClick={() => handleQuickAdd(12)}>+12</button>
+                      </div>
+                    </div>
                   </div>
+
+                  <div className="input-group">
+                    <label className="input-label">Collateral Amount</label>
+                    <div className="input-container">
+                      <input 
+                        type="number"
+                        placeholder="Enter amount"
+                        className="modal-input"
+                        value={collateralAmount}
+                        onChange={(e) => setCollateralAmount(e.target.value)}
+                      />
+                      <div className="denomination-toggle">
+                        <button 
+                          className={`denomination-button ${selectedToken === 'USDT' ? 'active' : ''}`}
+                          onClick={() => setSelectedToken('USDT')}
+                        >
+                          USDT
+                        </button>
+                        <button 
+                          className={`denomination-button ${selectedToken === 'USDC' ? 'active' : ''}`}
+                          onClick={() => setSelectedToken('USDC')}
+                        >
+                          USDC
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+
+                  <button className="create-market-button" onClick={handleCreatePredictionMarket}>
+                    Create Market
+                  </button>
                 </div>
               </div>
-
-              {/* Collateral */}
-              <div className="input-group">
-                <label className="input-label">Collateral Amount</label>
-                <div className="input-container">
-                  <input 
-                    type="number"
-                    placeholder="Enter amount"
-                    className="modal-input"
-                    value={collateralAmount}
-                    onChange={(e) => setCollateralAmount(e.target.value)}
-                  />
-                  <div className="denomination-toggle">
-                    <button 
-                      className={`denomination-button ${selectedToken === 'USDT' ? 'active' : ''}`}
-                      onClick={() => setSelectedToken('USDT')}
-                    >
-                      USDT
-                    </button>
-                    <button 
-                      className={`denomination-button ${selectedToken === 'USDC' ? 'active' : ''}`}
-                      onClick={() => setSelectedToken('USDC')}
-                    >
-                      USDC
-                    </button>
-                  </div>
-                </div>
-              </div>
-
-              {/* Create Market Button */}
-              <button className="create-market-button" onClick={handleCreatePredictionMarket}>
-                Create Market
-              </button>
             </div>
-          </div>
+          )}
         </div>
       )}
     </div>
   );
 };
 
-// Utility function to format large numbers
 const formatNumber = (num) => {
   if (!num) return '0';
   if (num >= 1e9) return (num / 1e9).toFixed(2) + 'B';

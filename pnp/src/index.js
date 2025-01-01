@@ -11,6 +11,7 @@ root.render(
   <React.StrictMode>
     <PrivyProvider
       appId={"cm4cc8vai032fs70fpbyqyy1o"}
+      
       config={{
         loginMethods: ['email', 'wallet'],
         appearance: {
@@ -28,6 +29,7 @@ root.render(
           rpcUrl: `https://base-mainnet.g.alchemy.com/v2/${ALCHEMY_API_KEY}`
         }
       }}
+      
     >
       <App />
     </PrivyProvider>
