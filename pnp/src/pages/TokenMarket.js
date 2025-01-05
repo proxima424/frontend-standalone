@@ -5,8 +5,11 @@ import './TokenMarket.css';
 import { getPoolAddressFromTokenData, getPriceFromModule } from '../contracts/priceModule';
 import { usePrivy } from '@privy-io/react-auth';
 import { usePnpFactory } from '../hooks/usePnpFactory';
+import { predictionMarketABI } from '../contracts/predictionMarketABI';
+import { priceCheckerABI } from '../contracts/priceCheckerABI';
 
-const PRICE_MODULE_ADDRESS = "0x400695188F9dd5d8EA2b45Af8Ce086E0181832dd";
+const PRICE_MODULE_ADDRESS = "0x51242F79e60e380125DE602b17E792c8eE2bcAae";
+const PRICE_CHECKER_ADDRESS = "0x0000000000cDC1F8d393415455E382c30FBc0a84";
 const TOKEN_ADDRESSES = {
   USDT: "0xfde4C96c8593536E31F229EA8f37b2ADa2699bb2",
   USDC: "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913"
@@ -28,7 +31,12 @@ const TokenMarket = () => {
   const [targetPrice, setTargetPrice] = useState(""); 
   const [priceChangePercent, setPriceChangePercent] = useState('');
   const [currentPrice, setCurrentPrice] = useState(null);
+  const [onChainPrice, setOnChainPrice] = useState(null);
   const [calculatedTargetPrice, setCalculatedTargetPrice] = useState(null);
+  const [contracts, setContracts] = useState({
+    predictionMarket: null,
+    priceChecker: null
+  });
   
   // Get all required Privy hooks
   const { 
@@ -42,6 +50,114 @@ const TokenMarket = () => {
 
   // Add PnP Factory hook
   const { createPredictionMarket } = usePnpFactory();
+
+  useEffect(() => {
+    const initializeContracts = async () => {
+      if (authenticated && user?.wallet) {
+        try {
+          console.log('Starting contract initialization with user:', user);
+          
+          // Get the wallets
+          const wallets = await user.getWallets();
+          console.log('Available wallets:', wallets);
+          
+          const firstWallet = wallets[0];
+          console.log('Using first wallet:', firstWallet);
+          
+          // Get provider and signer
+          const provider = await firstWallet.getEthersProvider();
+          console.log('Got provider:', provider);
+          
+          const signer = await firstWallet.getEthersSigner();
+          console.log('Got signer:', signer);
+          
+          // Get wallet address
+          const address = await signer.getAddress();
+          console.log('Wallet address:', address);
+
+          console.log('Contract addresses:', {
+            PRICE_MODULE_ADDRESS,
+            PRICE_CHECKER_ADDRESS
+          });
+
+          const predictionMarket = new ethers.Contract(PRICE_MODULE_ADDRESS, predictionMarketABI, provider);
+          console.log('Prediction Market contract initialized:', predictionMarket);
+          
+          const priceChecker = new ethers.Contract(PRICE_CHECKER_ADDRESS, priceCheckerABI, signer);
+          console.log('Price Checker contract initialized:', priceChecker);
+          
+          setContracts({
+            predictionMarket,
+            priceChecker
+          });
+          console.log('Contracts set in state successfully');
+          
+        } catch (error) {
+          console.error('Error in contract initialization:', error);
+          console.error('Error details:', {
+            name: error.name,
+            message: error.message,
+            stack: error.stack,
+            code: error.code
+          });
+        }
+      } else {
+        console.log('Not initializing contracts:', {
+          authenticated,
+          hasWallet: !!user?.wallet
+        });
+      }
+    };
+
+    initializeContracts();
+  }, [authenticated, user]);
+
+  // Fetch on-chain price using priceChecker contract
+  const fetchOnChainPrice = async () => {
+    if (!contracts.priceChecker || !address) {
+      console.log('Cannot fetch price:', {
+        hasContract: !!contracts.priceChecker,
+        address: address
+      });
+      return;
+    }
+
+    try {
+      console.log('Fetching on-chain price for token:', address);
+      console.log('Using price checker contract:', contracts.priceChecker);
+      
+      const [price, description] = await contracts.priceChecker.checkPrice(address);
+      console.log('Contract call successful');
+      console.log('Raw price from contract:', price.toString());
+      console.log('Description from contract:', description);
+      
+      const priceInEth = ethers.formatUnits(price, 18);
+      console.log('Formatted price in ETH:', priceInEth);
+      
+      setOnChainPrice(priceInEth);
+      console.log('Price set in state successfully');
+      
+    } catch (error) {
+      console.error('Error fetching on-chain price:', error);
+      console.error('Error details:', {
+        name: error.name,
+        message: error.message,
+        stack: error.stack,
+        code: error.code,
+        data: error.data
+      });
+    }
+  };
+
+  // Call fetchOnChainPrice when contracts are initialized or address changes
+  useEffect(() => {
+    if (contracts.priceChecker && address) {
+      fetchOnChainPrice();
+      // Refresh price every 30 seconds
+      const interval = setInterval(fetchOnChainPrice, 30000);
+      return () => clearInterval(interval);
+    }
+  }, [contracts.priceChecker, address]);
 
   // Handle wallet connection
   const ensureWalletConnection = async () => {
@@ -353,10 +469,25 @@ const TokenMarket = () => {
 
                   {currentPrice && (
                     <div className="price-info">
-                      <h3>Price Information (Testing)</h3>
-                      <p>Current Price: {currentPrice} ETH</p>
-                      <p>Target Price Change: {priceChangePercent}%</p>
-                      <p>Calculated Target Price: {calculatedTargetPrice} ETH</p>
+                      <h3>Price Information</h3>
+                      <p>
+                        <span className="label">Current Price (CoinGecko):</span>
+                        <span className="value">{currentPrice} ETH</span>
+                      </p>
+                      <p>
+                        <span className="label">Target Price Change:</span>
+                        <span className="value">{priceChangePercent}%</span>
+                      </p>
+                      <p>
+                        <span className="label">Calculated Target Price:</span>
+                        <span className="value">{calculatedTargetPrice} ETH</span>
+                      </p>
+                      <div className="onchain-price">
+                        <p>
+                          <span className="label">Uniswap On-chain Price:</span>
+                          <span className="value">{onChainPrice ? `${onChainPrice} ETH` : 'Loading...'}</span>
+                        </p>
+                      </div>
                     </div>
                   )}
 

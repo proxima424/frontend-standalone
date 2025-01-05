@@ -6,6 +6,7 @@ import { motion } from 'framer-motion';
 import Navbar from './components/Navbar';
 import PriceMarkets from './pages/PriceMarkets';
 import TokenMarket from './pages/TokenMarket';
+import Testing from './pages/Testing';
 
 function HomePage() {
   return (
@@ -110,6 +111,7 @@ function App() {
         <Route path="/price_markets" element={<PriceMarkets />} />
         <Route path="/price_markets/:address" element={<TokenMarket />} />
         <Route path="/token/:tokenAddress" element={<Spline scene="https://prod.spline.design/DgI5mbX9cHYbIT7F/scene.splinecode" />} />
+        <Route path="/testing" element={<Testing />} />
       </Routes>
     </Router>
   );

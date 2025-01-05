@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "dependencies": {
-    "@privy-io/react-auth": "^1.40.3",
+    "@privy-io/react-auth": "^1.99.0",
     "@splinetool/react-spline": "^4.0.0",
     "@splinetool/runtime": "^1.9.48",
     "@uniswap/sdk-core": "^4.0.1",

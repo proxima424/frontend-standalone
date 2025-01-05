@@ -703,6 +703,49 @@ input[type="text"] {
   color: white;
 }
 
+.price-info {
+  background: rgba(26, 26, 26, 0.6);
+  border-radius: 12px;
+  padding: 1.5rem;
+  margin: 1rem 0;
+}
+
+.price-info h3 {
+  color: #676FFF;
+  margin-bottom: 1rem;
+  font-size: 1.1rem;
+  font-weight: 600;
+}
+
+.price-info p {
+  margin: 0.5rem 0;
+  display: flex;
+  justify-content: space-between;
+  padding: 0.5rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.price-info p:last-child {
+  border-bottom: none;
+}
+
+.price-info .label {
+  color: #a0a0a0;
+}
+
+.price-info .value {
+  color: #ffffff;
+  font-weight: 500;
+}
+
+.onchain-price {
+  background: rgba(103, 111, 255, 0.1);
+  border: 1px solid #676FFF;
+  border-radius: 8px;
+  padding: 0.5rem 1rem;
+  margin-top: 1rem;
+}
+
 @media (max-width: 1024px) {
   .token-info-grid {
     grid-template-columns: 1fr;
