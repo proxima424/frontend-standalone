@@ -133,7 +133,7 @@ const TokenMarket = () => {
       console.log('Collateral Token:', TOKEN_ADDRESSES[selectedToken]);
       console.log('Market Params:', marketParams.map(param => param.toString()));
 
-      await writeContract({
+      const conditionId = await writeContract({
         address: PREDICTION_MARKET_ADDRESS,
         abi: PREDICTION_MARKET_ABI,
         functionName: 'createPredictionMarket',
@@ -145,6 +145,11 @@ const TokenMarket = () => {
           marketParams          // uint256[]
         ],
       });
+
+      console.log('Created Condition ID:', conditionId);
+
+      // Navigate to the new market exploration page
+      navigate(`/price_markets/explore/${conditionId}`);
 
     } catch (error) {
       console.error('Error creating prediction market:', error);

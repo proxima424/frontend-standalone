@@ -1,9 +1,12 @@
+/* global BigInt */
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import './PriceMarkets.css';
 import axios from 'axios';
 import PoolsTable from '../components/PoolsTable/PoolsTable';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useReadContract, useWriteContract, useAccount } from 'wagmi';
+import PredictionMarketCard from '../components/PredictionMarketCard';
 
 const TOKEN_ADDRESSES = [
   {
@@ -13,6 +16,39 @@ const TOKEN_ADDRESSES = [
 ];
 
 const BASE_API_URL = 'https://api.geckoterminal.com/api/v2';
+
+const PRICE_CHECKER_ADDRESS = "0x0000000000cDC1F8d393415455E382c30FBc0a84";
+
+const MINT_CONTRACT_ADDRESS = "0xeD687976873D5194b5aE6315F2c54b32AfE2456d";
+
+const MINT_CONTRACT_ABI = [
+  {
+    inputs: [
+      { name: "conditionId", type: "bytes32" },
+      { name: "collateralAmount", type: "uint256" },
+      { name: "tokenIdToMint", type: "uint256" }
+    ],
+    name: "mintDecisionTokens",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function"
+  }
+];
+
+const ERC20_ABI = [
+  {
+    inputs: [
+      { name: "owner", type: "address" },
+      { name: "spender", type: "address" }
+    ],
+    name: "allowance",
+    outputs: [
+      { name: "", type: "uint256" }
+    ],
+    stateMutability: "view",
+    type: "function"
+  }
+];
 
 const PredictionButton = ({ option, multiplier, isSelected, onClick }) => {
   return (
@@ -27,82 +63,32 @@ const PredictionButton = ({ option, multiplier, isSelected, onClick }) => {
   );
 };
 
-const WhiteRectangleContainer = () => {
-  const [selectedOption, setSelectedOption] = useState(null);
-  const [collateral, setCollateral] = useState('');
+const CheckAllowance = ({ 
+  tokenAddress, 
+  ownerAddress, 
+  spenderAddress, 
+  onSuccess, 
+  collateral 
+}) => {
+  const { data, isError, isLoading } = useReadContract({
+    address: tokenAddress, // Address of the ERC20 token contract
+    abi: ERC20_ABI,
+    functionName: 'allowance',
+    args: [ownerAddress, spenderAddress],
+  });
 
-  // Placeholder data
-  const btcPrice = 30000;
-  const targetPrice = 150000;
-  const timeframe = 30;
-  const volume = 1000000;
-  const yesMultiplier = 5.6;
-  const noMultiplier = 4.2;
-  const poolAddress = "0x1234...ef99";
+  useEffect(() => {
+    if (!isLoading && !isError && data) {
+      const allowance = BigInt(data);
+      if (allowance >= BigInt(parseFloat(collateral) * 1_000_000n)) {
+        onSuccess();
+      } else {
+        console.error('Insufficient allowance');
+      }
+    }
+  }, [data, isError, isLoading, collateral, onSuccess]);
 
-  return (
-    <div className='white-rectangle-container'>
-      <div className='question-section'>
-        <h2 className='white-rectangle-title'>
-          Will <span>$BTC</span> reach ${targetPrice.toLocaleString()} by {timeframe} days?
-        </h2>
-      </div>
-      
-      <div className='prediction-section'>
-        <div className='prediction-controls'>
-          <div className='options-section'>
-            <PredictionButton
-              option="YES"
-              multiplier={yesMultiplier}
-              isSelected={selectedOption === 'YES'}
-              onClick={() => setSelectedOption('YES')}
-            />
-            <PredictionButton
-              option="NO"
-              multiplier={noMultiplier}
-              isSelected={selectedOption === 'NO'}
-              onClick={() => setSelectedOption('NO')}
-            />
-          </div>
-
-          <div className='mint-controls'>
-            <input
-              type="number"
-              placeholder="Collateral Amount"
-              value={collateral}
-              onChange={(e) => setCollateral(e.target.value)}
-              className={`collateral-input ${!selectedOption ? 'disabled' : ''}`}
-              disabled={!selectedOption}
-            />
-            <button 
-              className={`mint-button ${!selectedOption ? 'disabled' : ''}`}
-              disabled={!selectedOption}
-            >
-              Mint Position
-            </button>
-          </div>
-        </div>
-      </div>
-
-      <div className='footer-info'>
-        <div className='market-stats'>
-          <div className='volume-info'>24h Volume : ${volume.toLocaleString()}</div>
-          <div className='volume-info'>Current Price : <span className='price-color'>${btcPrice.toLocaleString()}</span></div>
-        </div>
-        <div className='pool-info'>
-          <span className='pool-label'>Pool tracked: </span>
-          <a 
-            href={`https://basescan.org/address/${poolAddress}`} 
-            target="_blank" 
-            rel="noopener noreferrer"
-            className='pool-address'
-          >
-            {poolAddress}
-          </a>
-        </div>
-      </div>
-    </div>
-  );
+  return null;
 };
 
 const PriceMarkets = () => {
@@ -205,7 +191,16 @@ const PriceMarkets = () => {
         />
       </div>
       <div className="right-section">
-        <WhiteRectangleContainer />
+        <PredictionMarketCard 
+          tokenName="BTC"
+          tokenAddress="0xcbB7C0000aB88B473b1f5aFd9ef808440eed33Bf"
+          targetPrice={150000}
+          timeframe={30}
+          yesMultiplier={5.6}
+          noMultiplier={4.2}
+          conditionId="0x1234567890abcdef"
+          collateralTokenAddress="0xcbB7C0000aB88B473b1f5aFd9ef808440eed33Bf"
+        />
         <PoolsTable
           title={
             <div className="pools-table-title">
