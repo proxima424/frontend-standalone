@@ -26,6 +26,10 @@ const Navbar = () => {
     setShowLogout(false);
   };
 
+  const handleProtocolTitleClick = () => {
+    navigate('/');
+  };
+
   return (
     <nav className="navbar">
       <div className="moving-strip">
@@ -38,7 +42,13 @@ const Navbar = () => {
         </div>
       </div>
       <div className="navbar-content">
-        <div className="navbar-brand">pnp protocol</div>
+        <div 
+          className="navbar-brand" 
+          onClick={handleProtocolTitleClick}
+          style={{ cursor: 'pointer' }}
+        >
+          pnp protocol
+        </div>
         <div className="nav-links">
           <button 
             className="nav-button"

@@ -1,14 +1,25 @@
 export const priceCheckerABI = [
-  {
-    "inputs": [
-      { "type": "address", "name": "token" }
-    ],
-    "name": "checkPrice",
-    "outputs": [
-      { "type": "uint256" },
-      { "type": "string" }
-    ],
-    "stateMutability": "nonpayable",
-    "type": "function"
-  }
-];
+{
+  "inputs": [
+    {
+      "internalType": "address",
+      "name": "token",
+      "type": "address"
+    }
+  ],
+  "name": "checkPrice",
+  "outputs": [
+    {
+      "internalType": "uint256",
+      "name": "",
+      "type": "uint256"
+    },
+    {
+      "internalType": "string",
+      "name": "",
+      "type": "string"
+    }
+  ],
+  "stateMutability": "nonpayable",
+  "type": "function"
+} ];

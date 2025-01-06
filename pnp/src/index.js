@@ -3,8 +3,13 @@ import ReactDOM from 'react-dom/client';
 import './index.css';
 import App from './App';
 import { PrivyProvider } from '@privy-io/react-auth';
+import {QueryClient, QueryClientProvider} from '@tanstack/react-query';
+import {WagmiProvider} from '@privy-io/wagmi';
+import { config } from './wagmi';
 
 const ALCHEMY_API_KEY = process.env.REACT_APP_ALCHEMY_API_KEY ;
+
+const queryClient = new QueryClient();
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(
@@ -31,7 +36,11 @@ root.render(
       }}
       
     >
+      <QueryClientProvider client={queryClient}>
+      <WagmiProvider config={config}>
       <App />
+      </WagmiProvider>
+      </QueryClientProvider>
     </PrivyProvider>
   </React.StrictMode>
 );

@@ -1,19 +1,33 @@
+/* global BigInt */
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ethers } from 'ethers';
 import './TokenMarket.css';
-import { getPoolAddressFromTokenData, getPriceFromModule } from '../contracts/priceModule';
 import { usePrivy } from '@privy-io/react-auth';
-import { usePnpFactory } from '../hooks/usePnpFactory';
-import { predictionMarketABI } from '../contracts/predictionMarketABI';
-import { priceCheckerABI } from '../contracts/priceCheckerABI';
+import { useReadContract, useWriteContract } from 'wagmi';
 
-const PRICE_MODULE_ADDRESS = "0x51242F79e60e380125DE602b17E792c8eE2bcAae";
 const PRICE_CHECKER_ADDRESS = "0x0000000000cDC1F8d393415455E382c30FBc0a84";
+const PREDICTION_MARKET_ADDRESS = "0xeD687976873D5194b5aE6315F2c54b32AfE2456d";
+
 const TOKEN_ADDRESSES = {
   USDT: "0xfde4C96c8593536E31F229EA8f37b2ADa2699bb2",
   USDC: "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913"
 };
+
+const PREDICTION_MARKET_ABI = [
+  {
+    inputs: [
+      { name: "_initialLiquidity", type: "uint256" },
+      { name: "_tokenInQuestion", type: "address" },
+      { name: "_moduleId", type: "uint8" },
+      { name: "_collateralToken", type: "address" },
+      { name: "_marketParams", type: "uint256[]" }
+    ],
+    name: "createPredictionMarket",
+    outputs: [{ name: "conditionId", type: "bytes32" }],
+    stateMutability: "payable",
+    type: "function"
+  }
+];
 
 const TokenMarket = () => {
   const { address } = useParams();
@@ -22,22 +36,14 @@ const TokenMarket = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [showModal, setShowModal] = useState(false);
-  const [latestBlockNumber, setLatestBlockNumber] = useState('');
-  const [deadlineValue, setDeadlineValue] = useState("");
-  const [deadlineUnit, setDeadlineUnit] = useState("days");
-  const [selectedToken, setSelectedToken] = useState("USDT");
-  const [lastClickedPercentage, setLastClickedPercentage] = useState(null);
+  const [selectedToken, setSelectedToken] = useState('USDT');
   const [collateralAmount, setCollateralAmount] = useState('');
-  const [targetPrice, setTargetPrice] = useState(""); 
+  const [deadlineValue, setDeadlineValue] = useState('');
+  const [deadlineUnit, setDeadlineUnit] = useState('days');
+  const [lastClickedPercentage, setLastClickedPercentage] = useState(null);
+  const [targetPrice, setTargetPrice] = useState('');
   const [priceChangePercent, setPriceChangePercent] = useState('');
-  const [currentPrice, setCurrentPrice] = useState(null);
-  const [onChainPrice, setOnChainPrice] = useState(null);
-  const [calculatedTargetPrice, setCalculatedTargetPrice] = useState(null);
-  const [contracts, setContracts] = useState({
-    predictionMarket: null,
-    priceChecker: null
-  });
-  
+
   // Get all required Privy hooks
   const { 
     ready,
@@ -45,119 +51,129 @@ const TokenMarket = () => {
     user,
     login,
     connectWallet,
-    createWallet
   } = usePrivy();
 
-  // Add PnP Factory hook
-  const { createPredictionMarket } = usePnpFactory();
+  // Add wagmi's useReadContract for price checking
+  const { data: priceData, error: priceError, isPending: priceIsPending, refetch: refetchPrice } = useReadContract({
+    address: PRICE_CHECKER_ADDRESS,
+    abi: [{
+      name: 'checkPrice',
+      type: 'function',
+      stateMutability: 'view',
+      inputs: [{ name: 'token', type: 'address' }],
+      outputs: [
+        { name: 'price', type: 'uint256' },
+        { name: 'priceStr', type: 'string' }
+      ],
+    }],
+    functionName: 'checkPrice',
+    args: [address],
+    chainId: 8453, // Base mainnet
+  });
 
-  useEffect(() => {
-    const initializeContracts = async () => {
-      if (authenticated && user?.wallet) {
-        try {
-          console.log('Starting contract initialization with user:', user);
-          
-          // Get the wallets
-          const wallets = await user.getWallets();
-          console.log('Available wallets:', wallets);
-          
-          const firstWallet = wallets[0];
-          console.log('Using first wallet:', firstWallet);
-          
-          // Get provider and signer
-          const provider = await firstWallet.getEthersProvider();
-          console.log('Got provider:', provider);
-          
-          const signer = await firstWallet.getEthersSigner();
-          console.log('Got signer:', signer);
-          
-          // Get wallet address
-          const address = await signer.getAddress();
-          console.log('Wallet address:', address);
+  const { writeContract } = useWriteContract();
 
-          console.log('Contract addresses:', {
-            PRICE_MODULE_ADDRESS,
-            PRICE_CHECKER_ADDRESS
-          });
-
-          const predictionMarket = new ethers.Contract(PRICE_MODULE_ADDRESS, predictionMarketABI, provider);
-          console.log('Prediction Market contract initialized:', predictionMarket);
-          
-          const priceChecker = new ethers.Contract(PRICE_CHECKER_ADDRESS, priceCheckerABI, signer);
-          console.log('Price Checker contract initialized:', priceChecker);
-          
-          setContracts({
-            predictionMarket,
-            priceChecker
-          });
-          console.log('Contracts set in state successfully');
-          
-        } catch (error) {
-          console.error('Error in contract initialization:', error);
-          console.error('Error details:', {
-            name: error.name,
-            message: error.message,
-            stack: error.stack,
-            code: error.code
-          });
-        }
-      } else {
-        console.log('Not initializing contracts:', {
-          authenticated,
-          hasWallet: !!user?.wallet
-        });
-      }
-    };
-
-    initializeContracts();
-  }, [authenticated, user]);
-
-  // Fetch on-chain price using priceChecker contract
-  const fetchOnChainPrice = async () => {
-    if (!contracts.priceChecker || !address) {
-      console.log('Cannot fetch price:', {
-        hasContract: !!contracts.priceChecker,
-        address: address
-      });
-      return;
-    }
-
+  const handleCreateMarket = async () => {
     try {
-      console.log('Fetching on-chain price for token:', address);
-      console.log('Using price checker contract:', contracts.priceChecker);
+      // Convert collateral amount to proper decimals (assuming 6 decimals)
+      const initialLiquidity = BigInt(Math.floor(parseFloat(collateralAmount) * 1_000_000));
+
+      // Get token address from current token data
+      const tokenInQuestion = tokenData?.attributes?.address || "0x0";
+
+      // Calculate deadline timestamp
+      let deadlineTimestamp;
+      switch(deadlineUnit) {
+        case 'minutes':
+          deadlineTimestamp = Math.floor(Date.now()/1000) + (parseInt(deadlineValue) * 60);
+          break;
+        case 'hours':
+          deadlineTimestamp = Math.floor(Date.now()/1000) + (parseInt(deadlineValue) * 3600);
+          break;
+        case 'days':
+          deadlineTimestamp = Math.floor(Date.now()/1000) + (parseInt(deadlineValue) * 86400);
+          break;
+        default:
+          deadlineTimestamp = Math.floor(Date.now()/1000) + (parseInt(deadlineValue) * 86400);
+      }
+
+      // Validate price data
+      if (!priceData || priceData.length === 0) {
+        throw new Error('Current price not available from smart contract');
+      }
       
-      const [price, description] = await contracts.priceChecker.checkPrice(address);
-      console.log('Contract call successful');
-      console.log('Raw price from contract:', price.toString());
-      console.log('Description from contract:', description);
-      
-      const priceInEth = ethers.formatUnits(price, 18);
-      console.log('Formatted price in ETH:', priceInEth);
-      
-      setOnChainPrice(priceInEth);
-      console.log('Price set in state successfully');
-      
-    } catch (error) {
-      console.error('Error fetching on-chain price:', error);
-      console.error('Error details:', {
-        name: error.name,
-        message: error.message,
-        stack: error.stack,
-        code: error.code,
-        data: error.data
+      // a = current price from price_checker (first uint returned)
+      const a = BigInt(priceData[0]);
+
+      // b = user's entered target price (convert to BigInt)
+      const b = BigInt(Math.floor(parseFloat(targetPrice) * 1_000_000));
+
+      // Calculate percentage change (r)
+      // Use 10000 as base to maintain precision without floating point
+      const r = ((b - a) * 10000n) / a;
+
+      // Calculate new target price by applying r% change to original price
+      const targetPriceForContract = a * (10000n + r) / 10000n;
+
+      // Prepare market params
+      const marketParams = [
+        BigInt(deadlineTimestamp),
+        targetPriceForContract
+      ];
+
+      // Log all parameters for debugging
+      console.log('Creating Prediction Market with Parameters:');
+      console.log('Initial Liquidity:', initialLiquidity.toString());
+      console.log('Token In Question:', tokenInQuestion);
+      console.log('Current Price (a):', a.toString());
+      console.log('Target Price (b):', b.toString());
+      console.log('Percentage Change (r):', r.toString());
+      console.log('Target Price for Contract:', targetPriceForContract.toString());
+      console.log('Module ID:', 0n);
+      console.log('Collateral Token:', TOKEN_ADDRESSES[selectedToken]);
+      console.log('Market Params:', marketParams.map(param => param.toString()));
+
+      await writeContract({
+        address: PREDICTION_MARKET_ADDRESS,
+        abi: PREDICTION_MARKET_ABI,
+        functionName: 'createPredictionMarket',
+        args: [
+          initialLiquidity,      // uint256
+          tokenInQuestion,       // address
+          0n,                   // uint8
+          TOKEN_ADDRESSES[selectedToken], // address
+          marketParams          // uint256[]
+        ],
       });
+
+    } catch (error) {
+      console.error('Error creating prediction market:', error);
+      // If there's a more detailed error from the transaction, log it
+      if (error.cause) {
+        console.error('Detailed Error:', error.cause);
+      }
     }
   };
 
-  // Call fetchOnChainPrice when contracts are initialized or address changes
+  // Update price data when contract call returns
   useEffect(() => {
-    if (contracts.priceChecker && address) {
-      fetchOnChainPrice();
-      // Refresh price every 30 seconds
-      const interval = setInterval(fetchOnChainPrice, 30000);
+    if (priceData) {
+      const [price, priceStr] = priceData;
+      console.log('On-chain Price:', price.toString());
+      console.log('Price String:', priceStr);
+    }
+  }, [priceData]);
+
+  // Refresh price every 30 seconds
+  useEffect(() => {
+    if (address) {
+      refetchPrice();
+      const interval = setInterval(() => {
+        refetchPrice();
+      }, 30000);
       return () => clearInterval(interval);
     }
-  }, [contracts.priceChecker, address]);
+  }, [address, refetchPrice]);
 
   // Handle wallet connection
   const ensureWalletConnection = async () => {
@@ -176,80 +192,11 @@ const TokenMarket = () => {
 
       console.log("Wallet status:", {
         authenticated,
-        hasWallet: !!user?.wallet,
-        hasProvider: !!user?.wallet?.provider
+        hasWallet: !!user?.wallet
       });
     } catch (error) {
       console.error("Error ensuring wallet connection:", error);
-      setError("Failed to connect wallet: " + error.message);
     }
-  };
-
-  // Check wallet connection on component mount
-  useEffect(() => {
-    if (ready) {
-      ensureWalletConnection();
-    }
-  }, [ready, authenticated, user]);
-
-  // Update prices when percentage changes
-  const updatePrices = async () => {
-    try {
-      if (!user?.wallet?.provider) {
-        await ensureWalletConnection();
-        return;
-      }
-
-      if (!tokenData || !priceChangePercent) {
-        console.warn('Missing required data for price update:', {
-          hasTokenData: !!tokenData,
-          hasPriceChange: !!priceChangePercent,
-        });
-        return;
-      }
-
-      setLoading(true);
-
-      const provider = user.wallet.provider;
-      console.log("Using provider:", provider);
-
-      const price = await getPriceFromModule(
-        PRICE_MODULE_ADDRESS,
-        tokenData,
-        provider
-      );
-
-      const currentPriceInEth = ethers.formatUnits(price, 18);
-      setCurrentPrice(currentPriceInEth);
-
-      const multiplier = 1 + (parseFloat(priceChangePercent) / 100);
-      const targetPrice = parseFloat(currentPriceInEth) * multiplier;
-      setCalculatedTargetPrice(targetPrice);
-      setTargetPrice(targetPrice.toString()); 
-
-      console.log('Price Data Updated:', {
-        currentPrice: currentPriceInEth,
-        percentageChange: priceChangePercent + '%',
-        calculatedTargetPrice: targetPrice
-      });
-    } catch (error) {
-      console.error('Error updating prices:', error);
-      setError(error.message);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // Update prices when percentage changes or provider becomes available
-  useEffect(() => {
-    if (ready && authenticated && user?.wallet?.provider && tokenData && priceChangePercent) {
-      updatePrices();
-    }
-  }, [ready, authenticated, user?.wallet?.provider, tokenData, priceChangePercent]);
-
-  const calculatePercentagePrice = (percentage) => {
-    setPriceChangePercent(percentage.toString());
-    setLastClickedPercentage(percentage);
   };
 
   useEffect(() => {
@@ -273,130 +220,10 @@ const TokenMarket = () => {
     return () => clearInterval(intervalId); 
   }, [address]);
 
-  useEffect(() => {
-    const fetchLatestBlockNumber = async () => {
-      try {
-        const blockNumber = await fetchLatestBlockNumberFromAPI();
-        setLatestBlockNumber(blockNumber);
-      } catch (err) {
-        console.error('Error fetching latest block number:', err);
-      }
-    };
-
-    const intervalId = setInterval(fetchLatestBlockNumber, 5000); 
-
-    return () => clearInterval(intervalId); 
-  }, []);
-
-  const handleSearch = (e) => {
-    e.preventDefault();
+  const calculatePercentagePrice = (percentage) => {
+    setPriceChangePercent(percentage.toString());
+    setLastClickedPercentage(percentage);
   };
-
-  const handleCreatePredictionMarket = async (e) => {
-    e.preventDefault();
-    
-    try {
-      if (!user?.wallet?.provider) {
-        await ensureWalletConnection();
-        return;
-      }
-
-      if (!calculatedTargetPrice) {
-        console.error('Target price not calculated. Please set a price change percentage.');
-        setError('Please set a price change percentage');
-        return;
-      }
-
-      if (!collateralAmount || parseFloat(collateralAmount) <= 0) {
-        setError('Please enter a valid collateral amount');
-        return;
-      }
-
-      setLoading(true);
-      setError(null);
-
-      const poolAddress = getPoolAddressFromTokenData(tokenData);
-      
-      // Convert deadline to seconds and validate
-      const deadlineInSeconds = deadlineUnit === 'days' 
-        ? Number(deadlineValue) * 24 * 60 * 60
-        : Number(deadlineValue) * 60 * 60;
-
-      if (deadlineInSeconds <= 0) {
-        throw new Error('Invalid deadline value');
-      }
-
-      // Get current timestamp and validate deadline is in future
-      const currentTimestamp = Math.floor(Date.now() / 1000);
-      const expiryTimestamp = currentTimestamp + deadlineInSeconds;
-      
-      if (expiryTimestamp <= currentTimestamp) {
-        throw new Error('Deadline must be in the future');
-      }
-
-      // Convert target price to wei
-      const targetPriceInWei = ethers.parseUnits(calculatedTargetPrice.toString(), 18);
-      
-      // Convert collateral amount to wei (assuming 6 decimals for USDC/USDT)
-      const collateralInWei = ethers.parseUnits(collateralAmount, 6);
-
-      // Convert expiry timestamp to ethers BigNumber
-      const expiryBigNumber = ethers.getBigInt(expiryTimestamp);
-
-      // Prepare market parameters array (just price and expiry)
-      const marketParams = [targetPriceInWei, expiryBigNumber];
-
-      console.log('Creating market with params:', {
-        initialLiquidity: collateralInWei.toString(),
-        tokenInQuestion: tokenData?.attributes?.address,
-        moduleId: 1,
-        collateralToken: TOKEN_ADDRESSES[selectedToken],
-        marketParams: marketParams.map(p => p.toString()),
-        pool: poolAddress
-      });
-
-      // Call the contract
-      const tx = await createPredictionMarket(
-        collateralInWei,
-        tokenData?.attributes?.address,
-        1, // moduleId for price module
-        TOKEN_ADDRESSES[selectedToken],
-        marketParams,
-        poolAddress
-      );
-
-      console.log('Transaction sent:', tx.hash);
-      
-      // Wait for transaction confirmation
-      const receipt = await tx.wait();
-      console.log('Transaction confirmed:', receipt);
-
-      // Show success message
-      setError(null);
-      alert('Market created successfully!');
-      setShowModal(false);
-
-    } catch (error) {
-      console.error('Error creating prediction market:', error);
-      setError(error.message || 'Failed to create market. Please try again.');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const fetchLatestBlockNumberFromAPI = async () => {
-    return '1234567';
-  };
-
-  const handleQuickAdd = (value) => {
-    setDeadlineValue((prev) => {
-      const currentValue = prev === "" ? 0 : parseFloat(prev);
-      return (currentValue + value).toString();
-    });
-  };
-
-  if (loading) return <div className="loading">Loading token data...</div>;
-  if (error) return <div className="error">{error}</div>;
 
   return (
     <div className="token-market-container">
@@ -435,130 +262,126 @@ const TokenMarket = () => {
           {showModal && (
             <div className="modal-overlay">
               <div className="modal-content">
-                <div className="modal-inner">
-                  <div className="modal-header">
-                    <h2 className="modal-title">Token Details</h2>
-                    <button 
-                      onClick={() => setShowModal(false)}
-                      className="modal-close-button"
-                    >
-                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                        <line x1="18" y1="6" x2="6" y2="18"></line>
-                        <line x1="6" y1="6" x2="18" y2="18"></line>
-                      </svg>
-                    </button>
-                  </div>
-
-                  <div className="token-grid">
-                    <p className="font-medium">{tokenData?.attributes?.name || 'Loading...'}</p>
-                    <p className="font-medium text-right">${tokenData?.attributes?.price_usd || '0.00'}</p>
-                  </div>
-
-                  <div className="input-group">
-                    <label className="input-label">Target Price Change (%)</label>
-                    <div className="input-container">
-                      <input 
-                        type="number"
-                        placeholder="Enter target price change in %"
-                        className="modal-input"
-                        value={priceChangePercent}
-                        onChange={(e) => setPriceChangePercent(e.target.value)}
-                      />
-                    </div>
-                  </div>
-
-                  {currentPrice && (
-                    <div className="price-info">
-                      <h3>Price Information</h3>
-                      <p>
-                        <span className="label">Current Price (CoinGecko):</span>
-                        <span className="value">{currentPrice} ETH</span>
-                      </p>
-                      <p>
-                        <span className="label">Target Price Change:</span>
-                        <span className="value">{priceChangePercent}%</span>
-                      </p>
-                      <p>
-                        <span className="label">Calculated Target Price:</span>
-                        <span className="value">{calculatedTargetPrice} ETH</span>
-                      </p>
-                      <div className="onchain-price">
-                        <p>
-                          <span className="label">Uniswap On-chain Price:</span>
-                          <span className="value">{onChainPrice ? `${onChainPrice} ETH` : 'Loading...'}</span>
-                        </p>
-                      </div>
-                    </div>
-                  )}
-
-                  <div className="input-group">
-                    <label className="input-label">Deadline</label>
-                    <div className="deadline-container">
-                      <div className="deadline-input-group">
-                        <input 
-                          type="number"
-                          placeholder="Enter duration"
-                          className="deadline-input"
-                          value={deadlineValue}
-                          onChange={(e) => setDeadlineValue(e.target.value)}
-                        />
-                        <div className="denomination-toggle">
-                          <button 
-                            className={`denomination-button ${deadlineUnit === 'days' ? 'active' : ''}`}
-                            onClick={() => setDeadlineUnit('days')}
-                          >
-                            days
-                          </button>
-                          <button 
-                            className={`denomination-button ${deadlineUnit === 'hours' ? 'active' : ''}`}
-                            onClick={() => setDeadlineUnit('hours')}
-                          >
-                            hours
-                          </button>
-                        </div>
-                      </div>
-                      <div className="quick-add-container">
-                        <button className="quick-add-button" onClick={() => handleQuickAdd(1)}>+1</button>
-                        <button className="quick-add-button" onClick={() => handleQuickAdd(2)}>+2</button>
-                        <button className="quick-add-button" onClick={() => handleQuickAdd(3)}>+3</button>
-                        <button className="quick-add-button" onClick={() => handleQuickAdd(5)}>+5</button>
-                        <button className="quick-add-button" onClick={() => handleQuickAdd(7)}>+7</button>
-                        <button className="quick-add-button" onClick={() => handleQuickAdd(12)}>+12</button>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="input-group">
-                    <label className="input-label">Collateral Amount</label>
-                    <div className="input-container">
-                      <input 
-                        type="number"
-                        placeholder="Enter amount"
-                        className="modal-input"
-                        value={collateralAmount}
-                        onChange={(e) => setCollateralAmount(e.target.value)}
-                      />
-                      <div className="denomination-toggle">
-                        <button 
-                          className={`denomination-button ${selectedToken === 'USDT' ? 'active' : ''}`}
-                          onClick={() => setSelectedToken('USDT')}
-                        >
-                          USDT
-                        </button>
-                        <button 
-                          className={`denomination-button ${selectedToken === 'USDC' ? 'active' : ''}`}
-                          onClick={() => setSelectedToken('USDC')}
-                        >
-                          USDC
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-
-                  <button className="create-market-button" onClick={handleCreatePredictionMarket}>
-                    Create Market
+                <div className="modal-header">
+                  <h2 className="modal-title">Token Details</h2>
+                  <button 
+                    onClick={() => setShowModal(false)}
+                    className="modal-close-button"
+                  >
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <line x1="18" y1="6" x2="6" y2="18"></line>
+                      <line x1="6" y1="6" x2="18" y2="18"></line>
+                    </svg>
                   </button>
                 </div>
+
+                <div className="token-grid">
+                  <p className="font-medium">{tokenData?.attributes?.name || 'Loading...'}</p>
+                  <div className="price-display">
+                    {priceIsPending ? (
+                      <span>Loading price...</span>
+                    ) : priceError ? (
+                      <span>${tokenData?.attributes?.price_usd || '0.00'}</span>
+                    ) : priceData ? (
+                      <span>${priceData[1]}</span>
+                    ) : (
+                      <span>${tokenData?.attributes?.price_usd || '0.00'}</span>
+                    )}
+                  </div>
+                </div>
+
+                <div className="input-group">
+                  <label className="input-label">Target Price</label>
+                  <div className="input-container">
+                    <input 
+                      type="number"
+                      placeholder="Enter target price"
+                      className="modal-input"
+                      value={targetPrice}
+                      onChange={(e) => setTargetPrice(e.target.value)}
+                    />
+                  </div>
+                  <div className="percentage-buttons">
+                    <button
+                      className={`percentage-button ${lastClickedPercentage === -10 ? 'active' : ''}`}
+                      onClick={() => {
+                        const currentPrice = priceData ? parseFloat(priceData[1]) : parseFloat(tokenData?.attributes?.price_usd || '0');
+                        const newPrice = currentPrice * 0.9; // -10%
+                        setTargetPrice(newPrice.toFixed(2));
+                        setLastClickedPercentage(-10);
+                      }}
+                    >
+                      -10%
+                    </button>
+                    <button
+                      className={`percentage-button ${lastClickedPercentage === -5 ? 'active' : ''}`}
+                      onClick={() => {
+                        const currentPrice = priceData ? parseFloat(priceData[1]) : parseFloat(tokenData?.attributes?.price_usd || '0');
+                        const newPrice = currentPrice * 0.95; // -5%
+                        setTargetPrice(newPrice.toFixed(2));
+                        setLastClickedPercentage(-5);
+                      }}
+                    >
+                      -5%
+                    </button>
+                  </div>
+                </div>
+
+                <div className="input-group">
+                  <label className="input-label">Deadline</label>
+                  <div className="deadline-container">
+                    <div className="deadline-input-group">
+                      <input 
+                        type="number"
+                        placeholder="Enter duration"
+                        className="deadline-input"
+                        value={deadlineValue}
+                        onChange={(e) => setDeadlineValue(e.target.value)}
+                      />
+                      <select 
+                        value={deadlineUnit}
+                        onChange={(e) => setDeadlineUnit(e.target.value)}
+                        className="deadline-select"
+                      >
+                        <option value="minutes">Minutes</option>
+                        <option value="hours">Hours</option>
+                        <option value="days">Days</option>
+                      </select>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="input-group">
+                  <label className="input-label">Collateral Token</label>
+                  <select 
+                    value={selectedToken}
+                    onChange={(e) => setSelectedToken(e.target.value)}
+                    className="modal-select"
+                  >
+                    <option value="USDT">USDT</option>
+                    <option value="USDC">USDC</option>
+                  </select>
+                </div>
+
+                <div className="input-group">
+                  <label className="input-label">Collateral Amount</label>
+                  <div className="input-container">
+                    <input 
+                      type="number"
+                      placeholder="Enter collateral amount"
+                      className="modal-input"
+                      value={collateralAmount}
+                      onChange={(e) => setCollateralAmount(e.target.value)}
+                    />
+                  </div>
+                </div>
+
+                <button 
+                  className="create-market-button"
+                  onClick={handleCreateMarket}
+                >
+                  Create Market
+                </button>
               </div>
             </div>
           )}
@@ -566,14 +389,6 @@ const TokenMarket = () => {
       )}
     </div>
   );
-};
-
-const formatNumber = (num) => {
-  if (!num) return '0';
-  if (num >= 1e9) return (num / 1e9).toFixed(2) + 'B';
-  if (num >= 1e6) return (num / 1e6).toFixed(2) + 'M';
-  if (num >= 1e3) return (num / 1e3).toFixed(2) + 'K';
-  return num.toFixed(2);
 };
 
 export default TokenMarket;
