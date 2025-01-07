@@ -1,40 +1,11 @@
+/* global BigInt */
 import React from 'react';
 import { useParams } from 'react-router-dom';
 import { useReadContract } from 'wagmi';
-import PredictionMarketCard from '../components/PredictionMarketCard'; // We'll create this component
-
-const PREDICTION_MARKET_ADDRESS = "0xeD687976873D5194b5aE6315F2c54b32AfE2456d";
-
-const PREDICTION_MARKET_ABI = [
-  {
-    inputs: [{ name: "conditionId", type: "bytes32" }],
-    name: "marketReserve",
-    outputs: [{ name: "", type: "uint256" }],
-    stateMutability: "view",
-    type: "function"
-  },
-  {
-    inputs: [{ name: "conditionId", type: "bytes32" }],
-    name: "marketParams",
-    outputs: [{ name: "params", type: "uint256[2]" }],
-    stateMutability: "view",
-    type: "function"
-  },
-  {
-    inputs: [{ name: "conditionId", type: "bytes32" }],
-    name: "tokenInQuestion",
-    outputs: [{ name: "", type: "address" }],
-    stateMutability: "view",
-    type: "function"
-  },
-  {
-    inputs: [{ name: "conditionId", type: "bytes32" }],
-    name: "marketSettled",
-    outputs: [{ name: "", type: "bool" }],
-    stateMutability: "view",
-    type: "function"
-  }
-];
+import PredictionMarketCard from '../components/PredictionMarketCard';
+import { PREDICTION_MARKET_ADDRESS } from '../constants';
+import { PREDICTION_MARKET_ABI } from '../contracts/predictionMarket';
+import TradingViewWidget from '../components/TradingViewWidget';
 
 const MarketExplore = () => {
   const { conditionId } = useParams();
@@ -46,14 +17,19 @@ const MarketExplore = () => {
     args: [conditionId],
   });
 
-  const { data: marketParams } = useReadContract({
+  const { data: marketEndTime, isError: isMarketEndTimeError, isLoading: isMarketEndTimeLoading, error: marketEndTimeError } = useReadContract({
     address: PREDICTION_MARKET_ADDRESS,
     abi: PREDICTION_MARKET_ABI,
-    functionName: 'marketParams',
+    functionName: 'getMarketEndTime',
     args: [conditionId],
   });
 
-  console.log('Market Params:', marketParams);
+  const { data: marketTargetPrice, isError: isMarketTargetPriceError, isLoading: isMarketTargetPriceLoading, error: marketTargetPriceError } = useReadContract({
+    address: PREDICTION_MARKET_ADDRESS,
+    abi: PREDICTION_MARKET_ABI,
+    functionName: 'getMarketTargetPrice',
+    args: [conditionId],
+  });
 
   const { data: tokenInQuestion } = useReadContract({
     address: PREDICTION_MARKET_ADDRESS,
@@ -72,38 +48,104 @@ const MarketExplore = () => {
   const { data: collateralToken } = useReadContract({
     address: PREDICTION_MARKET_ADDRESS,
     abi: PREDICTION_MARKET_ABI,
-    functionName: 'getMarketDetails',
+    functionName: 'collateralToken',
     args: [conditionId],
   });
 
-  const marketDetails = {
-    marketReserve,
-    marketParams: marketParams || [],
-    tokenInQuestion,
-    marketSettled,
-    collateralToken: collateralToken?.collateralToken,
-  };
-
   console.log('Market Reserve:', marketReserve);
+  console.log('Market End Time:', marketEndTime);
+  console.log('Market Target Price:', marketTargetPrice);
   console.log('Token In Question:', tokenInQuestion);
   console.log('Market Settled:', marketSettled);
 
-  if (!marketParams || !marketParams.length) {
+  if (isMarketEndTimeLoading || isMarketTargetPriceLoading) {
+    console.log('Loading market details...');
+    return <div>Loading market details...</div>;
+  }
+  if (isMarketEndTimeError || isMarketTargetPriceError) {
+    console.error('Error fetching market details:', marketEndTimeError || marketTargetPriceError);
+    return <div>Error fetching market details</div>;
+  }
+
+  const marketDetails = {
+    marketReserve,
+    marketEndTime,
+    marketTargetPrice,
+    tokenInQuestion,
+    marketSettled,
+    collateralToken: collateralToken,
+  };
+
+  if (!marketEndTime || !marketTargetPrice) {
     return <div>Loading market details...</div>;
   }
 
+  const calculateRemainingDays = (endTime) => {
+    const currentTime = BigInt(Math.floor(Date.now() / 1000)); // Current time in UNIX as BigInt
+    const remainingTime = BigInt(endTime) - currentTime;
+    return Math.max(0, Number(remainingTime / BigInt(24 * 60 * 60))); // Convert seconds to days
+  };
+
+  const remainingDays = calculateRemainingDays(marketEndTime);
+
+  console.log('Remaining Days:', remainingDays);
+
   return (
     <div className="market-explore-container">
-      <PredictionMarketCard 
-        tokenName="BTC"  // You'll want to dynamically fetch this
-        tokenAddress={tokenInQuestion}
-        targetPrice={marketParams[1]}  // From marketParams
-        timeframe={30}  // From marketParams
-        yesMultiplier={5.6}  // Calculate dynamically
-        noMultiplier={4.2}  // Calculate dynamically
-        conditionId={conditionId}
-        collateralTokenAddress={marketDetails.collateralToken}
-      />
+      <div className="market-explore-content">
+        <div className="market-card-section">
+          <PredictionMarketCard 
+            tokenName="BTC"
+            tokenAddress={tokenInQuestion}
+            targetPrice={marketTargetPrice}
+            timeframe={remainingDays}
+            yesMultiplier={5.6}
+            noMultiplier={4.2}
+            conditionId={conditionId}
+            collateralTokenAddress={marketDetails?.collateralToken}
+          />
+        </div>
+        
+        <div className="chart-section">
+          <div className="chart-container">
+            <TradingViewWidget />
+          </div>
+        </div>
+      </div>
+
+      <style jsx>{`
+        .market-explore-container {
+          padding: 2rem;
+          background-color: var(--spotify-black);
+          min-height: calc(100vh - 64px);
+        }
+
+        .market-explore-content {
+          display: flex;
+          flex-direction: column;
+          gap: 2rem;
+          max-width: 1200px;
+          margin: 0 auto;
+        }
+
+        .market-card-section {
+          max-width: 800px;
+          margin: 0 auto;
+          width: 100%;
+        }
+
+        .chart-section {
+          background: #1e1e1e;
+          border-radius: 12px;
+          padding: 1rem;
+          height: 500px;
+        }
+
+        .chart-container {
+          height: 100%;
+          width: 100%;
+        }
+      `}</style>
     </div>
   );
 };

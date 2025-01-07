@@ -19,7 +19,7 @@ const BASE_API_URL = 'https://api.geckoterminal.com/api/v2';
 
 const PRICE_CHECKER_ADDRESS = "0x0000000000cDC1F8d393415455E382c30FBc0a84";
 
-const MINT_CONTRACT_ADDRESS = "0xeD687976873D5194b5aE6315F2c54b32AfE2456d";
+const MINT_CONTRACT_ADDRESS = "0xd40B3EbcA13E63e72D03d07C2e6a84D00aA035C2";
 
 const MINT_CONTRACT_ABI = [
   {
@@ -178,9 +178,28 @@ const PriceMarkets = () => {
             onChange={(e) => setSearchInput(e.target.value)}
           />
         </form>
-        <div className="stats-card">
-          {/* Stats content */}
-        </div>
+        
+          <div className="stats-grid">
+            <div className="stat-item">
+              <div className="stat-icon">🎯</div>
+              <div className="stat-content">
+                <div className="stat-text">Create price prediction markets over any token</div>
+              </div>
+            </div>
+            <div className="stat-item">
+              <div className="stat-icon">⛓️</div>
+              <div className="stat-content">
+                <div className="stat-text">Markets are settled onchain (no third party please)</div>
+              </div>
+            </div>
+            <div className="stat-item">
+              <div className="stat-icon">💰</div>
+              <div className="stat-content">
+                <div className="stat-text">You can now earn fees on any prediction market by providing liquidity</div>
+              </div>
+            </div>
+          </div>
+        
         <PoolsTable
           title="TOP POOLS ON BASE"
           pools={topPools}
@@ -198,7 +217,7 @@ const PriceMarkets = () => {
           timeframe={30}
           yesMultiplier={5.6}
           noMultiplier={4.2}
-          conditionId="0x1234567890abcdef"
+          conditionId="0x2aa61165dcc8771d5b7cd11479212307399aabcaea1cd3f646cdce700ed278fa"
           collateralTokenAddress="0xcbB7C0000aB88B473b1f5aFd9ef808440eed33Bf"
         />
         <PoolsTable

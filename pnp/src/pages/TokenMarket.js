@@ -6,12 +6,35 @@ import { usePrivy } from '@privy-io/react-auth';
 import { useReadContract, useWriteContract } from 'wagmi';
 
 const PRICE_CHECKER_ADDRESS = "0x0000000000cDC1F8d393415455E382c30FBc0a84";
-const PREDICTION_MARKET_ADDRESS = "0xeD687976873D5194b5aE6315F2c54b32AfE2456d";
+const PREDICTION_MARKET_ADDRESS = "0xd40B3EbcA13E63e72D03d07C2e6a84D00aA035C2";
 
 const TOKEN_ADDRESSES = {
   USDT: "0xfde4C96c8593536E31F229EA8f37b2ADa2699bb2",
   USDC: "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913"
 };
+
+const ERC20_ABI = [
+  {
+    inputs: [
+      { name: "owner", type: "address" },
+      { name: "spender", type: "address" }
+    ],
+    name: "allowance",
+    outputs: [{ name: "", type: "uint256" }],
+    stateMutability: "view",
+    type: "function"
+  },
+  {
+    inputs: [
+      { name: "spender", type: "address" },
+      { name: "value", type: "uint256" }
+    ],
+    name: "approve",
+    outputs: [{ name: "", type: "bool" }],
+    stateMutability: "nonpayable",
+    type: "function"
+  }
+];
 
 const PREDICTION_MARKET_ABI = [
   {
@@ -43,6 +66,7 @@ const TokenMarket = () => {
   const [lastClickedPercentage, setLastClickedPercentage] = useState(null);
   const [targetPrice, setTargetPrice] = useState('');
   const [priceChangePercent, setPriceChangePercent] = useState('');
+  const [isApproved, setIsApproved] = useState(false);
 
   // Get all required Privy hooks
   const { 
@@ -71,9 +95,47 @@ const TokenMarket = () => {
     chainId: 8453, // Base mainnet
   });
 
+  // Add allowance check
+  const { data: allowanceData } = useReadContract({
+    address: TOKEN_ADDRESSES[selectedToken],
+    abi: ERC20_ABI,
+    functionName: 'allowance',
+    args: [user?.wallet?.address, PREDICTION_MARKET_ADDRESS],
+    chainId: 8453,
+  });
+
+  // Check if allowance is sufficient
+  useEffect(() => {
+    if (allowanceData && collateralAmount) {
+      const requiredAmount = BigInt(Math.floor(parseFloat(collateralAmount) * 1_000_000));
+      console.log('Current allowance:', allowanceData.toString());
+      console.log('Required amount:', requiredAmount.toString());
+      setIsApproved(BigInt(allowanceData) >= requiredAmount);
+    }
+  }, [allowanceData, collateralAmount]);
+
   const { writeContract } = useWriteContract();
 
+  const handleApprove = async () => {
+    try {
+      const approvalAmount = BigInt(Math.floor(parseFloat(collateralAmount) * 1_000_000));
+      await writeContract({
+        address: TOKEN_ADDRESSES[selectedToken],
+        abi: ERC20_ABI,
+        functionName: 'approve',
+        args: [PREDICTION_MARKET_ADDRESS, approvalAmount],
+      });
+    } catch (error) {
+      console.error('Error approving tokens:', error);
+    }
+  };
+
   const handleCreateMarket = async () => {
+    if (!isApproved) {
+      console.error('Please approve tokens first');
+      return;
+    }
+
     try {
       // Convert collateral amount to proper decimals (assuming 6 decimals)
       const initialLiquidity = BigInt(Math.floor(parseFloat(collateralAmount) * 1_000_000));
@@ -381,12 +443,73 @@ const TokenMarket = () => {
                   </div>
                 </div>
 
-                <button 
-                  className="create-market-button"
-                  onClick={handleCreateMarket}
-                >
-                  Create Market
-                </button>
+                <div className="modal-buttons">
+                  <button 
+                    className="approve-button"
+                    onClick={handleApprove}
+                    disabled={isApproved}
+                  >
+                    {isApproved ? 'Approved ✓' : 'Approve Collateral'}
+                  </button>
+                  <button
+                    className="create-button"
+                    onClick={handleCreateMarket}
+                    disabled={!isApproved}
+                  >
+                    Create Prediction Market
+                  </button>
+                </div>
+
+                <style jsx>{`
+                  .modal-buttons {
+                    display: flex;
+                    flex-direction: column;
+                    gap: 1rem;
+                    margin-top: 1rem;
+                  }
+
+                  .approve-button {
+                    padding: 0.8rem;
+                    border-radius: 8px;
+                    border: none;
+                    font-weight: 600;
+                    cursor: pointer;
+                    background: ${isApproved ? '#10b981' : 'rgba(16, 185, 129, 0.1)'};
+                    color: ${isApproved ? 'white' : '#10b981'};
+                    border: 1px solid #10b981;
+                    transition: all 0.3s ease;
+                  }
+
+                  .approve-button:hover:not(:disabled) {
+                    background: ${isApproved ? '#0d9668' : 'rgba(16, 185, 129, 0.2)'};
+                  }
+
+                  .approve-button:disabled {
+                    cursor: not-allowed;
+                    opacity: 0.7;
+                  }
+
+                  .create-button {
+                    padding: 0.8rem;
+                    border-radius: 8px;
+                    border: none;
+                    background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+                    color: white;
+                    font-weight: 600;
+                    cursor: pointer;
+                    transition: all 0.3s ease;
+                  }
+
+                  .create-button:hover:not(:disabled) {
+                    background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+                  }
+
+                  .create-button:disabled {
+                    cursor: not-allowed;
+                    opacity: 0.5;
+                  }
+                `}</style>
+
               </div>
             </div>
           )}

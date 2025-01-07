@@ -8,6 +8,7 @@ import PriceMarkets from './pages/PriceMarkets';
 import TokenMarket from './pages/TokenMarket';
 import Testing from './pages/Testing';
 import MarketExplore from './pages/MarketExplore';
+import LiveMarkets from './pages/LiveMarkets';
 
 function HomePage() {
   return (
@@ -90,7 +91,7 @@ function HomePage() {
               }}
             >
               <a className="btn-primary" href="/price_markets">Start Trading</a>
-              <a className="btn-secondary" href="/dashboard">View Dashboard</a>
+              <a className="btn-secondary" href="/live_markets">Explore live markets</a>
             </motion.div>
           </motion.div>
           <div className="spline-container">
@@ -114,6 +115,7 @@ function App() {
         <Route path="/token/:tokenAddress" element={<Spline scene="https://prod.spline.design/DgI5mbX9cHYbIT7F/scene.splinecode" />} />
         <Route path="/testing" element={<Testing />} />
         <Route path="/price_markets/explore/:conditionId" element={<MarketExplore />} />
+        <Route path="/live_markets" element={<LiveMarkets />} />
       </Routes>
     </Router>
   );
