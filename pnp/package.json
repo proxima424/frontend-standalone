@@ -26,6 +26,11 @@
     "wagmi": "^2.14.6",
     "zustand": "^4.5.0"
   },
+  "overrides": {
+  "react-scripts": {
+    "typescript": "^5"
+  }
+},
   "scripts": {
     "start": "react-scripts start",
     "build": "CI=false react-scripts build",
