@@ -9,6 +9,7 @@ import TokenMarket from './pages/TokenMarket';
 import Testing from './pages/Testing';
 import MarketExplore from './pages/MarketExplore';
 import LiveMarkets from './pages/LiveMarkets';
+import TwitterMarket from './pages/TwitterMarket';
 
 function HomePage() {
   return (
@@ -115,6 +116,7 @@ function App() {
         <Route path="/token/:tokenAddress" element={<Spline scene="https://prod.spline.design/DgI5mbX9cHYbIT7F/scene.splinecode" />} />
         <Route path="/testing" element={<Testing />} />
         <Route path="/price_markets/explore/:conditionId" element={<MarketExplore />} />
+        <Route path="/twitter_markets/:conditionId" element={<TwitterMarket />} />
         <Route path="/live_markets" element={<LiveMarkets />} />
       </Routes>
     </Router>

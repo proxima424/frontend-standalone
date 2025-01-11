@@ -1,0 +1,139 @@
+.twitter-market-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  background: linear-gradient(135deg, #1a1a1a 0%, #2a2a2a 100%);
+  padding: 20px;
+}
+
+.market-card {
+  width: 100%;
+  max-width: 800px;
+  height: 240px;
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+  border-radius: 20px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+  padding: 24px;
+  color: white;
+}
+
+.card-content {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.market-question {
+  font-size: 1.5rem;
+  font-weight: 600;
+  margin: 0 0 20px 0;
+  color: #ffffff;
+}
+
+.prediction-buttons {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.yes-button, .no-button {
+  padding: 8px 24px;
+  border-radius: 8px;
+  border: none;
+  font-weight: 600;
+  cursor: pointer;
+  transition: transform 0.2s ease;
+}
+
+.yes-button {
+  background-color: rgba(75, 181, 67, 0.9);
+  color: white;
+}
+
+.no-button {
+  background-color: rgba(255, 68, 68, 0.9);
+  color: white;
+}
+
+.yes-button:hover, .no-button:hover {
+  transform: translateY(-2px);
+}
+
+.mint-section {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.collateral-input {
+  flex: 1;
+  padding: 8px 12px;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: rgba(255, 255, 255, 0.1);
+  color: white;
+  font-size: 1rem;
+}
+
+.collateral-input::placeholder {
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.mint-button {
+  padding: 8px 20px;
+  border-radius: 8px;
+  border: none;
+  background: rgba(255, 206, 86, 0.9);
+  color: black;
+  font-weight: 600;
+  cursor: pointer;
+  transition: transform 0.2s ease;
+}
+
+.mint-button:hover {
+  transform: translateY(-2px);
+}
+
+.card-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-top: 16px;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.market-reserve, .twitter-source {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.label {
+  font-size: 0.8rem;
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.value {
+  font-size: 0.9rem;
+  color: white;
+  font-weight: 500;
+}
+
+.liquidity-button {
+  padding: 8px 16px;
+  border-radius: 8px;
+  border: none;
+  background: rgba(116, 185, 255, 0.9);
+  color: white;
+  font-weight: 600;
+  cursor: pointer;
+  transition: transform 0.2s ease;
+}
+
+.liquidity-button:hover {
+  transform: translateY(-2px);
+}

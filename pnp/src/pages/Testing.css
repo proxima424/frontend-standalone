@@ -4,13 +4,19 @@
   align-items: center;
   justify-content: center;
   min-height: 100vh;
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+  border-radius: 16px;
+  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+  padding: 2rem;
+  margin: 2rem;
 }
 
 .bro-button {
   padding: 10px 20px;
   font-size: 18px;
   cursor: pointer;
-  background-color: #676FFF;
+  background-color: rgba(255, 255, 255, 0.2);
   color: white;
   border: none;
   border-radius: 5px;
@@ -31,7 +37,7 @@
 
 .nan-text {
   font-size: 16px;
-  color: #333;
+  color: #ffffff;
   animation: fadeIn 0.5s ease-in;
 }
 
