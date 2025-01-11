@@ -309,7 +309,7 @@ const CreateTwitterMarket = () => {
             name='marketQuestion'
             value={formData.marketQuestion}
             onChange={handleInputChange}
-            placeholder='e.g., Will BTC reach $100k by end of 2024?'
+            placeholder='e.g., Will United States buy Greenland by May 2025?'
             className='form-input'
           />
         </div>
@@ -321,7 +321,7 @@ const CreateTwitterMarket = () => {
             name='twitterUsername'
             value={formData.twitterUsername}
             onChange={handleInputChange}
-            placeholder='@username'
+            placeholder='@realDonaldTrump enter without `@` symbol'
             className='form-input'
           />
         </div>

@@ -100,6 +100,7 @@ const TwitterMarket = () => {
         twitterUsername={twitterUsername}
         marketReserve={marketReserve}
         endTime={endTime}
+        conditionId={conditionId}
         onMint={handleMint}
         onProvideLiquidity={handleProvideLiquidity}
       />
