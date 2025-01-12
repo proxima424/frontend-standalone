@@ -50,9 +50,10 @@ const CreateTwitterMarket = () => {
   const { user } = usePrivy();
   const { writeContractAsync } = useWriteContract();
   const { waitForTransactionReceipt } = useWaitForTransactionReceipt();
+  const [approvalPending, setApprovalPending] = useState(false);
 
   // Check USDC allowance
-  const { data: usdcAllowance } = useReadContract({
+  const { data: usdcAllowance, refetch: refetchUsdcAllowance } = useReadContract({
     address: TOKEN_ADDRESSES.USDC,
     abi: ERC20_ABI,
     functionName: 'allowance',
@@ -61,7 +62,7 @@ const CreateTwitterMarket = () => {
   });
 
   // Check USDT allowance
-  const { data: usdtAllowance } = useReadContract({
+  const { data: usdtAllowance, refetch: refetchUsdtAllowance } = useReadContract({
     address: TOKEN_ADDRESSES.USDT,
     abi: ERC20_ABI,
     functionName: 'allowance',
@@ -69,14 +70,32 @@ const CreateTwitterMarket = () => {
     chainId: 8453,
   });
 
+  // Poll allowance when approval is pending
   useEffect(() => {
-    if (usdcAllowance) {
-      console.log('USDC Allowance:', Number(usdcAllowance) / (10 ** 6), 'USDC');
+    if (approvalPending) {
+      const pollAllowance = setInterval(() => {
+        if (formData.liquidityToken === 'USDC') {
+          refetchUsdcAllowance();
+        } else {
+          refetchUsdtAllowance();
+        }
+      }, 2000); // Poll every 2 seconds
+
+      // Cleanup after 2 minutes
+      const cleanup = setTimeout(() => {
+        clearInterval(pollAllowance);
+        if (approvalPending) {
+          setApprovalPending(false);
+          console.error('Approval polling timed out after 2 minutes');
+        }
+      }, 120000);
+
+      return () => {
+        clearInterval(pollAllowance);
+        clearTimeout(cleanup);
+      };
     }
-    if (usdtAllowance) {
-      console.log('USDT Allowance:', Number(usdtAllowance) / (10 ** 6), 'USDT');
-    }
-  }, [usdcAllowance, usdtAllowance]);
+  }, [approvalPending, formData.liquidityToken, refetchUsdcAllowance, refetchUsdtAllowance]);
 
   const [isApproved, setIsApproved] = useState(false);
 
@@ -86,18 +105,26 @@ const CreateTwitterMarket = () => {
       const currentAllowance = formData.liquidityToken === 'USDC' ? usdcAllowance : usdtAllowance;
       
       if (currentAllowance) {
-        setIsApproved(BigInt(currentAllowance) >= requiredAmount);
+        const hasEnoughAllowance = BigInt(currentAllowance) >= requiredAmount;
+        setIsApproved(hasEnoughAllowance);
+        
+        // Clear approval pending if we have enough allowance
+        if (approvalPending && hasEnoughAllowance) {
+          setApprovalPending(false);
+        }
+
         console.log(
           `Current ${formData.liquidityToken} allowance:`, 
           Number(currentAllowance) / (10 ** 6),
           formData.liquidityToken,
           '| Required:', 
           Number(requiredAmount) / (10 ** 6),
-          formData.liquidityToken
+          formData.liquidityToken,
+          '| Approved:', hasEnoughAllowance
         );
       }
     }
-  }, [usdcAllowance, usdtAllowance, formData.initialLiquidity, formData.liquidityToken]);
+  }, [usdcAllowance, usdtAllowance, formData.initialLiquidity, formData.liquidityToken, approvalPending]);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -117,6 +144,9 @@ const CreateTwitterMarket = () => {
         args: [PNP_FACTORY_ADDRESS, amount],
         chainId: 8453,
       });
+      
+      // Start polling for allowance update
+      setApprovalPending(true);
     } catch (error) {
       console.error('Error approving tokens:', error);
     }
@@ -495,7 +525,7 @@ const CreateTwitterMarket = () => {
             onClick={handleApprove}
             disabled={isApproved}
           >
-            {isApproved ? 'Approved' : 'Approve Contract'}
+            {isApproved ? 'Approved' : approvalPending ? 'Approving...' : 'Approve Contract'}
           </button>
           <button 
             type='submit' 

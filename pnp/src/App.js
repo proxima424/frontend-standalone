@@ -10,6 +10,7 @@ import Testing from './pages/Testing';
 import MarketExplore from './pages/MarketExplore';
 import LiveMarkets from './pages/LiveMarkets';
 import TwitterMarket from './pages/TwitterMarket';
+import UserMarkets from './pages/UserMarkets';
 
 function HomePage() {
   return (
@@ -118,6 +119,7 @@ function App() {
         <Route path="/price_markets/explore/:conditionId" element={<MarketExplore />} />
         <Route path="/twitter_markets/:conditionId" element={<TwitterMarket />} />
         <Route path="/live_markets" element={<LiveMarkets />} />
+        <Route path="/twitter_markets/user/:address" element={<UserMarkets />} />
       </Routes>
     </Router>
   );

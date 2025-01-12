@@ -1,6 +1,6 @@
 /* global BigInt */
 import React, { useState, useEffect } from 'react';
-import { useReadContract, useWriteContract, useAccount } from 'wagmi';
+import { useReadContract, useWriteContract, useAccount, useWaitForTransactionReceipt } from 'wagmi';
 import { erc20Abi } from 'viem';
 import './TwitterMarketCard.css';
 import { CONTRACT_ABIS } from '../contracts/config';
@@ -9,7 +9,7 @@ const PNP_FACTORY_ADDRESS = '0xD70E46d039bcD87e5bFce37C38727D7020C1998D';
 
 const TwitterMarketCard = ({ 
   marketQuestion,
-  marketReserve,
+  marketReserve: initialMarketReserve,
   twitterUsername,
   endTime,
   conditionId,
@@ -22,7 +22,13 @@ const TwitterMarketCard = ({
   const [isApproving, setIsApproving] = useState(false);
   const [isMinting, setIsMinting] = useState(false);
   const [hasAllowance, setHasAllowance] = useState(false);
+  const [showSuccess, setShowSuccess] = useState(false);
+  const [successAmount, setSuccessAmount] = useState('');
+  const [successOption, setSuccessOption] = useState('');
   const [approvalPending, setApprovalPending] = useState(false);
+  const [marketReserveDisplay, setMarketReserveDisplay] = useState(initialMarketReserve);
+
+  const { waitForTransactionReceipt } = useWaitForTransactionReceipt();
 
   const { data: collateralTokenAddress } = useReadContract({
     address: PNP_FACTORY_ADDRESS,
@@ -50,7 +56,24 @@ const TwitterMarketCard = ({
     enabled: !!conditionId,
   });
 
-  // Check allowance whenever collateral amount changes or when we're waiting for approval
+  // Update display when prop changes
+  useEffect(() => {
+    if (initialMarketReserve !== undefined) {
+      console.log('Market reserve from props:', initialMarketReserve);
+      setMarketReserveDisplay(initialMarketReserve);
+    }
+  }, [initialMarketReserve]);
+
+  // Debug log whenever marketReserve state changes
+  useEffect(() => {
+    console.log('Market reserve display state:', {
+      value: marketReserveDisplay,
+      type: typeof marketReserveDisplay,
+      isNaN: isNaN(marketReserveDisplay)
+    });
+  }, [marketReserveDisplay]);
+
+  // Check allowance whenever collateral amount changes
   const { data: currentAllowance, refetch: refetchAllowance } = useReadContract({
     address: collateralTokenAddress,
     abi: erc20Abi,
@@ -60,6 +83,9 @@ const TwitterMarketCard = ({
     enabled: !!collateralTokenAddress && !!userAddress && !!collateralAmount,
     watch: true,
   });
+
+  const { writeContract: writeApprove } = useWriteContract();
+  const { writeContract: writeMint } = useWriteContract();
 
   // Update hasAllowance whenever allowance or amount changes
   useEffect(() => {
@@ -83,9 +109,6 @@ const TwitterMarketCard = ({
     }
   }, [currentAllowance, collateralAmount, approvalPending]);
 
-  const { writeContract: writeApprove } = useWriteContract();
-  const { writeContract: writeMint } = useWriteContract();
-
   const handleApprove = async () => {
     if (!collateralTokenAddress || !collateralAmount) return;
 
@@ -99,7 +122,7 @@ const TwitterMarketCard = ({
         amount: scaledAmount.toString()
       });
 
-      const result = await writeApprove({
+      await writeApprove({
         address: collateralTokenAddress,
         abi: erc20Abi,
         functionName: 'approve',
@@ -146,13 +169,28 @@ const TwitterMarketCard = ({
         tokenId: tokenId.toString()
       });
 
-      await writeMint({
+      const { hash } = await writeMint({
         address: PNP_FACTORY_ADDRESS,
         abi: CONTRACT_ABIS.PNP_FACTORY.abi,
         functionName: 'mintDecisionTokens',
         args: [conditionId, scaledAmount, tokenId],
         chainId: 8453,
       });
+
+      // Wait for transaction confirmation
+      console.log('Waiting for mint transaction confirmation...');
+      const receipt = await waitForTransactionReceipt({ hash });
+      console.log('Mint transaction confirmed:', receipt);
+
+      // Only show success notification after confirmation
+      setSuccessAmount(collateralAmount);
+      setSuccessOption(selectedOption);
+      setShowSuccess(true);
+
+      // Auto-hide notification after 5 seconds
+      setTimeout(() => {
+        setShowSuccess(false);
+      }, 5000);
 
       setIsMinting(false);
       setCollateralAmount('');
@@ -208,6 +246,22 @@ const TwitterMarketCard = ({
 
   return (
     <div className="twitter-market-card">
+      {showSuccess && (
+        <div className="success-notification">
+          <div className="success-content">
+            <div className="success-icon">✓</div>
+            <div className="success-message">
+              Bought ${successAmount} worth of '{successOption}' tokens
+            </div>
+            <button 
+              className="close-button"
+              onClick={() => setShowSuccess(false)}
+            >
+              ×
+            </button>
+          </div>
+        </div>
+      )}
       <div className="white-rectangle">
         <div className="question-section">
           <h2 className="white-rectangle-title">{marketQuestion}</h2>
@@ -286,7 +340,15 @@ const TwitterMarketCard = ({
         <div className="footer-section">
           <div className="footer-item">
             <div className="footer-label">MARKET RESERVE</div>
-            <div className="footer-value market-reserve-value">${marketReserve}</div>
+            <div className="footer-value market-reserve-value">
+              {marketReserveDisplay !== undefined && !isNaN(marketReserveDisplay) ? 
+                `$${Number(marketReserveDisplay).toLocaleString(undefined, {
+                  minimumFractionDigits: 2,
+                  maximumFractionDigits: 2
+                })}` : 
+                'Loading...'
+              }
+            </div>
           </div>
           <div className="footer-divider" />
           <div className="footer-item">
