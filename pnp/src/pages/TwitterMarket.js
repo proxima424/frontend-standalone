@@ -63,13 +63,9 @@ const TwitterMarket = () => {
 
   useEffect(() => {
     if (reserveData) {
-      const rawValue = reserveData.toString();
-      const scaledReserve = Number(rawValue) / (10 ** 18);  // Contract returns 18 decimals
-      console.log('Market Reserve calculation:', {
-        raw: rawValue,
-        scaled: scaledReserve
-      });
-      setMarketReserve(scaledReserve);
+      const scaledReserve = Number(reserveData) / (10 ** 18);
+      setMarketReserve(scaledReserve.toFixed(2));
+      console.log('Market Reserve:', scaledReserve);
     }
   }, [reserveData]);
 

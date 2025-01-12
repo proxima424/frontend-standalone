@@ -26,7 +26,7 @@ const TwitterMarketCard = ({
   const [successAmount, setSuccessAmount] = useState('');
   const [successOption, setSuccessOption] = useState('');
   const [approvalPending, setApprovalPending] = useState(false);
-  const [marketReserveDisplay, setMarketReserveDisplay] = useState(initialMarketReserve);
+  const [marketReserve, setMarketReserve] = useState(initialMarketReserve);
 
   const { waitForTransactionReceipt } = useWaitForTransactionReceipt();
 
@@ -56,22 +56,10 @@ const TwitterMarketCard = ({
     enabled: !!conditionId,
   });
 
-  // Update display when prop changes
   useEffect(() => {
-    if (initialMarketReserve !== undefined) {
-      console.log('Market reserve from props:', initialMarketReserve);
-      setMarketReserveDisplay(initialMarketReserve);
-    }
+    setMarketReserve(initialMarketReserve);
+    console.log('Market reserve prop received:', initialMarketReserve);
   }, [initialMarketReserve]);
-
-  // Debug log whenever marketReserve state changes
-  useEffect(() => {
-    console.log('Market reserve display state:', {
-      value: marketReserveDisplay,
-      type: typeof marketReserveDisplay,
-      isNaN: isNaN(marketReserveDisplay)
-    });
-  }, [marketReserveDisplay]);
 
   // Check allowance whenever collateral amount changes
   const { data: currentAllowance, refetch: refetchAllowance } = useReadContract({
@@ -341,11 +329,8 @@ const TwitterMarketCard = ({
           <div className="footer-item">
             <div className="footer-label">MARKET RESERVE</div>
             <div className="footer-value market-reserve-value">
-              {marketReserveDisplay !== undefined && !isNaN(marketReserveDisplay) ? 
-                `$${Number(marketReserveDisplay).toLocaleString(undefined, {
-                  minimumFractionDigits: 2,
-                  maximumFractionDigits: 2
-                })}` : 
+              {marketReserve !== 'Loading...' ? 
+                `$${marketReserve}` : 
                 'Loading...'
               }
             </div>
