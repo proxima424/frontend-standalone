@@ -1,7 +1,9 @@
 /* global BigInt */
 import React, { useState, useEffect } from 'react';
-import { useReadContract, useWriteContract } from 'wagmi';
+import { useReadContract, useWriteContract, useWaitForTransactionReceipt } from 'wagmi';
 import { usePrivy } from '@privy-io/react-auth';
+import { useNavigate } from 'react-router-dom';
+import { CONTRACT_ABIS } from '../contracts/config';
 
 const TOKEN_ADDRESSES = {
   USDT: "0xfde4C96c8593536E31F229EA8f37b2ADa2699bb2",
@@ -34,6 +36,7 @@ const ERC20_ABI = [
 ];
 
 const CreateTwitterMarket = () => {
+  const navigate = useNavigate();
   const [isFormVisible, setIsFormVisible] = useState(false);
   const [formData, setFormData] = useState({
     marketQuestion: '',
@@ -46,6 +49,7 @@ const CreateTwitterMarket = () => {
 
   const { user } = usePrivy();
   const { writeContractAsync } = useWriteContract();
+  const { waitForTransactionReceipt } = useWaitForTransactionReceipt();
 
   // Check USDC allowance
   const { data: usdcAllowance } = useReadContract({
@@ -118,11 +122,118 @@ const CreateTwitterMarket = () => {
     }
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     if (!isApproved) return;
-    // Handle form submission logic here
-    console.log('Form submitted:', formData);
+
+    try {
+      // Calculate end time in UNIX timestamp
+      const now = Math.floor(Date.now() / 1000);
+      const duration = parseInt(formData.deadline);
+      let secondsToAdd = 0;
+      
+      switch(formData.deadlineUnit) {
+        case 'minutes':
+          secondsToAdd = duration * 60;
+          break;
+        case 'hours':
+          secondsToAdd = duration * 60 * 60;
+          break;
+        case 'days':
+          secondsToAdd = duration * 24 * 60 * 60;
+          break;
+      }
+      
+      const endTime = BigInt(now + secondsToAdd);
+      console.log('Calculated end time:', {
+        now,
+        duration,
+        unit: formData.deadlineUnit,
+        secondsToAdd,
+        endTime: endTime.toString()
+      });
+      
+      // Get collateral token address based on selection
+      const collateralToken = TOKEN_ADDRESSES[formData.liquidityToken];
+      console.log('Using collateral token:', {
+        token: formData.liquidityToken,
+        address: collateralToken
+      });
+      
+      // Scale initial liquidity by 10^6
+      const initialLiquidity = BigInt(formData.initialLiquidity) * BigInt(10 ** 6);
+      console.log('Scaled initial liquidity:', {
+        original: formData.initialLiquidity,
+        scaled: initialLiquidity.toString()
+      });
+
+      console.log('Creating market with params:', {
+        question: formData.marketQuestion,
+        settlerId: formData.twitterUsername,
+        endTime: endTime.toString(),
+        collateralToken,
+        initialLiquidity: initialLiquidity.toString()
+      });
+
+      const { hash } = await writeContractAsync({
+        address: PNP_FACTORY_ADDRESS,
+        abi: CONTRACT_ABIS.PNP_FACTORY.abi,
+        functionName: 'createTwitterMarket',
+        args: [
+          formData.marketQuestion,
+          formData.twitterUsername,
+          endTime,
+          collateralToken,
+          initialLiquidity
+        ],
+        chainId: 8453,
+      });
+
+      console.log('Transaction submitted with hash:', hash);
+
+      // Wait for transaction receipt
+      console.log('Waiting for transaction confirmation...');
+      const receipt = await waitForTransactionReceipt({ hash });
+      console.log('Transaction receipt:', receipt);
+      
+      // Get the conditionId from the event logs
+      console.log('Transaction logs:', receipt.logs);
+      
+      const event = receipt.logs.find(
+        log => log.address.toLowerCase() === PNP_FACTORY_ADDRESS.toLowerCase()
+      );
+      console.log('Found event:', event);
+      
+      if (event) {
+        console.log('Event topics:', event.topics);
+        const conditionId = event.topics[1]; // The conditionId should be the first indexed parameter
+        console.log('Extracted conditionId:', conditionId);
+        // Navigate to the new market page
+        navigate(`/twitter_markets/${conditionId}`);
+      } else {
+        console.log('No matching event found in logs');
+      }
+
+      // Reset form
+      setFormData({
+        marketQuestion: '',
+        twitterUsername: '',
+        deadline: '',
+        deadlineUnit: 'days',
+        initialLiquidity: '',
+        liquidityToken: 'USDC'
+      });
+      setIsFormVisible(false);
+      setIsApproved(false);
+
+    } catch (error) {
+      console.error('Error creating market:', error);
+      // Log detailed error information
+      if (error.reason) console.error('Error reason:', error.reason);
+      if (error.code) console.error('Error code:', error.code);
+      if (error.data) console.error('Error data:', error.data);
+      if (error.message) console.error('Error message:', error.message);
+    }
   };
 
   if (!isFormVisible) {

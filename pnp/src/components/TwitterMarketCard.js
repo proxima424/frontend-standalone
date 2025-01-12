@@ -1,6 +1,6 @@
 /* global BigInt */
 import React, { useState, useEffect } from 'react';
-import { useReadContract, useWriteContract } from 'wagmi';
+import { useReadContract, useWriteContract, useAccount } from 'wagmi';
 import { erc20Abi } from 'viem';
 import './TwitterMarketCard.css';
 import { CONTRACT_ABIS } from '../contracts/config';
@@ -16,10 +16,13 @@ const TwitterMarketCard = ({
   onMint,
   onProvideLiquidity
 }) => {
+  const { address: userAddress } = useAccount();
   const [selectedOption, setSelectedOption] = useState(null);
   const [collateralAmount, setCollateralAmount] = useState('');
   const [isApproving, setIsApproving] = useState(false);
   const [isMinting, setIsMinting] = useState(false);
+  const [hasAllowance, setHasAllowance] = useState(false);
+  const [approvalPending, setApprovalPending] = useState(false);
 
   const { data: collateralTokenAddress } = useReadContract({
     address: PNP_FACTORY_ADDRESS,
@@ -47,19 +50,56 @@ const TwitterMarketCard = ({
     enabled: !!conditionId,
   });
 
+  // Check allowance whenever collateral amount changes or when we're waiting for approval
+  const { data: currentAllowance, refetch: refetchAllowance } = useReadContract({
+    address: collateralTokenAddress,
+    abi: erc20Abi,
+    functionName: 'allowance',
+    args: [userAddress, PNP_FACTORY_ADDRESS],
+    chainId: 8453,
+    enabled: !!collateralTokenAddress && !!userAddress && !!collateralAmount,
+    watch: true,
+  });
+
+  // Update hasAllowance whenever allowance or amount changes
+  useEffect(() => {
+    if (currentAllowance && collateralAmount) {
+      const requiredAmount = BigInt(Math.floor(parseFloat(collateralAmount) * 10**6));
+      const sufficientAllowance = BigInt(currentAllowance) >= requiredAmount;
+      setHasAllowance(sufficientAllowance);
+      
+      // If we were waiting for approval and now have sufficient allowance, clear the pending state
+      if (approvalPending && sufficientAllowance) {
+        setApprovalPending(false);
+        setIsApproving(false);
+      }
+
+      console.log('Allowance check:', {
+        currentAllowance: currentAllowance.toString(),
+        requiredAmount: requiredAmount.toString(),
+        hasEnough: sufficientAllowance,
+        approvalPending
+      });
+    }
+  }, [currentAllowance, collateralAmount, approvalPending]);
+
   const { writeContract: writeApprove } = useWriteContract();
   const { writeContract: writeMint } = useWriteContract();
 
-  const handleMint = async () => {
-    if (!collateralTokenAddress || !collateralAmount || !selectedOption) return;
+  const handleApprove = async () => {
+    if (!collateralTokenAddress || !collateralAmount) return;
 
     try {
       setIsApproving(true);
-      // Scale the collateral amount by 10^6
       const scaledAmount = BigInt(Math.floor(parseFloat(collateralAmount) * 10**6));
       
-      // First approve the factory contract to spend tokens
-      await writeApprove({
+      console.log('Approving tokens:', {
+        token: collateralTokenAddress,
+        spender: PNP_FACTORY_ADDRESS,
+        amount: scaledAmount.toString()
+      });
+
+      const result = await writeApprove({
         address: collateralTokenAddress,
         abi: erc20Abi,
         functionName: 'approve',
@@ -67,13 +107,45 @@ const TwitterMarketCard = ({
         chainId: 8453,
       });
 
-      setIsApproving(false);
-      setIsMinting(true);
+      // Set pending state after transaction is submitted
+      setApprovalPending(true);
+      
+      // Start polling allowance
+      const pollAllowance = setInterval(async () => {
+        await refetchAllowance();
+      }, 2000); // Poll every 2 seconds
 
-      // Get the appropriate token ID based on selection
+      // Cleanup polling after 2 minutes (in case something goes wrong)
+      setTimeout(() => {
+        clearInterval(pollAllowance);
+        if (approvalPending) {
+          setApprovalPending(false);
+          setIsApproving(false);
+          console.error('Approval timed out after 2 minutes');
+        }
+      }, 120000);
+
+    } catch (error) {
+      console.error('Error approving tokens:', error);
+      setIsApproving(false);
+      setApprovalPending(false);
+    }
+  };
+
+  const handleMint = async () => {
+    if (!collateralTokenAddress || !collateralAmount || !selectedOption || !hasAllowance) return;
+
+    try {
+      setIsMinting(true);
+      const scaledAmount = BigInt(Math.floor(parseFloat(collateralAmount) * 10**6));
       const tokenId = selectedOption === 'YES' ? yesTokenId : noTokenId;
 
-      // Then mint the decision tokens
+      console.log('Minting tokens:', {
+        conditionId,
+        amount: scaledAmount.toString(),
+        tokenId: tokenId.toString()
+      });
+
       await writeMint({
         address: PNP_FACTORY_ADDRESS,
         abi: CONTRACT_ABIS.PNP_FACTORY.abi,
@@ -87,8 +159,7 @@ const TwitterMarketCard = ({
       setSelectedOption(null);
       
     } catch (error) {
-      console.error('Error during minting:', error);
-      setIsApproving(false);
+      console.error('Error minting tokens:', error);
       setIsMinting(false);
     }
   };
@@ -184,13 +255,30 @@ const TwitterMarketCard = ({
             className="collateral-input"
             disabled={isApproving || isMinting}
           />
-          <button
-            className="mint-button"
-            onClick={handleMint}
-            disabled={!selectedOption || !collateralAmount || isApproving || isMinting}
-          >
-            {isApproving ? 'Approving...' : isMinting ? 'Minting...' : 'Mint Position'}
-          </button>
+          {!hasAllowance ? (
+            <button
+              className="approve-button"
+              onClick={handleApprove}
+              disabled={!selectedOption || !collateralAmount || isApproving}
+            >
+              {isApproving ? (
+                <>
+                  <span className="loading-dots">Approving</span>
+                  {approvalPending && <span className="approval-note">Waiting for allowance update...</span>}
+                </>
+              ) : (
+                'Approve Contract'
+              )}
+            </button>
+          ) : (
+            <button
+              className="mint-button"
+              onClick={handleMint}
+              disabled={!selectedOption || !collateralAmount || isMinting}
+            >
+              {isMinting ? 'Minting...' : 'Mint Position'}
+            </button>
+          )}
         </div>
       </div>
 
@@ -203,7 +291,7 @@ const TwitterMarketCard = ({
           <div className="footer-divider" />
           <div className="footer-item">
             <div className="footer-label">TWEETS TRACKED AS TRUTH SOURCE</div>
-            <a href={`https://twitter.com/${twitterUsername}`} target="_blank" rel="noopener noreferrer" className="twitter-username">
+            <a href={twitterLink} target="_blank" rel="noopener noreferrer" className="twitter-username">
               @{twitterUsername}
               <span className="external-link-icon">↗</span>
             </a>
