@@ -1,6 +1,7 @@
 // Contract addresses
 export const CONTRACT_ADDRESSES = {
-    PNP_FACTORY: '0x28c876BF878C3549adddAE5659Ff59B95Cb2C77f', 
+    PNP_FACTORY: '0xD70E46d039bcD87e5bFce37C38727D7020C1998D',
+    // PNP_FACTORY: '0x28c876BF878C3549adddAE5659Ff59B95Cb2C77f', 
 };
 
 // Contract ABIs will be stored here

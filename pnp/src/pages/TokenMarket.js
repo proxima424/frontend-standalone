@@ -210,8 +210,8 @@ const TokenMarket = () => {
 
       console.log('Created Condition ID:', conditionId);
 
-      // Navigate to the new market exploration page
-      navigate(`/price_markets/explore/${conditionId}`);
+      // Navigate to the live markets page
+      navigate('/live_markets');
 
     } catch (error) {
       console.error('Error creating prediction market:', error);
