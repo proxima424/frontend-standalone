@@ -52,7 +52,7 @@ const Navbar = () => {
         <div className="nav-links">
           <button 
             className="nav-button"
-            onClick={() => window.open('https://sapphire-nickel-23f.notion.site/How-it-works-16c7febcab0f80d79d99d48362f0c0e7?pvs=4', '_blank')}
+            onClick={() => window.open('https://sapphire-nickel-23f.notion.site/pnp-protocol-a-permissionless-prediction-market-protocol-1797febcab0f80fb8c93eeb704ad2fb4', '_blank')}
           >
             How it works?
           </button>
