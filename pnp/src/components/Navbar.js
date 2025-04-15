@@ -34,11 +34,11 @@ const Navbar = () => {
     <nav className="navbar">
       <div className="moving-strip">
         <div className="scroll-text">
-          <span>🌐 PRICE MARKETS LIVE ON BASE</span>
+          <span>🌐 CREATE A PREDICTION MARKET ON ANY EVENT</span>
           <span>🔄 PERMISSIONLESS MARKETS</span>
-          <span>📊 LAUNCH MARKET ON ANY TOKEN</span>
-          <span>🌐 ETHEREUM ALIGNED</span>   
-          <span>📊 PNP PROTOCOL</span>
+          <span>📊 COMPLETELY ONCHAIN</span>
+          <span>🌐 PERPLEXITY SONAR API SETTLES MARKETS</span>   
+          <span>📊 NETWORK OF AVS OPERATORS</span>
         </div>
       </div>
       <div className="navbar-content">
@@ -58,11 +58,12 @@ const Navbar = () => {
           </button>
           <button 
             className="nav-button" 
-            onClick={() => navigate('/price_markets')}
+            onClick={() => navigate('/')}
           >
-            Price Markets
+            PERPLEXITY MARKETS
           </button>
-          <button className="nav-button">Twitter Markets</button>
+          <button className="nav-button"
+          onClick={() => window.open('https://polynews.in', '_blank')}>POLY NEWS</button>
         </div>
         <div className="navbar-right">
           {ready && !authenticated ? (

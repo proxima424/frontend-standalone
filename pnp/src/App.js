@@ -92,8 +92,8 @@ function HomePage() {
                 }
               }}
             >
-              <a className="btn-primary" href="/price_markets">Start Trading</a>
-              <a className="btn-secondary" href="/live_markets">Explore live markets</a>
+              <a className="btn-primary" href="/">Launching Soon</a>
+              <a className="btn-secondary" href="https://t.me/+aRDP9tfNgktmZTM9">Join Telegram Now</a>
             </motion.div>
           </motion.div>
           <div className="spline-container">
