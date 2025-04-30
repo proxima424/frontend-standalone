@@ -10,6 +10,8 @@ const Saruman = ({
   yesMultiplier, 
   noMultiplier, 
   volume,
+  marketReserve,
+  marketVolume,
   collateral = "USDC",
   resolutionSource = "Perplexity"
 }) => {
@@ -17,13 +19,6 @@ const Saruman = ({
     <div className="saruman-container">
       <div className="market-question">
         {question}
-      </div>
-      
-      <div className="market-collateral">
-        <div className="usdc-icon">
-          <img src="/usdc.svg" alt="USDC" width="18" height="18" />
-        </div>
-        Collateral: {collateral}
       </div>
       
       <div className="odds-container">
@@ -43,12 +38,30 @@ const Saruman = ({
       </div>
       
       <div className="market-footer">
-        <div className="market-volume">
-          Market Volume: ${volume}
+        <div className="footer-top-row">
+          <div className="market-collateral">
+            <div className="usdc-icon">
+              <img src="/usdc.svg" alt="USDC" width="18" height="18" />
+            </div>
+            Collateral: {collateral}
+          </div>
+          
+          <div className="resolution-source">
+            <img src="/globe.svg" alt="Globe" className="globe-icon" width="16" height="16" />
+            Settled by {resolutionSource}
+          </div>
         </div>
-        <div className="resolution-source">
-          <img src="/globe.svg" alt="Globe" className="globe-icon" width="16" height="16" />
-          Settled by {resolutionSource}
+        
+        <div className="footer-bottom-row">
+          <div className="market-metric market-reserve">
+            <div className="metric-label">Market Reserve</div>
+            <div className="metric-value">${marketReserve}</div>
+          </div>
+          
+          <div className="market-metric market-volume">
+            <div className="metric-label">Market Volume</div>
+            <div className="metric-value">${marketVolume}</div>
+          </div>
         </div>
       </div>
     </div>
