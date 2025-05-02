@@ -610,11 +610,11 @@ uint256 noTokenId = uint256(keccak256(abi.encodePacked(conditionId, "NO")));
                 </div>
                 <div className="ai-model">
                   <img src="/gemini-logo.svg" alt="Gemini" className="ai-logo" />
-                  <span>Gemini Ultra 1.0</span>
+                  <span>Gemini 2.5 Pro Preview</span>
                 </div>
                 <div className="ai-model">
                   <img src="/llama-logo.svg" alt="Llama" className="ai-logo" />
-                  <span>Llama 3 70B Instruct</span>
+                  <span>Perplexity Sonar Pro</span>
                 </div>
               </div>
               <div className="ai-capabilities">
