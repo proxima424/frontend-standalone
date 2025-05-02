@@ -1,3 +1,15 @@
+/* Add Animation Keyframes */
+@keyframes contentFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
 .saruman-container {
   background: #111;
   border-radius: 12px;
@@ -9,6 +21,7 @@
   box-shadow: 0 5px 15px rgba(0, 0, 0, 0.5);
   border: 1px solid #222;
   transition: all 0.3s ease;
+  animation: contentFadeIn 0.5s cubic-bezier(0.4, 0, 0.2, 1) forwards;
 }
 
 .saruman-container:hover {

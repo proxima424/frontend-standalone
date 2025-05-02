@@ -1,92 +1,124 @@
-import React from 'react';
+import React, { useState } from 'react';
 import './Gandalf.css';
 import Saruman from '../components/Saruman';
 import MarketTile from '../components/MarketTile';
+import CreateMarketForm from '../components/CreateMarketForm';
 
 const Gandalf = () => {
-  const handleCreateMarket = () => {
-    console.log("Create Market button clicked!");
-    // Placeholder function for now
+  const [showCreateForm, setShowCreateForm] = useState(false);
+
+  // Initial data for Saruman
+  const initialMarketData = {
+    id: 'initial', // Add an ID for key prop
+    question: "Will Aliens start visit Pakistan by end of May 2025?",
+    yesHolders: 188,
+    noHolders: 412,
+    yesPrice: 0.15, 
+    noPrice: 0.85,
+    yesMultiplier: 6.67,
+    noMultiplier: 1.18,
+    volume: "188,450",
+    marketReserve: "95,000",
+    marketVolume: "188,450",
+    collateral: "USDC",
+    resolutionSource: "Community"
+  };
+  
+  // State for the market displayed in alpha-right
+  const [selectedMarketData, setSelectedMarketData] = useState(initialMarketData);
+
+  const handleShowForm = () => {
+    setShowCreateForm(true);
   };
 
-  // Sample prediction market data
-  const sampleMarketData = {
-    question: "Will ETH price exceed $5,000 by the end of 2024?",
-    yesHolders: 243,
-    noHolders: 78,
-    yesPrice: 0.72,
-    noPrice: 0.28,
-    yesMultiplier: 1.38,
-    noMultiplier: 3.57,
-    volume: "328,450",
-    marketReserve: "125,000",
-    marketVolume: "328,450",
-    collateral: "USDC"
+  const handleHideForm = () => {
+    setShowCreateForm(false);
   };
 
-  // Sample markets for horizontal list
+  // Sample markets for horizontal MarketTile list
   const sampleMarkets = [
     {
       id: 1,
-      question: "Will Bitcoin reach $100,000 by Q2 2024?",
-      yesPrice: 0.65,
-      noPrice: 0.35,
-      yesMultiplier: 1.54,
-      noMultiplier: 2.86
+      question: "Will Trump say Kanye is his friend by September 2025?",
+      yesPrice: 0.42,
+      noPrice: 0.58,
+      yesMultiplier: 2.38,
+      noMultiplier: 1.72
     },
     {
       id: 2,
-      question: "Will Solana surpass Ethereum in daily transactions by end of 2024?",
-      yesPrice: 0.21,
-      noPrice: 0.79,
-      yesMultiplier: 4.76,
-      noMultiplier: 1.27
+      question: "Will a new fish species be named after a memecoin by July 2026?",
+      yesPrice: 0.28,
+      noPrice: 0.72,
+      yesMultiplier: 3.57,
+      noMultiplier: 1.39
     },
     {
       id: 3,
-      question: "Will any country adopt Bitcoin as legal tender in 2024?",
-      yesPrice: 0.33,
-      noPrice: 0.67,
-      yesMultiplier: 3.03,
-      noMultiplier: 1.49
+      question: "Will Five guys launch a hawk-tuak hot-dog by September 2025?",
+      yesPrice: 0.66, 
+      noPrice: 0.34,
+      yesMultiplier: 1.52,
+      noMultiplier: 2.94
     },
     {
       id: 4,
-      question: "Will the Ethereum ETF be approved in the USA by end of 2024?",
-      yesPrice: 0.44,
-      noPrice: 0.56,
-      yesMultiplier: 2.27,
-      noMultiplier: 1.79
+      question: "Will a Fortune 500 Company Adopt a Shiba Inu as an Official Mascot by June 30, 2026?",
+      yesPrice: 0.19,
+      noPrice: 0.81,
+      yesMultiplier: 5.26,
+      noMultiplier: 1.23
     },
     {
-      id: 5,
-      question: "Will the total crypto market cap exceed $3 trillion in 2024?",
-      yesPrice: 0.58,
-      noPrice: 0.42,
-      yesMultiplier: 1.72,
-      noMultiplier: 2.38
+      id: 5, 
+      question: "Will ETH price exceed $5,000 by the end of 2024?",
+      yesPrice: 0.72,
+      noPrice: 0.28,
+      yesMultiplier: 1.38,
+      noMultiplier: 3.57
     },
     {
-      id: 6,
-      question: "Will NFT trading volume increase by at least 50% in 2024?",
-      yesPrice: 0.37,
-      noPrice: 0.63,
-      yesMultiplier: 2.70,
-      noMultiplier: 1.59
+      id: 6, 
+      question: "Will AI achieve general intelligence by 2030?",
+      yesPrice: 0.31,
+      noPrice: 0.69,
+      yesMultiplier: 3.23,
+      noMultiplier: 1.45
     }
   ];
+
+  // Function to handle market selection from tiles
+  const handleMarketSelect = (market) => {
+    // Map data from MarketTile format to Saruman format
+    // Add placeholders for missing data
+    setSelectedMarketData({
+      ...market, // Spread existing data (id, question, prices, multipliers)
+      yesHolders: Math.floor(Math.random() * 500) + 50, // Placeholder
+      noHolders: Math.floor(Math.random() * 500) + 50, // Placeholder
+      volume: `${(Math.random() * 500000 + 50000).toFixed(0).replace(/\B(?=(\d{3})+(?!\d))/g, ",")}`, // Placeholder
+      marketReserve: `${(Math.random() * 200000 + 20000).toFixed(0).replace(/\B(?=(\d{3})+(?!\d))/g, ",")}`, // Placeholder
+      marketVolume: `${(Math.random() * 500000 + 50000).toFixed(0).replace(/\B(?=(\d{3})+(?!\d))/g, ",")}`, // Placeholder
+      collateral: "USDC", // Default
+      resolutionSource: "Perplexity" // Default for selected markets
+    });
+  };
 
   return (
     <div className="gandalf-container">
       <div className="alpha-container">
         <div className="alpha-left">
-          <button className="create-market-button" onClick={handleCreateMarket}>
-            <div className="plus-icon">+</div>
-            <div className="create-text">Create Market</div>
-          </button>
+          {showCreateForm ? (
+            <CreateMarketForm onClose={handleHideForm} />
+          ) : (
+            <button className="create-market-button" onClick={handleShowForm}>
+              <div className="plus-icon">+</div>
+              <div className="create-text">Create Market</div>
+            </button>
+          )}
         </div>
         <div className="alpha-right">
-          <Saruman {...sampleMarketData} />
+          {/* Use selectedMarketData and add a key for animation trigger */}
+          <Saruman key={selectedMarketData.id} {...selectedMarketData} />
         </div>
       </div>
       
@@ -101,7 +133,11 @@ const Gandalf = () => {
         
         <div className="market-tiles-container">
           {sampleMarkets.map(market => (
-            <MarketTile key={market.id} {...market} />
+            <MarketTile 
+              key={market.id} 
+              {...market} 
+              onClick={() => handleMarketSelect(market)} // Pass handler
+            />
           ))}
         </div>
       </div>

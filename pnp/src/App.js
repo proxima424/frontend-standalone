@@ -12,6 +12,7 @@ import LiveMarkets from './pages/LiveMarkets';
 import TwitterMarket from './pages/TwitterMarket';
 import UserMarkets from './pages/UserMarkets';
 import Gandalf from './pages/Gandalf';
+import Docs from './pages/Docs';
 
 function HomePage() {
   return (
@@ -121,7 +122,7 @@ function App() {
         <Route path="/twitter_markets/:conditionId" element={<TwitterMarket />} />
         <Route path="/live_markets" element={<LiveMarkets />} />
         <Route path="/twitter_markets/user/:address" element={<UserMarkets />} />
-        <Route path="/gandalf" element={<Gandalf />} />
+        <Route path="/docs" element={<Docs />} />
       </Routes>
     </Router>
   );

@@ -1,0 +1,189 @@
+.create-market-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  width: 100%;
+  height: 100%;
+  padding: 1.5rem;
+  box-sizing: border-box;
+  justify-content: center;
+  position: relative;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.form-group label {
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: #bbb;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.form-group input[type="text"],
+.form-group input[type="number"] {
+  background-color: #1f1f1f;
+  border: 1px solid #444;
+  color: #e0e0e0;
+  padding: 0.8rem 1rem;
+  border-radius: 8px;
+  font-size: 1rem;
+  transition: border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+.form-group input[type="text"]:focus,
+.form-group input[type="number"]:focus {
+  outline: none;
+  border-color: #ff69b4;
+  box-shadow: 0 0 0 3px rgba(255, 105, 180, 0.15);
+}
+
+.helper-text {
+  font-size: 0.8rem;
+  color: #888;
+  margin-top: -0.3rem;
+}
+
+/* Inline group styling for Collateral and Deadline */
+.form-group-inline label {
+  margin-bottom: 0.2rem; /* Add some space below label */
+}
+
+.collateral-input-group,
+.deadline-input-group {
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+}
+
+.collateral-input-group input[type="number"] {
+  flex-grow: 1;
+  min-width: 100px;
+}
+
+.deadline-input-group input[type="number"] {
+  width: 120px; /* Fixed width for duration */
+}
+
+.usdc-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background-color: #2a2a2a;
+  color: #ccc;
+  padding: 0.5rem 0.8rem;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  border: 1px solid #444;
+}
+
+.usdc-tag img {
+  filter: brightness(0.9);
+}
+
+.approve-button,
+.create-button,
+.unit-button {
+  padding: 0.6rem 1rem;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.approve-button,
+.create-button {
+  border: none;
+}
+
+.approve-button {
+  background-color: #444;
+  color: #888;
+}
+
+.approve-button:not(.disabled) {
+  background: linear-gradient(90deg, #ff69b4, #c73894);
+  color: white;
+  box-shadow: 0 3px 10px rgba(255, 105, 180, 0.2);
+}
+
+.approve-button:not(.disabled):hover {
+  filter: brightness(1.1);
+  transform: translateY(-1px);
+  box-shadow: 0 5px 15px rgba(255, 105, 180, 0.3);
+}
+
+.approve-button.disabled {
+  cursor: not-allowed;
+}
+
+.unit-selector {
+  display: inline-flex;
+  border: 1px solid #444;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.unit-button {
+  background-color: #1f1f1f;
+  color: #888;
+  border: none;
+  border-left: 1px solid #444; /* Separator */
+  padding: 0.7rem 1rem;
+}
+
+.unit-button:first-child {
+  border-left: none;
+}
+
+.unit-button.active {
+  background-color: #ff69b4;
+  color: white;
+  box-shadow: inset 0 1px 3px rgba(0,0,0,0.2);
+}
+
+.unit-button:not(.active):hover {
+  background-color: #2f2f2f;
+  color: #bbb;
+}
+
+.create-button {
+  background: linear-gradient(90deg, #c73894, #ff69b4);
+  color: white;
+  margin-top: 0.5rem;
+  box-shadow: 0 4px 15px rgba(255, 105, 180, 0.3);
+  width: 100%;
+}
+
+.create-button:hover {
+  filter: brightness(1.15);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(255, 105, 180, 0.4);
+}
+
+/* Add a subtle close button for the inline form */
+.form-close-button {
+  position: absolute;
+  top: 0.8rem;
+  right: 0.8rem;
+  background: transparent;
+  border: none;
+  color: #666;
+  font-size: 1.5rem;
+  line-height: 1;
+  cursor: pointer;
+  transition: color 0.2s ease, transform 0.2s ease;
+  padding: 0.1rem;
+}
+
+.form-close-button:hover {
+  color: #ff69b4;
+  transform: scale(1.1);
+} 

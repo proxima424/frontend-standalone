@@ -6,10 +6,11 @@ const MarketTile = ({
   yesPrice, 
   noPrice, 
   yesMultiplier,
-  noMultiplier
+  noMultiplier,
+  onClick
 }) => {
   return (
-    <div className="market-tile">
+    <div className="market-tile" onClick={onClick}>
       <div className="tile-content">
         <h3 className="tile-question">{question}</h3>
         
