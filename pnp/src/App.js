@@ -95,7 +95,7 @@ function HomePage() {
               }}
             >
               <a className="btn-primary" href="/">Launching Soon</a>
-              <a className="btn-secondary" href="https://t.me/+aRDP9tfNgktmZTM9">Join Telegram Now</a>
+              <a className="btn-secondary" href="https://t.me/pnpexchangeportal">Join Telegram Now</a>
             </motion.div>
           </motion.div>
           <div className="spline-container">
