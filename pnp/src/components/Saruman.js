@@ -1,41 +1,527 @@
-import React from 'react';
+/* global BigInt */
+import React, { useState, useEffect, useCallback } from 'react';
+import { useContractWrite, useWaitForTransactionReceipt, usePublicClient, useAccount } from 'wagmi';
+import { parseEther, keccak256, encodePacked, formatEther } from 'viem';
+import { PNP_FACTORY_ADDRESS } from '../contracts/contractConfig';
+import { useNavigate } from 'react-router-dom';
 import './Saruman.css';
 
-const Saruman = ({ 
-  question, 
-  yesHolders, 
-  noHolders, 
-  yesPrice, 
-  noPrice, 
-  yesMultiplier, 
-  noMultiplier, 
-  volume,
-  marketReserve,
-  marketVolume,
-  collateral = "USDC",
-  resolutionSource = "Perplexity"
+const USDPNP_ADDRESS = '0xf506826e42047EB538F567539fFb8db74a093FD8'; // For checking collateral
+
+// ABI for mintDecisionTokens and getTokenIds
+const PNP_ABI = [
+  {
+    inputs: [
+      { internalType: "bytes32", name: "conditionId", type: "bytes32" },
+      { internalType: "uint256", name: "collateralAmount", type: "uint256" },
+      { internalType: "uint256", name: "tokenIdToMint", type: "uint256" }
+    ],
+    name: "mintDecisionTokens",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function"
+  },
+  {
+    inputs: [
+      { internalType: "bytes32", name: "conditionId", type: "bytes32" }
+    ],
+    name: "getYesTokenId",
+    outputs: [{ internalType: "uint256", name: "", type: "uint256" }],
+    stateMutability: "pure",
+    type: "function"
+  },
+  {
+    inputs: [
+      { internalType: "bytes32", name: "conditionId", type: "bytes32" }
+    ],
+    name: "getNoTokenId",
+    outputs: [{ internalType: "uint256", name: "", type: "uint256" }],
+    stateMutability: "pure",
+    type: "function"
+  },
+  {
+    inputs: [
+      { internalType: "bytes32", name: "conditionId", type: "bytes32" }
+    ],
+    name: "getMarketEndTime",
+    outputs: [{ internalType: "uint256", name: "", type: "uint256" }],
+    stateMutability: "view",
+    type: "function"
+  }
+];
+
+// Add ERC1155Supply ABI for balanceOf
+const ERC1155_SUPPLY_ABI = [
+  {
+    inputs: [
+      { internalType: "address", name: "account", type: "address" },
+      { internalType: "uint256", name: "id", type: "uint256" }
+    ],
+    name: "balanceOf",
+    outputs: [{ internalType: "uint256", name: "", type: "uint256" }],
+    stateMutability: "view",
+    type: "function"
+  }
+];
+
+const CountdownTimer = ({ endTime }) => {
+  // useCallback to memoize calculateTimeLeft unless endTime changes
+  const calculateTimeLeft = useCallback(() => {
+    if (!endTime || Number(endTime) === 0) return {};
+    const endTimeMs = Number(endTime) * 1000;
+    const difference = endTimeMs - new Date().getTime();
+    let newTimeLeft = {};
+
+    if (difference > 0) {
+      newTimeLeft = {
+        days: Math.floor(difference / (1000 * 60 * 60 * 24)),
+        hours: Math.floor((difference / (1000 * 60 * 60)) % 24),
+        minutes: Math.floor((difference / 1000 / 60) % 60),
+        seconds: Math.floor((difference / 1000) % 60),
+      };
+    }
+    return newTimeLeft;
+  }, [endTime]); // Recalculate only if endTime changes
+
+  const [timeLeft, setTimeLeft] = useState(calculateTimeLeft());
+
+  useEffect(() => {
+    // Initialize timeLeft when endTime is first available or changes
+    setTimeLeft(calculateTimeLeft());
+
+    if (!endTime || Number(endTime) === 0) {
+      return; // No timer if no valid endTime
+    }
+
+    // Set up the interval timer
+    const timerId = setInterval(() => {
+      setTimeLeft(calculateTimeLeft());
+    }, 1000);
+
+    // Clear interval on cleanup or when endTime changes
+    return () => clearInterval(timerId);
+  }, [endTime, calculateTimeLeft]); // Depend on endTime and the memoized calculateTimeLeft
+
+
+  if (!endTime || Number(endTime) === 0) {
+    return <div className="countdown-timer"><span>No Deadline Set</span></div>;
+  }
+
+  const timerComponents = [];
+  Object.keys(timeLeft).forEach((interval) => {
+    if (timeLeft[interval] === undefined || timeLeft[interval] === null) {
+      return;
+    }
+    const value = timeLeft[interval] < 10 && timeLeft[interval] >=0 ? `0${timeLeft[interval]}` : timeLeft[interval];
+    timerComponents.push(
+      <span key={interval} className="timer-segment">
+        {value} <span className="timer-label">{interval.charAt(0).toUpperCase()}</span>
+      </span>
+    );
+  });
+
+  if (timerComponents.length === 0 && endTime && Number(endTime) > 0 && (Number(endTime) * 1000 < new Date().getTime())) {
+    return <div className="countdown-timer"><span>Time's up!</span></div>;
+  }
+  if (timerComponents.length === 0) {
+      return <div className="countdown-timer"><span>Calculating...</span></div>;
+  }
+
+  return (
+    <div className="countdown-timer">
+      {timerComponents.reduce((prev, curr) => [prev, ' : ', curr])}
+    </div>
+  );
+};
+
+const Saruman = ({
+  isLoading = false,
+  marketData = {},
 }) => {
+  const navigate = useNavigate();
+  const { address } = useAccount();
+  const [depositAmount, setDepositAmount] = useState('');
+  const [showDepositField, setShowDepositField] = useState(null);
+  const [isMinting, setIsMinting] = useState(false);
+  const [tokenIds, setTokenIds] = useState({ yesTokenId: null, noTokenId: null });
+  const [showYesModal, setShowYesModal] = useState(false);
+  const [modalAmount, setModalAmount] = useState('');
+  const [userBalances, setUserBalances] = useState({ yesBalance: '0', noBalance: '0' });
+
+  const publicClient = usePublicClient();
+
+  // Calculate multipliers based on prices
+  const calculateMultipliers = (yesPrice, noPrice) => {
+    console.log("=== Calculating Multipliers ===");
+    console.log("YES Price:", yesPrice);
+    console.log("NO Price:", noPrice);
+
+    // Multiplier is the inverse of the price
+    // If price is 0.4, multiplier is 1/0.4 = 2.5
+    const yesMultiplier = yesPrice > 0 ? (1 / yesPrice) : 0;
+    const noMultiplier = noPrice > 0 ? (1 / noPrice) : 0;
+
+    console.log("Calculated Multipliers:", {
+      yesMultiplier,
+      noMultiplier
+    });
+
+    return {
+      yesMultiplier: Number(yesMultiplier.toFixed(2)),
+      noMultiplier: Number(noMultiplier.toFixed(2))
+    };
+  };
+
+  // Debug useEffect to log market data when component mounts or updates
+  useEffect(() => {
+    console.log("=== Saruman Component Debug ===");
+    console.log("Market Data:", marketData);
+    console.log("Is Loading:", isLoading);
+    console.log("Show Deposit Field:", showDepositField);
+    console.log("Deposit Amount:", depositAmount);
+
+    // Calculate and log multipliers whenever prices change
+    if (marketData.yesPrice && marketData.noPrice) {
+      const { yesMultiplier, noMultiplier } = calculateMultipliers(
+        marketData.yesPrice,
+        marketData.noPrice
+      );
+      console.log("Updated Multipliers:", { yesMultiplier, noMultiplier });
+    }
+  }, [marketData, isLoading, showDepositField, depositAmount]);
+
+  // Fetch token IDs when market data changes
+  useEffect(() => {
+    const fetchTokenIds = async () => {
+      if (marketData?.id) {
+        try {
+          console.log("=== Fetching Token IDs for Market ===");
+          console.log("Market ID:", marketData.id);
+          
+          const yesTokenId = await publicClient.readContract({
+            address: PNP_FACTORY_ADDRESS,
+            abi: PNP_ABI,
+            functionName: 'getYesTokenId',
+            args: [marketData.id],
+          });
+
+          const noTokenId = await publicClient.readContract({
+            address: PNP_FACTORY_ADDRESS,
+            abi: PNP_ABI,
+            functionName: 'getNoTokenId',
+            args: [marketData.id],
+          });
+
+          console.log("YES Token ID:", yesTokenId.toString());
+          console.log("NO Token ID:", noTokenId.toString());
+          
+          setTokenIds({ yesTokenId, noTokenId });
+        } catch (error) {
+          console.error("Error fetching token IDs:", error);
+        }
+      }
+    };
+
+    fetchTokenIds();
+  }, [marketData?.id, publicClient]);
+
+  // Get token IDs from contract
+  const getTokenIds = async (conditionId) => {
+    try {
+      console.log("=== getTokenIds Debug ===");
+      console.log("Fetching token IDs for conditionId:", conditionId);
+
+      const yesTokenId = await publicClient.readContract({
+        address: PNP_FACTORY_ADDRESS,
+        abi: PNP_ABI,
+        functionName: 'getYesTokenId',
+        args: [conditionId],
+      });
+
+      const noTokenId = await publicClient.readContract({
+        address: PNP_FACTORY_ADDRESS,
+        abi: PNP_ABI,
+        functionName: 'getNoTokenId',
+        args: [conditionId],
+      });
+
+      console.log("Contract returned YES tokenId:", yesTokenId.toString());
+      console.log("Contract returned NO tokenId:", noTokenId.toString());
+      
+      return { yesTokenId, noTokenId };
+    } catch (error) {
+      console.error("Error getting token IDs from contract:", error);
+      throw error;
+    }
+  };
+
+  // Update this function to navigate to the trade page
+  const handleDepositClick = (isYes) => {
+    console.log("=== Deposit Button Click Debug ===");
+    console.log("Button clicked for:", isYes ? "YES" : "NO");
+    console.log("Market ID:", marketData.id);
+    
+    if (marketData?.id) {
+      // Navigate to the trade page with the condition ID
+      navigate(`/gandalf/${marketData.id}/trade`);
+    } else {
+      console.error("Cannot navigate: Market ID is missing", marketData);
+    }
+  };
+
+  const handleDeposit = async (isYes) => {
+    console.log("=== handleDeposit Debug ===");
+    console.log("Deposit button clicked for:", isYes ? "YES" : "NO");
+    console.log("Deposit amount:", depositAmount);
+    console.log("Market data:", marketData);
+    
+    if (!depositAmount || isNaN(depositAmount) || parseFloat(depositAmount) <= 0) {
+      alert('Please enter a valid deposit amount');
+      return;
+    }
+
+    if (!marketData || !marketData.id) {
+      alert('Market data is not available. Cannot proceed with deposit.');
+      console.error('Market data or condition ID is missing:', marketData);
+      setShowDepositField(null);
+      return;
+    }
+
+    try {
+      setIsMinting(true);
+      
+      // Get token IDs from contract
+      const { yesTokenId, noTokenId } = await getTokenIds(marketData.id);
+      const tokenIdToMint = isYes ? yesTokenId : noTokenId;
+      const collateralAmount = parseEther(depositAmount);
+      
+      console.log("Mint parameters:", {
+        conditionId: marketData.id,
+        collateralAmount: collateralAmount.toString(),
+        tokenIdToMint: tokenIdToMint.toString()
+      });
+
+      if (!mintTokens) {
+        throw new Error('Minting function is not available');
+      }
+
+      await mintTokens({
+        args: [marketData.id, collateralAmount, tokenIdToMint],
+      });
+      
+      console.log('Mint transaction submitted successfully');
+    } catch (error) {
+      console.error('Error minting tokens:', error);
+      alert(`Error minting tokens: ${error.message || 'Unknown error'}`);
+    } finally {
+      setIsMinting(false);
+      setShowDepositField(null);
+      setDepositAmount('');
+    }
+  };
+
+  // Mint transaction
+  const { write: mintTokens, data: mintData } = useContractWrite({
+    address: PNP_FACTORY_ADDRESS,
+    abi: PNP_ABI,
+    functionName: 'mintDecisionTokens',
+  });
+
+  // Wait for transaction
+  const { isLoading: isTransactionLoading, isSuccess } = useWaitForTransactionReceipt({
+    hash: mintData,
+  });
+
+  // Fetch user token balances
+  const fetchUserBalances = async () => {
+    if (!address || !tokenIds.yesTokenId || !tokenIds.noTokenId) return;
+
+    try {
+      console.log("=== Fetching User Balances ===");
+      console.log("User Address:", address);
+      console.log("Token IDs:", tokenIds);
+
+      const yesBalance = await publicClient.readContract({
+        address: PNP_FACTORY_ADDRESS,
+        abi: ERC1155_SUPPLY_ABI,
+        functionName: 'balanceOf',
+        args: [address, tokenIds.yesTokenId],
+      });
+
+      const noBalance = await publicClient.readContract({
+        address: PNP_FACTORY_ADDRESS,
+        abi: ERC1155_SUPPLY_ABI,
+        functionName: 'balanceOf',
+        args: [address, tokenIds.noTokenId],
+      });
+
+      console.log("Balances:", {
+        yesBalance: yesBalance.toString(),
+        noBalance: noBalance.toString()
+      });
+
+      setUserBalances({
+        yesBalance: formatEther(yesBalance),
+        noBalance: formatEther(noBalance)
+      });
+    } catch (error) {
+      console.error("Error fetching user balances:", error);
+    }
+  };
+
+  // Fetch balances when token IDs or user address changes
+  useEffect(() => {
+    if (tokenIds.yesTokenId && tokenIds.noTokenId && address) {
+      fetchUserBalances();
+    }
+  }, [tokenIds.yesTokenId, tokenIds.noTokenId, address]);
+
+  if (isLoading) {
+    return (
+      <div className="saruman-container saruman-loading-container">
+        <div className="saruman-spinner"></div>
+        <p className="saruman-loading-text">Fetching Latest Market...</p>
+      </div>
+    );
+  }
+
+  // Destructure with defaults from marketData
+  const {
+    question = 'Market details not available',
+    yesPrice = 0,
+    noPrice = 0,
+    marketReserve = '0',
+    collateralTokenAddress,
+    resolutionSource = "Perplexity",
+    marketEndTime = null,
+  } = marketData || {};
+
+  // Calculate multipliers
+  const { yesMultiplier, noMultiplier } = calculateMultipliers(yesPrice, noPrice);
+
   return (
     <div className="saruman-container">
+      {showYesModal && (
+        <div className="modal-overlay">
+          <div className="modal-content">
+            <button className="modal-close" onClick={() => setShowYesModal(false)}>×</button>
+            <h2>Let's Go!</h2>
+            <p>Ready to make your deposit?</p>
+            <div className="modal-input-container">
+              <input
+                type="number"
+                value={modalAmount}
+                onChange={(e) => setModalAmount(e.target.value)}
+                placeholder="Enter amount"
+                className="modal-input"
+                min="0"
+                step="0.01"
+              />
+              <span className="modal-input-label">USDC</span>
+            </div>
+            <button 
+              className="modal-confirm-button"
+              onClick={() => {
+                setShowYesModal(false);
+                setShowDepositField('yes');
+                setDepositAmount(modalAmount);
+              }}
+              disabled={!modalAmount || isNaN(modalAmount) || parseFloat(modalAmount) <= 0}
+            >
+              Continue
+            </button>
+          </div>
+        </div>
+      )}
+      
       <div className="market-question">
-        {question}
+        {String(question)}
       </div>
       
       <div className="odds-container">
         <div className="odds-column yes-column">
           <div className="odds-header">YES</div>
-          <div className="price-value">${yesPrice}</div>
-          <div className="holders-value">{yesHolders} holders</div>
-          <div className="multiplier">×{yesMultiplier}</div>
+          <div className="price-value">${Number(yesPrice).toFixed(2)}</div>
+          <div className="multiplier">×{Number(yesMultiplier).toFixed(2)}</div>
+          <div className="user-balance">
+            Your Balance: {userBalances.yesBalance} YES
+          </div>
+          {showDepositField === 'yes' ? (
+            <div className="deposit-field">
+              <input
+                type="number"
+                value={depositAmount}
+                onChange={(e) => {
+                  console.log("Input changed:", e.target.value);
+                  setDepositAmount(e.target.value);
+                }}
+                placeholder="Enter amount"
+                className="deposit-input"
+              />
+              <button 
+                onClick={() => handleDeposit(true)}
+                disabled={isMinting || isTransactionLoading}
+                className="deposit-button"
+              >
+                {isMinting || isTransactionLoading ? 'Processing...' : 'Confirm'}
+              </button>
+            </div>
+          ) : (
+            <button 
+              onClick={() => handleDepositClick(true)}
+              className="deposit-trigger"
+            >
+              Deposit
+            </button>
+          )}
         </div>
         
         <div className="odds-column no-column">
           <div className="odds-header">NO</div>
-          <div className="price-value">${noPrice}</div>
-          <div className="holders-value">{noHolders} holders</div>
-          <div className="multiplier">×{noMultiplier}</div>
+          <div className="price-value">${Number(noPrice).toFixed(2)}</div>
+          <div className="multiplier">×{Number(noMultiplier).toFixed(2)}</div>
+          <div className="user-balance">
+            Your Balance: {userBalances.noBalance} NO
+          </div>
+          {showDepositField === 'no' ? (
+            <div className="deposit-field">
+              <input
+                type="number"
+                value={depositAmount}
+                onChange={(e) => {
+                  console.log("Input changed:", e.target.value);
+                  setDepositAmount(e.target.value);
+                }}
+                placeholder="Enter amount"
+                className="deposit-input"
+              />
+              <button 
+                onClick={() => handleDeposit(false)}
+                disabled={isMinting || isTransactionLoading}
+                className="deposit-button"
+              >
+                {isMinting || isTransactionLoading ? 'Processing...' : 'Confirm'}
+              </button>
+            </div>
+          ) : (
+            <button 
+              onClick={() => handleDepositClick(false)}
+              className="deposit-trigger"
+            >
+              Deposit
+            </button>
+          )}
         </div>
       </div>
+
+      {marketData?.id && marketData.id !== 'default-market' && (
+        <button 
+          className="trade-now-button" 
+          onClick={() => navigate(`/gandalf/${marketData.id}/trade`)}
+        >
+          Trade Now
+        </button>
+      )}
       
       <div className="market-footer">
         <div className="footer-top-row">
@@ -43,7 +529,7 @@ const Saruman = ({
             <div className="usdc-icon">
               <img src="/usdc.svg" alt="USDC" width="18" height="18" />
             </div>
-            Collateral: {collateral}
+            Collateral: {collateralTokenAddress ? `Token (${collateralTokenAddress.slice(0,6)}...)` : "N/A"}
           </div>
           
           <div className="resolution-source">
@@ -58,9 +544,9 @@ const Saruman = ({
             <div className="metric-value">${marketReserve}</div>
           </div>
           
-          <div className="market-metric market-volume">
-            <div className="metric-label">Market Volume</div>
-            <div className="metric-value">${marketVolume}</div>
+          <div className="market-metric market-countdown">
+            <div className="metric-label">Time Remaining</div>
+            <CountdownTimer endTime={marketEndTime} />
           </div>
         </div>
       </div>

@@ -186,4 +186,221 @@
 .form-close-button:hover {
   color: #ff69b4;
   transform: scale(1.1);
+}
+
+.error-message {
+  color: #ff4444;
+  margin-top: 1rem;
+  padding: 0.8rem;
+  background: rgba(255, 68, 68, 0.1);
+  border: 1px solid rgba(255, 68, 68, 0.2);
+  border-radius: 8px;
+  font-size: 0.9rem;
+  word-break: break-word;
+}
+
+.transaction-status {
+  color: #4a9eff;
+  margin-top: 1rem;
+  padding: 0.8rem;
+  background: rgba(74, 158, 255, 0.1);
+  border: 1px solid rgba(74, 158, 255, 0.2);
+  border-radius: 8px;
+  font-size: 0.9rem;
+}
+
+.success-message {
+  color: #00c853;
+  margin-top: 1rem;
+  padding: 0.8rem;
+  background: rgba(0, 200, 83, 0.1);
+  border: 1px solid rgba(0, 200, 83, 0.2);
+  border-radius: 8px;
+  font-size: 0.9rem;
+  animation: fadeOut 0.5s ease-out forwards;
+  animation-delay: 4.5s; /* Start fading out after 4.5s */
+}
+
+@keyframes fadeOut {
+  from {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+}
+
+.warning-text {
+  font-size: 0.8rem;
+  color: #ff4444;
+  margin-top: 0.3rem;
+  font-weight: 500;
+}
+
+.balance-info {
+  margin-top: 0.5rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.balance-info .warning-text {
+  color: #ff4444;
+  font-weight: 500;
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.7;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+
+/* Market Success Screen Styles */
+.market-success-screen {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  height: 100%; /* Make it take full height of its container */
+  width: 100%;
+  padding: 2rem;
+  box-sizing: border-box;
+  background-color: #121212; /* Luxurious dark background */
+  color: #e0e0e0; /* Light text color */
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; /* Clean, modern font */
+}
+
+.market-success-screen .success-title {
+  font-size: 1.8rem;
+  font-weight: 300; /* Lighter font weight for a sleek look */
+  color: #f8bbd0; /* Soft pink for the main title */
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  margin-bottom: 1.5rem;
+}
+
+.market-success-screen .success-question {
+  font-size: 1.5rem;
+  font-style: italic;
+  color: #ffffff;
+  background-color: rgba(255, 105, 180, 0.1); /* Subtle pink highlight */
+  padding: 1rem 1.5rem;
+  border-radius: 8px;
+  border-left: 4px solid #ff69b4; /* Pink accent border */
+  margin-bottom: 1.5rem;
+  max-width: 80%;
+}
+
+.market-success-screen .success-liquidity {
+  font-size: 1.1rem;
+  color: #bdbdbd;
+  margin-bottom: 1rem;
+}
+
+.market-success-screen .success-liquidity .success-amount {
+  font-weight: bold;
+  color: #ff69b4; /* Pink for the amount */
+}
+
+.market-success-screen .success-transaction {
+  margin-top: 1.5rem;
+  margin-bottom: 2rem;
+  background-color: #1e1e1e;
+  padding: 1rem;
+  border-radius: 8px;
+  border: 1px solid #333;
+}
+
+.market-success-screen .success-transaction p {
+  font-size: 0.9rem;
+  color: #aaa;
+  margin-bottom: 0.5rem;
+  text-transform: uppercase;
+}
+
+.market-success-screen .success-tx-link {
+  font-size: 1rem;
+  color: #ff80ab; /* Brighter pink for link */
+  text-decoration: none;
+  word-break: break-all;
+  transition: color 0.3s ease, text-shadow 0.3s ease;
+}
+
+.market-success-screen .success-tx-link:hover {
+  color: #fce4ec; /* Lighter pink on hover */
+  text-decoration: underline;
+  text-shadow: 0 0 8px rgba(255, 105, 180, 0.5);
+}
+
+.market-success-screen .go-to-market-button {
+  padding: 0.8rem 2rem;
+  font-size: 1rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: #121212; /* Dark text on pink button */
+  background: linear-gradient(135deg, #ff69b4, #f48fb1); /* Pink gradient */
+  border: none;
+  border-radius: 50px; /* Pill shape */
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 15px rgba(255, 105, 180, 0.3);
+}
+
+.market-success-screen .go-to-market-button:hover {
+  background: linear-gradient(135deg, #f48fb1, #ff69b4);
+  box-shadow: 0 6px 20px rgba(255, 105, 180, 0.5);
+  transform: translateY(-2px);
+}
+
+/* Styles for the redirect countdown message */
+.market-success-screen .redirect-countdown-message {
+  font-size: 1.1rem;
+  color: #f0f0f0; /* Light color */
+  margin-top: 1.5rem; /* Space above the message */
+  margin-bottom: 1.5rem; /* Space below the message */
+}
+
+.market-success-screen .redirect-countdown-message .countdown-seconds {
+  font-weight: bold;
+  color: #ff69b4; /* Pink for the countdown number */
+  font-size: 1.3rem;
+  margin-left: 0.3em;
+  margin-right: 0.1em;
+}
+
+/* Adjust close button on success screen if it was .simple-close-button */
+.market-success-screen .simple-close-button {
+    position: absolute;
+    top: 1rem; /* Adjust as needed */
+    right: 1rem; /* Adjust as needed */
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    color: #f0f0f0;
+    font-size: 1rem;
+    font-weight: bold;
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background-color 0.3s ease, color 0.3s ease, transform 0.2s ease;
+}
+
+.market-success-screen .simple-close-button:hover {
+    background-color: rgba(255, 105, 180, 0.8); /* Pink on hover */
+    color: #121212;
+    transform: scale(1.1);
 } 

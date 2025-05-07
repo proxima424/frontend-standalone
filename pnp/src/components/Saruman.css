@@ -234,4 +234,371 @@
 
 .globe-icon {
   filter: invert(79%) sepia(15%) saturate(2476%) hue-rotate(312deg) brightness(105%) contrast(101%);
+}
+
+/* Styles for the new Countdown Timer */
+.market-countdown {
+  border-left: 3px solid #0ea5e9;
+}
+
+.countdown-timer {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #e0e0e0;
+  display: flex;
+  gap: 0.2rem;
+  align-items: baseline;
+}
+
+.timer-segment {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0.15rem;
+}
+
+.timer-label {
+  font-size: 0.7rem;
+  color: #888;
+  text-transform: uppercase;
+  font-weight: 500;
+}
+
+/* Saruman Loading State Styles */
+.saruman-loading-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  /* Ensure it uses the same base styling as saruman-container for consistency */
+  background: #111; /* Match main container */
+  color: #f0f0f0; /* Match main container text */
+  padding: 1.8rem; /* Match main container */
+  min-height: 300px; /* Give it some default height */ 
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.saruman-spinner {
+  border: 6px solid #333; /* Darker part of spinner */
+  border-top: 6px solid #ff69b4; /* Pink part of spinner */
+  border-radius: 50%;
+  width: 60px;
+  height: 60px;
+  animation: spin 1s linear infinite;
+  margin-bottom: 1.5rem;
+}
+
+.saruman-loading-text {
+  font-size: 1.2rem;
+  color: #f8bbd0; /* Soft pink */
+  letter-spacing: 0.05em;
+}
+
+/* Deposit Field Styles - Improved */
+.deposit-field {
+  margin-top: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.8rem;
+  width: 100%;
+  padding: 0.8rem;
+  z-index: 10;
+  position: relative;
+  background-color: #1a1a1a;
+  border-radius: 8px;
+}
+
+.deposit-input {
+  width: 100%;
+  padding: 1rem;
+  border-radius: 8px;
+  border: 2px solid #555;
+  background-color: #1a1a1a;
+  color: #fff;
+  font-size: 1.1rem;
+  transition: all 0.3s ease;
+  z-index: 11;
+  text-align: center;
+}
+
+.deposit-input:focus {
+  outline: none;
+  border-color: #888;
+  box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.2);
+}
+
+.deposit-input::placeholder {
+  color: #888;
+  font-size: 1rem;
+}
+
+.deposit-button {
+  width: 100%;
+  padding: 1rem;
+  border-radius: 8px;
+  border: none;
+  font-size: 1.1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  z-index: 11;
+}
+
+.yes-column .deposit-button {
+  background-color: #4ade80;
+  color: #000;
+}
+
+.no-column .deposit-button {
+  background-color: #f87171;
+  color: #000;
+}
+
+.deposit-button:hover:not(:disabled) {
+  transform: translateY(-2px);
+  filter: brightness(1.1);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+.yes-column .deposit-button:hover:not(:disabled) {
+  background-color: #66ff99;
+}
+
+.no-column .deposit-button:hover:not(:disabled) {
+  background-color: #ff8888;
+}
+
+.deposit-button:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+.yes-column .deposit-button:disabled {
+  background-color: #2d4a3a;
+}
+
+.no-column .deposit-button:disabled {
+  background-color: #4a2d2d;
+}
+
+.deposit-trigger {
+  margin-top: 1rem;
+  padding: 1rem 2rem;
+  border-radius: 8px;
+  border: 2px solid;
+  background-color: transparent;
+  font-weight: 600;
+  font-size: 1.1rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  width: 100%;
+  display: block;
+}
+
+.yes-column .deposit-trigger {
+  border-color: #4ade80;
+  color: #4ade80;
+  cursor: pointer;
+}
+
+.yes-column .deposit-trigger:hover {
+  background-color: rgba(74, 222, 128, 0.15);
+  border-color: #66ff99;
+  color: #66ff99;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(74, 222, 128, 0.1);
+  cursor: pointer;
+}
+
+.no-column .deposit-trigger {
+  border-color: #f87171;
+  color: #f87171;
+  cursor: pointer;
+}
+
+.no-column .deposit-trigger:hover {
+  background-color: rgba(248, 113, 113, 0.15);
+  border-color: #ff8888;
+  color: #ff8888;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(248, 113, 113, 0.1);
+  cursor: pointer;
+}
+
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.75);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+  backdrop-filter: blur(5px);
+}
+
+.modal-content {
+  background: linear-gradient(145deg, #1a1a1a, #2a2a2a);
+  padding: 2rem;
+  border-radius: 16px;
+  position: relative;
+  width: 90%;
+  max-width: 400px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  animation: modalAppear 0.3s ease-out;
+}
+
+@keyframes modalAppear {
+  from {
+    opacity: 0;
+    transform: scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.modal-content h2 {
+  color: #4ade80;
+  font-size: 1.8rem;
+  margin-bottom: 1rem;
+  text-align: center;
+  font-weight: 600;
+}
+
+.modal-content p {
+  color: #fff;
+  font-size: 1.1rem;
+  margin-bottom: 1.5rem;
+  text-align: center;
+  opacity: 0.9;
+}
+
+.modal-close {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  background: none;
+  border: none;
+  color: #888;
+  font-size: 1.5rem;
+  cursor: pointer;
+  padding: 0.5rem;
+  line-height: 1;
+  transition: all 0.2s ease;
+}
+
+.modal-close:hover {
+  color: #fff;
+  transform: scale(1.1);
+}
+
+.modal-input-container {
+  position: relative;
+  margin: 1.5rem 0;
+  width: 100%;
+}
+
+.modal-input {
+  width: 100%;
+  padding: 1rem;
+  padding-right: 4rem;
+  background: rgba(255, 255, 255, 0.05);
+  border: 2px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  color: #fff;
+  font-size: 1.2rem;
+  transition: all 0.3s ease;
+}
+
+.modal-input:focus {
+  outline: none;
+  border-color: #4ade80;
+  background: rgba(255, 255, 255, 0.08);
+  box-shadow: 0 0 0 2px rgba(74, 222, 128, 0.2);
+}
+
+.modal-input::placeholder {
+  color: rgba(255, 255, 255, 0.4);
+}
+
+.modal-input-label {
+  position: absolute;
+  right: 1rem;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #4ade80;
+  font-weight: 600;
+  font-size: 0.9rem;
+  pointer-events: none;
+}
+
+/* Update modal confirm button styles */
+.modal-confirm-button:disabled {
+  background: linear-gradient(145deg, #2d4a3a, #1a2d1a);
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+  opacity: 0.7;
+}
+
+.modal-confirm-button {
+  width: 100%;
+  padding: 1rem;
+  background: linear-gradient(145deg, #4ade80, #22c55e);
+  border: none;
+  border-radius: 8px;
+  color: #000;
+  font-size: 1.1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  margin-top: 1rem;
+}
+
+.modal-confirm-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(74, 222, 128, 0.3);
+  background: linear-gradient(145deg, #66ff99, #4ade80);
+}
+
+.modal-confirm-button:active {
+  transform: translateY(0);
+}
+
+.trade-now-button {
+  width: 100%;
+  padding: 1.2rem;
+  margin: 1.5rem 0;
+  background: linear-gradient(145deg, #ff69b4, #ff1493);
+  border: none;
+  border-radius: 12px;
+  color: white;
+  font-size: 1.2rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  box-shadow: 0 4px 15px rgba(255, 105, 180, 0.2);
+}
+
+.trade-now-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(255, 105, 180, 0.3);
+  background: linear-gradient(145deg, #ff1493, #ff69b4);
+}
+
+.trade-now-button:active {
+  transform: translateY(0);
 } 

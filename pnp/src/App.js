@@ -12,7 +12,11 @@ import LiveMarkets from './pages/LiveMarkets';
 import TwitterMarket from './pages/TwitterMarket';
 import UserMarkets from './pages/UserMarkets';
 import Gandalf from './pages/Gandalf';
+import GandalfTradePage from './pages/GandalfTradePage';
 import Docs from './pages/Docs';
+
+// Removed RainbowKit and Wagmi specific imports and config from here,
+// as they are now handled in index.js and wagmi.js
 
 function HomePage() {
   return (
@@ -94,7 +98,7 @@ function HomePage() {
                 }
               }}
             >
-              <a className="btn-primary" href="/">Launching Soon</a>
+              <a className="btn-primary" href="/gandalf">Live on Testnet ETH</a>
               <a className="btn-secondary" href="https://t.me/pnpexchangeportal">Join Telegram Now</a>
             </motion.div>
           </motion.div>
@@ -110,6 +114,7 @@ function HomePage() {
 
 function App() {
   return (
+    // Providers are now in index.js, so App just returns the Router and its content
     <Router>
       <Navbar />
       <Routes>
@@ -123,6 +128,10 @@ function App() {
         <Route path="/live_markets" element={<LiveMarkets />} />
         <Route path="/twitter_markets/user/:address" element={<UserMarkets />} />
         <Route path="/docs" element={<Docs />} />
+        <Route path="/gandalf" element={<Gandalf />} />
+        <Route path="/gandalf/user/:creatorAddress" element={<Gandalf />} />
+        <Route path="/gandalf/market/:conditionId" element={<Gandalf />} />
+        <Route path="/gandalf/:conditionId/trade" element={<GandalfTradePage />} />
       </Routes>
     </Router>
   );

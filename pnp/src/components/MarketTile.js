@@ -18,16 +18,16 @@ const MarketTile = ({
           <div className="outcome yes">
             <div className="outcome-header">YES</div>
             <div className="outcome-data">
-              <div className="outcome-price">${yesPrice}</div>
-              <div className="outcome-multiplier">×{yesMultiplier}</div>
+              <div className="outcome-price">${Number(yesPrice).toFixed(2)}</div>
+              <div className="outcome-multiplier">×{Number(yesMultiplier).toFixed(2)}</div>
             </div>
           </div>
           
           <div className="outcome no">
             <div className="outcome-header">NO</div>
             <div className="outcome-data">
-              <div className="outcome-price">${noPrice}</div>
-              <div className="outcome-multiplier">×{noMultiplier}</div>
+              <div className="outcome-price">${Number(noPrice).toFixed(2)}</div>
+              <div className="outcome-multiplier">×{Number(noMultiplier).toFixed(2)}</div>
             </div>
           </div>
         </div>
