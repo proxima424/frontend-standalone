@@ -307,6 +307,12 @@ const Gandalf = () => {
 
       console.log("Found market events:", events);
 
+      if (events.length === 0) {
+        console.log("No market events found");
+        setSampleMarkets([]);
+        return;
+      }
+
       // Fetch details for each market
       const marketDetails = await Promise.all(
         events.map(async (event) => {
@@ -395,22 +401,35 @@ const Gandalf = () => {
             noMultiplier: Number(noMultiplier.toFixed(2)),
             endTime: Number(endTime),
             reserve: formatEther(reserve),
-            creator: event.args.marketCreator
+            creator: event.args.marketCreator,
+            blockNumber: Number(event.blockNumber)
           };
         })
       );
 
-      console.log("Processed market details:", marketDetails);
-      setSampleMarkets(marketDetails);
+      // Sort markets by blockNumber descending (most recent first)
+      const sortedMarkets = marketDetails.sort((a, b) => b.blockNumber - a.blockNumber);
+      
+      console.log("Processed market details (sorted by recency):", sortedMarkets);
+      setSampleMarkets(sortedMarkets);
     } catch (error) {
       console.error("Error fetching markets:", error);
+      throw error; // Re-throw to allow .catch() to work in the caller
     }
   };
 
   // Fetch markets when component mounts
   useEffect(() => {
     if (publicClient) {
-      fetchMarkets();
+      console.log("Fetching markets on component mount");
+      setIsLoadingData(true); // Set loading state while fetching
+      fetchMarkets()
+        .then(() => {
+          console.log("Markets fetched successfully");
+        })
+        .catch(error => {
+          console.error("Error fetching markets:", error);
+        });
     }
   }, [publicClient]);
 
@@ -476,11 +495,19 @@ const Gandalf = () => {
     } else if (creatorAddress) {
       fetchLatestMarketByCreator(creatorAddress);
     } else {
-      console.log("Gandalf: Displaying default market.");
-      setSarumanDisplayData(DEFAULT_SARUMAN_DATA);
-      setIsLoadingData(false);
+      // Check if we have markets from events
+      if (sampleMarkets && sampleMarkets.length > 0) {
+        console.log("Gandalf: Displaying most recent market from fetched events.");
+        // Use the first market from sampleMarkets (which is now sorted by most recent first)
+        const mostRecentMarket = sampleMarkets[0];
+        fetchMarketByConditionId(mostRecentMarket.id);
+      } else {
+        console.log("Gandalf: No markets found, displaying default market.");
+        setSarumanDisplayData(DEFAULT_SARUMAN_DATA);
+        setIsLoadingData(false);
+      }
     }
-  }, [conditionIdFromParams, creatorAddress, publicClient]);
+  }, [conditionIdFromParams, creatorAddress, publicClient, sampleMarkets]);
 
   useEffect(() => {
     if(sarumanDisplayData || errorMessage) setIsLoadingData(false);

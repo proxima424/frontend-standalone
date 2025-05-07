@@ -61,7 +61,7 @@ const Navbar = () => {
     navigate('/');
   };
 
-  const isGandalfPage = location.pathname === '/gandalf';
+  const isGandalfPage = location.pathname.includes('/gandalf');
 
   return (
     <nav className="navbar">
