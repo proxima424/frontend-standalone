@@ -1,3 +1,7 @@
 export const BLOCKED_CREATOR_ADDRESSES = [
   '0x92359C484a3a47471356864ae9593Af33dafe9Dc' // Example address
 ]; 
+
+export const BLOCKED_CONDITION_IDS = [
+  '0x60af3775c1de4f21bbee3f76e265137948742ef29d4de68b8c932d4abe560e01'
+]; 

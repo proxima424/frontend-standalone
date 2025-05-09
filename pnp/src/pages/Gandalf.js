@@ -10,7 +10,7 @@ import CreateMarketForm from '../components/CreateMarketForm'; // Kept for the c
 import MarketTile from '../components/MarketTile'; // Kept for other markets display
 import { PNP_FACTORY_ADDRESS, USDPNP_ADDRESS, ETH_SEPOLIA_CHAIN_ID, PNP_ABI } from '../contracts/contractConfig'; // Main factory address
 import WelcomePopup from '../components/WelcomePopup';
-import { BLOCKED_CREATOR_ADDRESSES } from '../config/blockedCreators'; // Import blocked addresses
+import { BLOCKED_CREATOR_ADDRESSES, BLOCKED_CONDITION_IDS } from '../config/blockedCreators'; // Import blocked addresses and condition IDs
 
 // Constants for fetching market data (event and read ABIs)
 const pnpMarketCreatedEventAbiItem = {
@@ -408,9 +408,11 @@ const Gandalf = () => {
         })
       );
 
-      // Filter out markets from blocked creators
+      // Filter out markets from blocked creators and blocked condition IDs
       const filteredMarkets = marketDetails.filter(
-        market => !BLOCKED_CREATOR_ADDRESSES.map(addr => addr.toLowerCase()).includes(market.creator.toLowerCase())
+        market => 
+          !BLOCKED_CREATOR_ADDRESSES.map(addr => addr.toLowerCase()).includes(market.creator.toLowerCase()) &&
+          !BLOCKED_CONDITION_IDS.includes(market.id)
       );
 
       // Sort markets by blockNumber descending (most recent first)
