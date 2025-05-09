@@ -17,15 +17,18 @@
 }
 
 .form-group label {
+  display: block;
+  margin-bottom: 0.5rem;
+  color: #ccc;
   font-size: 0.9rem;
   font-weight: 500;
-  color: #bbb;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
 }
 
 .form-group input[type="text"],
-.form-group input[type="number"] {
+.form-group input[type="number"],
+.form-group input[type="datetime-local"],
+.form-group textarea {
+  width: 100%;
   background-color: #1f1f1f;
   border: 1px solid #444;
   color: #e0e0e0;
@@ -36,7 +39,9 @@
 }
 
 .form-group input[type="text"]:focus,
-.form-group input[type="number"]:focus {
+.form-group input[type="number"]:focus,
+.form-group input[type="datetime-local"]:focus,
+.form-group textarea:focus {
   outline: none;
   border-color: #ff69b4;
   box-shadow: 0 0 0 3px rgba(255, 105, 180, 0.15);
@@ -432,4 +437,50 @@
     flex: 1;
     text-align: center;
   }
+}
+
+/* New styles for label and guidelines link container */
+.label-with-guidelines {
+  display: flex;
+  justify-content: space-between; /* Pushes label to left, link to right */
+  align-items: center; /* Vertically aligns them if they have different heights */
+  margin-bottom: 0.5rem; /* Space below this container */
+}
+
+.label-with-guidelines label {
+  margin-bottom: 0; /* Remove default bottom margin from label */
+  color: #ccc;
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+
+/* Styles for the question input and guidelines link container */
+.question-input-container {
+  position: relative;
+  display: flex;
+  /* align-items: flex-start; /* No longer needed here as link is separate */
+}
+
+.question-input-container textarea {
+  flex-grow: 1; /* Textarea takes available space */
+  /* margin-right: 10px; /* No longer needed */
+}
+
+.see-guidelines-link {
+  font-size: 0.8rem;
+  color: #c996ff; /* Light purple accent, matching popup */
+  cursor: pointer;
+  text-decoration: underline;
+  /* margin-top: 5px; /* Adjust as needed or remove if align-items handles it */
+  white-space: nowrap; /* Prevent wrapping */
+  transition: color 0.2s ease;
+}
+
+.see-guidelines-link:hover {
+  color: #ae78d9;
+}
+
+/* Adjust textarea width if it was 100% before */
+.create-market-form .form-group textarea#question {
+  width: auto; /* Let flexbox handle the width */
 } 

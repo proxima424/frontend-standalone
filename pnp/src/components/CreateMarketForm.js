@@ -3,9 +3,13 @@
 import React, { useState, useEffect, useRef } from 'react';
 import './CreateMarketForm.css';
 import { useNavigate } from 'react-router-dom';
-import { useWriteContract, useWaitForTransactionReceipt, useAccount, useReadContract } from 'wagmi';
+import { useWriteContract, useWaitForTransactionReceipt, useAccount, useReadContract, useConnect, useWalletClient } from 'wagmi';
 import { PNP_FACTORY_ADDRESS, PNP_ABI, USDPNP_ADDRESS, ETH_SEPOLIA_CHAIN_ID } from '../contracts/contractConfig';
 import { parseUnits, formatUnits } from 'viem';
+import { WagmiConfig, createConfig, mainnet } from 'wagmi';
+import { createPublicClient, http } from 'viem';
+import { injected } from 'wagmi/connectors';
+import QuestionGuidelinesPopup from './QuestionGuidelinesPopup';
 
 const USDPNP_ABI = [
   {
@@ -37,7 +41,10 @@ const USDPNP_ABI = [
 ];
 
 const CreateMarketForm = ({ onClose }) => {
+  const { address, isConnected, chainId: connectedChainId } = useAccount();
+  const { connect } = useConnect({ connector: injected() });
   const [question, setQuestion] = useState('');
+  const [endTime, setEndTime] = useState('');
   const [collateralAmount, setCollateralAmount] = useState('');
   const [deadlineValue, setDeadlineValue] = useState('');
   const [deadlineUnit, setDeadlineUnit] = useState('minutes');
@@ -47,8 +54,9 @@ const CreateMarketForm = ({ onClose }) => {
   const [userBalance, setUserBalance] = useState('0');
   const [marketCreationSuccessDetails, setMarketCreationSuccessDetails] = useState(null);
   const [redirectCountdown, setRedirectCountdown] = useState(5);
+  const [showGuidelines, setShowGuidelines] = useState(false);
 
-  const { address: userAddress, chainId: connectedChainId } = useAccount();
+  const { data: walletClient } = useWalletClient();
   const navigate = useNavigate();
   const countdownIntervalRef = useRef(null);
 
@@ -66,8 +74,8 @@ const CreateMarketForm = ({ onClose }) => {
     address: USDPNP_ADDRESS,
     abi: USDPNP_ABI,
     functionName: 'balanceOf',
-    args: [userAddress],
-    query: { enabled: !!userAddress, refetchInterval: 5000 }
+    args: [address],
+    query: { enabled: !!address, refetchInterval: 5000 }
   });
 
   useEffect(() => {
@@ -105,9 +113,9 @@ const CreateMarketForm = ({ onClose }) => {
       }
     ],
     functionName: 'allowance',
-    args: [userAddress, PNP_FACTORY_ADDRESS],
+    args: [address, PNP_FACTORY_ADDRESS],
     query: {
-      enabled: !!userAddress && !!collateralAmount && parseFloat(collateralAmount) > 0,
+      enabled: !!address && !!collateralAmount && parseFloat(collateralAmount) > 0,
       refetchInterval: isPollingAllowance ? 2000 : false
     }
   });
@@ -163,9 +171,9 @@ const CreateMarketForm = ({ onClose }) => {
           if (prevCountdown <= 1) {
             clearInterval(countdownIntervalRef.current);
             countdownIntervalRef.current = null;
-            if (userAddress) {
-              console.log(`Redirecting to /gandalf/user/${userAddress}`);
-              navigate(`/gandalf/user/${userAddress}`);
+            if (address) {
+              console.log(`Redirecting to /gandalf/user/${address}`);
+              navigate(`/gandalf/user/${address}`);
               if (onClose) onClose();
             } else {
               console.error("User address not available for redirect after countdown.");
@@ -183,7 +191,7 @@ const CreateMarketForm = ({ onClose }) => {
             countdownIntervalRef.current = null;
         }
     };
-  }, [isMarketTxSuccess, marketReceipt, marketTxHash, question, collateralAmount, userAddress, navigate, onClose]);
+  }, [isMarketTxSuccess, marketReceipt, marketTxHash, question, collateralAmount, address, navigate, onClose]);
 
   const handleCollateralChange = (e) => {
     setCollateralAmount(e.target.value);
@@ -208,7 +216,7 @@ const CreateMarketForm = ({ onClose }) => {
   };
 
   const handleApprove = async () => {
-    if (!userAddress) { alert('Please connect wallet.'); return; }
+    if (!address) { alert('Please connect wallet.'); return; }
     if (connectedChainId !== ETH_SEPOLIA_CHAIN_ID) { alert(`Switch to Ethereum Sepolia (ID: ${ETH_SEPOLIA_CHAIN_ID}).`); return; }
     if (!isCollateralAmountValid) { alert(`Enter valid initial liquidity (min ${MINIMUM_COLLATERAL} USDTest).`); return; }
     try {
@@ -237,7 +245,7 @@ const CreateMarketForm = ({ onClose }) => {
   const handleCreateMarket = async (e) => {
     e.preventDefault();
     if (!question || !collateralAmount || !deadlineValue) { alert('Please fill all required fields.'); return; }
-    if (!userAddress) { alert('Please connect your wallet.'); return; }
+    if (!address) { alert('Please connect your wallet.'); return; }
     if (connectedChainId !== ETH_SEPOLIA_CHAIN_ID) { alert(`Please switch to Ethereum Sepolia network.`); return; }
     if (!isApprovedForCurrentAmount) { alert('The entered initial liquidity amount is not approved. Please approve it first.'); return; }
     if (!isCollateralAmountValid) { alert(`Please enter a valid initial liquidity amount (minimum ${MINIMUM_COLLATERAL} USDTest).`); return; }
@@ -306,8 +314,8 @@ const CreateMarketForm = ({ onClose }) => {
         <button 
           className="go-to-market-button"
           onClick={() => {
-            if (userAddress) {
-              navigate(`/gandalf/user/${userAddress}`);
+            if (address) {
+              navigate(`/gandalf/user/${address}`);
               if (onClose) onClose();
             }
           }}
@@ -323,16 +331,28 @@ const CreateMarketForm = ({ onClose }) => {
       <button className="form-close-button" onClick={onClose}>×</button>
       <form className="create-market-form" onSubmit={handleCreateMarket}>
         <div className="form-group">
-          <label htmlFor="question">Question</label>
-          <input 
-            type="text" 
-            id="question" 
-            value={question} 
-            onChange={(e) => setQuestion(e.target.value)} 
-            placeholder="E.g., Will Bitcoin reach $100K by end of year?" 
-            required 
-          />
-          <div className="helper-text">Keep it clear and measurable</div>
+          <div className="label-with-guidelines">
+            <label htmlFor="question">Question</label>
+            <span 
+              className="see-guidelines-link"
+              onClick={() => setShowGuidelines(true)}
+            >
+              See guidelines
+            </span>
+          </div>
+          <div className="question-input-container">
+            <textarea
+              id="question"
+              value={question}
+              onChange={(e) => setQuestion(e.target.value)}
+              placeholder="e.g., Will ETH price be above $2500 by end of next week?"
+              maxLength={200}
+              required
+            />
+          </div>
+          {question.length > 180 && (
+            <small className="warning-text">Keep it clear and measurable</small>
+          )}
         </div>
 
         <div className="form-group">
@@ -434,6 +454,10 @@ const CreateMarketForm = ({ onClose }) => {
           <div className="transaction-status">
             Transaction submitted and being processed. Please wait...
           </div>
+        )}
+
+        {showGuidelines && (
+          <QuestionGuidelinesPopup onClose={() => setShowGuidelines(false)} />
         )}
       </form>
     </>
