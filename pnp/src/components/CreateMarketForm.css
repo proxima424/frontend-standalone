@@ -66,7 +66,7 @@
 }
 
 .deadline-input-group input[type="number"] {
-  width: 120px; /* Fixed width for duration */
+  width: 100px; /* Slightly narrower to accommodate the wider unit selector */
 }
 
 .usdc-tag {
@@ -136,7 +136,8 @@
   color: #888;
   border: none;
   border-left: 1px solid #444; /* Separator */
-  padding: 0.7rem 1rem;
+  padding: 0.7rem 0.6rem; /* Adjust padding to fit three buttons */
+  font-size: 0.8rem; /* Slightly smaller font size */
 }
 
 .unit-button:first-child {
@@ -403,4 +404,32 @@
     background-color: rgba(255, 105, 180, 0.8); /* Pink on hover */
     color: #121212;
     transform: scale(1.1);
+}
+
+/* Update the helper text for deadline */
+.form-group .helper-text.deadline-helper {
+  margin-top: 0.3rem;
+  font-style: italic;
+}
+
+/* Responsive adjustments for small screens */
+@media (max-width: 480px) {
+  .deadline-input-group {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  
+  .deadline-input-group input[type="number"] {
+    width: 100%;
+  }
+  
+  .unit-selector {
+    width: 100%;
+    margin-top: 0.5rem;
+  }
+  
+  .unit-button {
+    flex: 1;
+    text-align: center;
+  }
 } 

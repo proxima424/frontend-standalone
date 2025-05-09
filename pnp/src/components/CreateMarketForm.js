@@ -40,7 +40,7 @@ const CreateMarketForm = ({ onClose }) => {
   const [question, setQuestion] = useState('');
   const [collateralAmount, setCollateralAmount] = useState('');
   const [deadlineValue, setDeadlineValue] = useState('');
-  const [deadlineUnit, setDeadlineUnit] = useState('days');
+  const [deadlineUnit, setDeadlineUnit] = useState('minutes');
   const [isApprovedForCurrentAmount, setIsApprovedForCurrentAmount] = useState(false);
   const [isPollingAllowance, setIsPollingAllowance] = useState(false);
   const [showApproveSuccessMessage, setShowApproveSuccessMessage] = useState(false);
@@ -53,7 +53,6 @@ const CreateMarketForm = ({ onClose }) => {
   const countdownIntervalRef = useRef(null);
 
   const MINIMUM_COLLATERAL = 2;
-  const MINIMUM_DEADLINE_DAYS = 2;
 
   useEffect(() => {
     return () => {
@@ -195,6 +194,7 @@ const CreateMarketForm = ({ onClose }) => {
     if (!deadlineValue || isNaN(parseInt(deadlineValue))) return 0;
     const now = Math.floor(Date.now() / 1000);
     const duration = parseInt(deadlineValue);
+    if (deadlineUnit === 'minutes') return now + duration * 60;
     if (deadlineUnit === 'days') return now + duration * 24 * 60 * 60;
     if (deadlineUnit === 'months') return now + duration * 30 * 24 * 60 * 60;
     return 0;
@@ -203,9 +203,8 @@ const CreateMarketForm = ({ onClose }) => {
   const isDeadlineValid = () => {
     if (!deadlineValue || isNaN(parseInt(deadlineValue))) return false;
     const duration = parseInt(deadlineValue);
-    if (deadlineUnit === 'days') return duration >= MINIMUM_DEADLINE_DAYS;
-    if (deadlineUnit === 'months') return duration >= 1;
-    return false;
+    // Any positive duration is valid
+    return duration > 0;
   };
 
   const handleApprove = async () => {
@@ -242,7 +241,7 @@ const CreateMarketForm = ({ onClose }) => {
     if (connectedChainId !== ETH_SEPOLIA_CHAIN_ID) { alert(`Please switch to Ethereum Sepolia network.`); return; }
     if (!isApprovedForCurrentAmount) { alert('The entered initial liquidity amount is not approved. Please approve it first.'); return; }
     if (!isCollateralAmountValid) { alert(`Please enter a valid initial liquidity amount (minimum ${MINIMUM_COLLATERAL} USDTest).`); return; }
-    if (!isDeadlineValid()) { alert(`Minimum deadline is ${MINIMUM_DEADLINE_DAYS} days.`); return; }
+    if (!isDeadlineValid()) { alert('Please enter a valid deadline.'); return; }
 
     let parsedCollateralAmountBn;
     try { parsedCollateralAmountBn = parseUnits(collateralAmount, 6); }
@@ -250,8 +249,15 @@ const CreateMarketForm = ({ onClose }) => {
 
     const deadlineInSeconds = getDeadlineInSeconds();
     if (deadlineInSeconds <= Math.floor(Date.now() / 1000)) { alert("Deadline must be in the future."); return; }
-    
+
     try {
+      console.log("Creating market with:", {
+        question,
+        collateralToken: USDPNP_ADDRESS,
+        liquidityAmount: parsedCollateralAmountBn.toString(),
+        deadline: deadlineInSeconds
+      });
+
       await createMarketAsync({
         address: PNP_FACTORY_ADDRESS,
         abi: PNP_ABI,
@@ -259,108 +265,178 @@ const CreateMarketForm = ({ onClose }) => {
         args: [
           parsedCollateralAmountBn,
           USDPNP_ADDRESS,
-          question,
+          question,      
           BigInt(deadlineInSeconds)
         ],
         chainId: ETH_SEPOLIA_CHAIN_ID
       });
-    } catch (err) { console.error("Create market error:", err); alert(`Market creation failed: ${(err.shortMessage || err.message).substring(0,100)}`); }
+    } catch (error) {
+      console.error("Error creating market:", error);
+      alert(`Failed to create market: ${(error.shortMessage || error.message).substring(0,100)}`);
+    }
   };
-
-  const isCreateMarketButtonDisabled = isCreatingMarket || isMarketTxProcessing;
-  const createMarketButtonText = isCreatingMarket ? 'Sending...' : isMarketTxProcessing ? 'Confirming...' : 'Create Market';
 
   if (marketCreationSuccessDetails) {
     return (
       <div className="market-success-screen">
-        <h2 className="success-title">MARKET CREATED SUCCESSFULLY!</h2>
+        <h2 className="success-title">Market Created Successfully! 🎉</h2>
         <p className="success-question">"{marketCreationSuccessDetails.question}"</p>
-        <p className="success-liquidity">WITH INITIAL LIQUIDITY <span className="success-amount">{marketCreationSuccessDetails.collateral} USDTest</span></p>
-        <div className="success-transaction">
-          <p>TRANSACTION HASH:</p>
-          <a href={`https://base-sepolia.blockscout.com/tx/${marketCreationSuccessDetails.txHash}`} target="_blank" rel="noopener noreferrer" className="success-tx-link">{marketCreationSuccessDetails.txHash}</a>
-        </div>
-        <p className="redirect-countdown-message">
-          Redirecting to your market in: <span className="countdown-seconds">{redirectCountdown}</span>s
+        <p className="success-liquidity">
+          Initial Liquidity: <span className="success-amount">{marketCreationSuccessDetails.collateral} USDC</span>
         </p>
+        
+        <div className="success-transaction">
+          <p>Transaction Hash:</p>
+          <a 
+            href={`https://sepolia.etherscan.io/tx/${marketCreationSuccessDetails.txHash}`} 
+            target="_blank" 
+            rel="noopener noreferrer"
+            className="success-tx-link"
+          >
+            {marketCreationSuccessDetails.txHash}
+          </a>
+        </div>
+
+        <p className="redirect-countdown-message">
+          Redirecting to your markets in 
+          <span className="countdown-seconds">{redirectCountdown}</span>
+          seconds...
+        </p>
+
         <button 
-            type="button"
-            className="form-close-button simple-close-button" 
-            onClick={() => {
-                if (countdownIntervalRef.current) clearInterval(countdownIntervalRef.current);
-                onClose(); 
-            }}
-            title="Close and cancel redirect"
-        >X</button>
+          className="go-to-market-button"
+          onClick={() => {
+            if (userAddress) {
+              navigate(`/gandalf/user/${userAddress}`);
+              if (onClose) onClose();
+            }
+          }}
+        >
+          View Your Markets
+        </button>
       </div>
     );
   }
-  
-  const approveButtonText = isApproving ? 'Approving...' : isApproveTxProcessing ? 'Confirming...' : isApprovedForCurrentAmount ? 'Approved' : 'Approve';
-  const isApproveButtonDisabled = !isCollateralAmountValid || isApprovedForCurrentAmount || isApproving || isApproveTxProcessing;
 
   return (
-    <form className="create-market-form" onSubmit={handleCreateMarket}>
-      <button type="button" className="form-close-button" onClick={onClose} title="Close Form">&times;</button>
-      <div className="form-group">
-        <label htmlFor="question">Question</label>
-        <input type="text" id="question" value={question} onChange={(e) => setQuestion(e.target.value)} placeholder="e.g., Will ETH price exceed $5,000?" required />
-        <small className="helper-text">Must have a clear YES/NO outcome.</small>
-      </div>
-      <div className="form-group form-group-inline">
-        <label htmlFor="collateral">Initial Liquidity</label>
-        <div className="collateral-input-group">
-          <div className="usdc-tag">
-            <img src="/usdc.svg" alt="USDTest" width="18" height="18" />
-            <span>USDTest</span>
+    <>
+      <button className="form-close-button" onClick={onClose}>×</button>
+      <form className="create-market-form" onSubmit={handleCreateMarket}>
+        <div className="form-group">
+          <label htmlFor="question">Question</label>
+          <input 
+            type="text" 
+            id="question" 
+            value={question} 
+            onChange={(e) => setQuestion(e.target.value)} 
+            placeholder="E.g., Will Bitcoin reach $100K by end of year?" 
+            required 
+          />
+          <div className="helper-text">Keep it clear and measurable</div>
+        </div>
+
+        <div className="form-group">
+          <label htmlFor="collateral">Initial Liquidity</label>
+          <div className="collateral-input-group">
+            <input 
+              type="number" 
+              id="collateral" 
+              value={collateralAmount} 
+              onChange={handleCollateralChange} 
+              placeholder={`Min ${MINIMUM_COLLATERAL} USDC`}
+              min={MINIMUM_COLLATERAL}
+              step="0.1"
+              required 
+            />
+            <div className="usdc-tag">USDC</div>
           </div>
-          <input type="number" id="collateral" value={collateralAmount} onChange={handleCollateralChange} placeholder="Amount" step="any" min={MINIMUM_COLLATERAL} required />
+          {userBalance && (
+            <div className="balance-info">
+              Balance: {parseFloat(userBalance).toFixed(2)} USDC
+              {parseFloat(userBalance) < parseFloat(collateralAmount || '0') && (
+                <span className="warning-text">Insufficient balance</span>
+              )}
+            </div>
+          )}
+        </div>
+
+        <div className="form-group">
+          <label htmlFor="deadline">Deadline</label>
+          <div className="deadline-input-group">
+            <input 
+              type="number" 
+              id="deadline" 
+              value={deadlineValue} 
+              onChange={(e) => setDeadlineValue(e.target.value)} 
+              placeholder="Duration" 
+              min="1"
+              required 
+            />
+            <div className="unit-selector">
+              <button 
+                type="button" 
+                className={`unit-button ${deadlineUnit === 'minutes' ? 'active' : ''}`} 
+                onClick={() => setDeadlineUnit('minutes')}
+              >
+                Minutes
+              </button>
+              <button 
+                type="button" 
+                className={`unit-button ${deadlineUnit === 'days' ? 'active' : ''}`} 
+                onClick={() => setDeadlineUnit('days')}
+              >
+                Days
+              </button>
+              <button 
+                type="button" 
+                className={`unit-button ${deadlineUnit === 'months' ? 'active' : ''}`} 
+                onClick={() => setDeadlineUnit('months')}
+              >
+                Months
+              </button>
+            </div>
+          </div>
+          {deadlineValue && !isDeadlineValid() && (
+            <small className="warning-text">Please enter a valid deadline</small>
+          )}
+        </div>
+
+        {!isApprovedForCurrentAmount && (
           <button 
-            type="button" 
-            className={`approve-button ${isApproveButtonDisabled ? 'disabled' : ''}`}
-            onClick={handleApprove} 
-            disabled={isApproveButtonDisabled}
+            type="button"
+            onClick={handleApprove}
+            className={`approve-button ${!isCollateralAmountValid ? 'disabled' : ''}`}
+            disabled={!isCollateralAmountValid || isApproving || isApproveTxProcessing}
           >
-            {approveButtonText}
+            {isApproving || isApproveTxProcessing ? 'Approving...' : 'Approve USDC'}
           </button>
-        </div>
-        <div className="balance-info">
-          <small className={parseFloat(userBalance) === 0 ? 'warning-text' : 'helper-text'}>
-            Balance: {userBalance} USDTest {parseFloat(userBalance) === 0 && ' - Get test tokens first!'}
-          </small>
-        </div>
-        {collateralAmount && !isCollateralAmountValid && ( <small className="warning-text">Min initial liquidity {MINIMUM_COLLATERAL} USDTest</small> )}
-        {collateralAmount && isCollateralAmountValid && !isApprovedForCurrentAmount && ( <small className="warning-text">This amount requires approval</small> )}
-        {isPollingAllowance && ( <small className="info-text">Checking approval status...</small> )}
-      </div>
-      <div className="form-group form-group-inline">
-        <label htmlFor="deadline">Deadline</label>
-        <div className="deadline-input-group">
-          <input type="number" id="deadline" value={deadlineValue} onChange={(e) => setDeadlineValue(e.target.value)} placeholder="Duration" min={deadlineUnit === 'days' ? MINIMUM_DEADLINE_DAYS : 1} required />
-          <div className="unit-selector">
-            <button type="button" className={`unit-button ${deadlineUnit === 'days' ? 'active' : ''}`} onClick={() => setDeadlineUnit('days')}>Days</button>
-            <button type="button" className={`unit-button ${deadlineUnit === 'months' ? 'active' : ''}`} onClick={() => setDeadlineUnit('months')}>Months</button>
+        )}
+
+        {showApproveSuccessMessage && (
+          <div className="success-message">USDC approved successfully! You can now create the market.</div>
+        )}
+
+        <button 
+          type="submit" 
+          className="create-button"
+          disabled={!isApprovedForCurrentAmount || isCreatingMarket || isMarketTxProcessing || !isDeadlineValid()}
+        >
+          {isCreatingMarket || isMarketTxProcessing ? 'Creating Market...' : 'Create Market'}
+        </button>
+
+        {(marketWriteError || marketTxReceiptError) && (
+          <div className="error-message">
+            {marketWriteError ? marketWriteError.message.substring(0, 150) : marketTxReceiptError.message.substring(0, 150)}
           </div>
-        </div>
-        {deadlineValue && !isDeadlineValid() && ( <small className="warning-text">Min deadline {MINIMUM_DEADLINE_DAYS} days</small> )}
-      </div>
-      <button type="submit" className="create-button" disabled={isCreateMarketButtonDisabled || !isApprovedForCurrentAmount || !isCollateralAmountValid}>{createMarketButtonText}</button>
-      
-      {(marketWriteError || marketTxReceiptError || approveWriteError || approveTxReceiptError) && (
-        <div className="error-message">
-          Error: { ((marketWriteError || marketTxReceiptError || approveWriteError || approveTxReceiptError)?.shortMessage || (marketWriteError || marketTxReceiptError || approveWriteError || approveTxReceiptError)?.message)?.substring(0,100) }...
-        </div>
-      )}
-      {(marketTxHash || approveTxHash) && !isMarketTxSuccess && !marketTxReceiptError && !isApproveTxSuccess && !approveTxReceiptError && (
-         <div className="transaction-status">
-           Tx sent! Hash: {(marketTxHash || approveTxHash).substring(0,10)}... {(isMarketTxProcessing || isApproveTxProcessing) ? 'Confirming...' : 'Please wait.'}
-         </div>
-      )}
-      {isMarketTxSuccess && !marketCreationSuccessDetails && (
-        <div className="success-message">Market created successfully! Preparing details...</div>
-      )}
-      {showApproveSuccessMessage && ( <div className="success-message">USDTest approved successfully! You can now create the market.</div> )}
-    </form>
+        )}
+
+        {isMarketTxProcessing && (
+          <div className="transaction-status">
+            Transaction submitted and being processed. Please wait...
+          </div>
+        )}
+      </form>
+    </>
   );
 };
 

@@ -1,6 +1,6 @@
 /* global BigInt */
 import React, { useState, useEffect, useCallback } from 'react';
-import { useContractWrite, useWaitForTransactionReceipt, usePublicClient, useAccount } from 'wagmi';
+import { useContractWrite, useWaitForTransactionReceipt, usePublicClient, useAccount, useContractRead } from 'wagmi';
 import { parseEther, keccak256, encodePacked, formatEther } from 'viem';
 import { PNP_FACTORY_ADDRESS } from '../contracts/contractConfig';
 import { useNavigate } from 'react-router-dom';
@@ -47,6 +47,20 @@ const PNP_ABI = [
     outputs: [{ internalType: "uint256", name: "", type: "uint256" }],
     stateMutability: "view",
     type: "function"
+  },
+  {
+    "inputs": [{ "internalType": "bytes32", "name": "", "type": "bytes32" }],
+    "name": "marketSettled",
+    "outputs": [{ "internalType": "bool", "name": "", "type": "bool" }],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [{ "internalType": "bytes32", "name": "", "type": "bytes32" }],
+    "name": "winningTokenId",
+    "outputs": [{ "internalType": "uint256", "name": "", "type": "uint256" }],
+    "stateMutability": "view",
+    "type": "function"
   }
 ];
 
@@ -64,7 +78,7 @@ const ERC1155_SUPPLY_ABI = [
   }
 ];
 
-const CountdownTimer = ({ endTime }) => {
+const CountdownTimer = ({ endTime, isMarketSettled }) => {
   // useCallback to memoize calculateTimeLeft unless endTime changes
   const calculateTimeLeft = useCallback(() => {
     if (!endTime || Number(endTime) === 0) return {};
@@ -107,6 +121,16 @@ const CountdownTimer = ({ endTime }) => {
     return <div className="countdown-timer"><span>No Deadline Set</span></div>;
   }
 
+  const timeIsUp = Number(endTime) * 1000 < new Date().getTime();
+
+  if (timeIsUp && !isMarketSettled) {
+    return <div className="countdown-timer"><span className="settling-soon-message">Settling Soon...</span></div>;
+  } 
+  
+  if (timeIsUp && isMarketSettled) {
+    return <div className="countdown-timer"><span className="settled-message">Market Settled</span></div>;
+  }
+
   const timerComponents = [];
   Object.keys(timeLeft).forEach((interval) => {
     if (timeLeft[interval] === undefined || timeLeft[interval] === null) {
@@ -120,8 +144,8 @@ const CountdownTimer = ({ endTime }) => {
     );
   });
 
-  if (timerComponents.length === 0 && endTime && Number(endTime) > 0 && (Number(endTime) * 1000 < new Date().getTime())) {
-    return <div className="countdown-timer"><span>Time's up!</span></div>;
+  if (timerComponents.length === 0 && timeIsUp) { // Already handled above, but as a fallback
+    return <div className="countdown-timer"><span className="settled-message">Market Ended</span></div>;
   }
   if (timerComponents.length === 0) {
       return <div className="countdown-timer"><span>Calculating...</span></div>;
@@ -147,8 +171,27 @@ const Saruman = ({
   const [showYesModal, setShowYesModal] = useState(false);
   const [modalAmount, setModalAmount] = useState('');
   const [userBalances, setUserBalances] = useState({ yesBalance: '0', noBalance: '0' });
+  const [winningOutcome, setWinningOutcome] = useState(null); // YES, NO, or null
 
   const publicClient = usePublicClient();
+
+  const conditionId = marketData?.id && marketData.id !== 'default-market' ? marketData.id : null;
+
+  const { data: isMarketSettled, isLoading: isLoadingMarketSettled } = useContractRead({
+    address: PNP_FACTORY_ADDRESS,
+    abi: PNP_ABI,
+    functionName: 'marketSettled',
+    args: conditionId ? [conditionId] : undefined,
+    enabled: !!conditionId,
+  });
+
+  const { data: winningTokenIdRaw, isLoading: isLoadingWinningTokenId } = useContractRead({
+    address: PNP_FACTORY_ADDRESS,
+    abi: PNP_ABI,
+    functionName: 'winningTokenId',
+    args: conditionId ? [conditionId] : undefined,
+    enabled: !!conditionId && !!isMarketSettled,
+  });
 
   // Calculate multipliers based on prices
   const calculateMultipliers = (yesPrice, noPrice) => {
@@ -192,38 +235,55 @@ const Saruman = ({
 
   // Fetch token IDs when market data changes
   useEffect(() => {
-    const fetchTokenIds = async () => {
-      if (marketData?.id) {
+    const fetchTokenIdsAndOutcome = async () => {
+      if (conditionId && publicClient) {
         try {
           console.log("=== Fetching Token IDs for Market ===");
-          console.log("Market ID:", marketData.id);
+          console.log("Market ID:", conditionId);
           
-          const yesTokenId = await publicClient.readContract({
+          const yesTokenIdResult = await publicClient.readContract({
             address: PNP_FACTORY_ADDRESS,
             abi: PNP_ABI,
             functionName: 'getYesTokenId',
-            args: [marketData.id],
+            args: [conditionId],
           });
 
-          const noTokenId = await publicClient.readContract({
+          const noTokenIdResult = await publicClient.readContract({
             address: PNP_FACTORY_ADDRESS,
             abi: PNP_ABI,
             functionName: 'getNoTokenId',
-            args: [marketData.id],
+            args: [conditionId],
           });
 
-          console.log("YES Token ID:", yesTokenId.toString());
-          console.log("NO Token ID:", noTokenId.toString());
+          console.log("YES Token ID:", yesTokenIdResult.toString());
+          console.log("NO Token ID:", noTokenIdResult.toString());
           
-          setTokenIds({ yesTokenId, noTokenId });
+          setTokenIds({ yesTokenId: yesTokenIdResult, noTokenId: noTokenIdResult });
+
+          if (isMarketSettled && winningTokenIdRaw !== undefined && winningTokenIdRaw !== null) {
+            if (winningTokenIdRaw.toString() === yesTokenIdResult.toString()) {
+              setWinningOutcome('YES');
+            } else if (winningTokenIdRaw.toString() === noTokenIdResult.toString()) {
+              setWinningOutcome('NO');
+            } else {
+              setWinningOutcome(null); // Should not happen if settled correctly
+            }
+          } else {
+            setWinningOutcome(null);
+          }
+
         } catch (error) {
-          console.error("Error fetching token IDs:", error);
+          console.error("Error fetching token IDs or determining outcome:", error);
+          setWinningOutcome(null);
         }
+      } else {
+        setTokenIds({ yesTokenId: null, noTokenId: null });
+        setWinningOutcome(null);
       }
     };
 
-    fetchTokenIds();
-  }, [marketData?.id, publicClient]);
+    fetchTokenIdsAndOutcome();
+  }, [conditionId, publicClient, isMarketSettled, winningTokenIdRaw]);
 
   // Get token IDs from contract
   const getTokenIds = async (conditionId) => {
@@ -376,7 +436,7 @@ const Saruman = ({
     }
   }, [tokenIds.yesTokenId, tokenIds.noTokenId, address]);
 
-  if (isLoading) {
+  if (isLoading || isLoadingMarketSettled || (isMarketSettled && isLoadingWinningTokenId)) {
     return (
       <div className="saruman-container saruman-loading-container">
         <div className="saruman-spinner"></div>
@@ -399,8 +459,17 @@ const Saruman = ({
   // Calculate multipliers
   const { yesMultiplier, noMultiplier } = calculateMultipliers(yesPrice, noPrice);
 
+  const isTimeUp = marketEndTime && Number(marketEndTime) * 1000 < new Date().getTime();
+
+  let containerClass = "saruman-container";
+  if (isMarketSettled && winningOutcome) {
+    containerClass += " market-is-settled";
+  } else if (isTimeUp && !isMarketSettled) {
+    containerClass += " market-is-settling";
+  }
+
   return (
-    <div className="saruman-container">
+    <div className={containerClass}>
       {showYesModal && (
         <div className="modal-overlay">
           <div className="modal-content">
@@ -438,89 +507,105 @@ const Saruman = ({
         {String(question)}
       </div>
       
-      <div className="odds-container">
-        <div className="odds-column yes-column">
-          <div className="odds-header">YES</div>
-          <div className="price-value">${Number(yesPrice).toFixed(2)}</div>
-          <div className="multiplier">×{Number(yesMultiplier).toFixed(2)}</div>
-          <div className="user-balance">
-            Your Balance: {userBalances.yesBalance} YES
+      {isMarketSettled && winningOutcome ? (
+        <div className="market-settled-container">
+          <div className="settled-header">Market Settled</div>
+          <div className={`winning-outcome ${winningOutcome.toLowerCase()}`}>
+            {winningOutcome} WON
           </div>
-          {showDepositField === 'yes' ? (
-            <div className="deposit-field">
-              <input
-                type="number"
-                value={depositAmount}
-                onChange={(e) => {
-                  console.log("Input changed:", e.target.value);
-                  setDepositAmount(e.target.value);
-                }}
-                placeholder="Enter amount"
-                className="deposit-input"
-              />
-              <button 
-                onClick={() => handleDeposit(true)}
-                disabled={isMinting || isTransactionLoading}
-                className="deposit-button"
-              >
-                {isMinting || isTransactionLoading ? 'Processing...' : 'Confirm'}
-              </button>
-            </div>
-          ) : (
-            <button 
-              onClick={() => handleDepositClick(true)}
-              className="deposit-trigger"
-            >
-              Deposit
-            </button>
-          )}
         </div>
-        
-        <div className="odds-column no-column">
-          <div className="odds-header">NO</div>
-          <div className="price-value">${Number(noPrice).toFixed(2)}</div>
-          <div className="multiplier">×{Number(noMultiplier).toFixed(2)}</div>
-          <div className="user-balance">
-            Your Balance: {userBalances.noBalance} NO
+      ) : isTimeUp && !isMarketSettled ? (
+        <div className="market-settled-container">
+          <div className="settling-soon-header">Time's Up!</div>
+          <div className="settling-soon-text">Settling Soon...</div>
+        </div>
+      ) : (
+        <>
+          <div className="odds-container">
+            <div className="odds-column yes-column">
+              <div className="odds-header">YES</div>
+              <div className="price-value">${Number(yesPrice).toFixed(2)}</div>
+              <div className="multiplier">×{Number(yesMultiplier).toFixed(2)}</div>
+              <div className="user-balance">
+                Your Balance: {userBalances.yesBalance} YES
+              </div>
+              {showDepositField === 'yes' ? (
+                <div className="deposit-field">
+                  <input
+                    type="number"
+                    value={depositAmount}
+                    onChange={(e) => {
+                      console.log("Input changed:", e.target.value);
+                      setDepositAmount(e.target.value);
+                    }}
+                    placeholder="Enter amount"
+                    className="deposit-input"
+                  />
+                  <button 
+                    onClick={() => handleDeposit(true)}
+                    disabled={isMinting || isTransactionLoading}
+                    className="deposit-button"
+                  >
+                    {isMinting || isTransactionLoading ? 'Processing...' : 'Confirm'}
+                  </button>
+                </div>
+              ) : (
+                <button 
+                  onClick={() => handleDepositClick(true)}
+                  className="deposit-trigger"
+                >
+                  Deposit
+                </button>
+              )}
+            </div>
+            
+            <div className="odds-column no-column">
+              <div className="odds-header">NO</div>
+              <div className="price-value">${Number(noPrice).toFixed(2)}</div>
+              <div className="multiplier">×{Number(noMultiplier).toFixed(2)}</div>
+              <div className="user-balance">
+                Your Balance: {userBalances.noBalance} NO
+              </div>
+              {showDepositField === 'no' ? (
+                <div className="deposit-field">
+                  <input
+                    type="number"
+                    value={depositAmount}
+                    onChange={(e) => {
+                      console.log("Input changed:", e.target.value);
+                      setDepositAmount(e.target.value);
+                    }}
+                    placeholder="Enter amount"
+                    className="deposit-input"
+                  />
+                  <button 
+                    onClick={() => handleDeposit(false)}
+                    disabled={isMinting || isTransactionLoading}
+                    className="deposit-button"
+                  >
+                    {isMinting || isTransactionLoading ? 'Processing...' : 'Confirm'}
+                  </button>
+                </div>
+              ) : (
+                <button 
+                  onClick={() => handleDepositClick(false)}
+                  className="deposit-trigger"
+                >
+                  Deposit
+                </button>
+              )}
+            </div>
           </div>
-          {showDepositField === 'no' ? (
-            <div className="deposit-field">
-              <input
-                type="number"
-                value={depositAmount}
-                onChange={(e) => {
-                  console.log("Input changed:", e.target.value);
-                  setDepositAmount(e.target.value);
-                }}
-                placeholder="Enter amount"
-                className="deposit-input"
-              />
-              <button 
-                onClick={() => handleDeposit(false)}
-                disabled={isMinting || isTransactionLoading}
-                className="deposit-button"
-              >
-                {isMinting || isTransactionLoading ? 'Processing...' : 'Confirm'}
-              </button>
-            </div>
-          ) : (
-            <button 
-              onClick={() => handleDepositClick(false)}
-              className="deposit-trigger"
-            >
-              Deposit
-            </button>
-          )}
-        </div>
-      </div>
 
-      {marketData?.id && marketData.id !== 'default-market' && (
-        <button 
-          className="trade-now-button" 
-          onClick={() => navigate(`/gandalf/${marketData.id}/trade`)}
-        >
-          Trade Now
-        </button>
+          {marketData?.id && marketData.id !== 'default-market' && (
+            <button 
+              className="trade-now-button" 
+              onClick={() => navigate(`/gandalf/${marketData.id}/trade`)}
+            >
+              Trade Now
+            </button>
+          )}
+        </>
       )}
       
       <div className="market-footer">
@@ -546,7 +631,7 @@ const Saruman = ({
           
           <div className="market-metric market-countdown">
             <div className="metric-label">Time Remaining</div>
-            <CountdownTimer endTime={marketEndTime} />
+            <CountdownTimer endTime={marketEndTime} isMarketSettled={isMarketSettled} />
           </div>
         </div>
       </div>

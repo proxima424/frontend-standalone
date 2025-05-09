@@ -20,7 +20,7 @@
   flex-direction: column;
   box-shadow: 0 5px 15px rgba(0, 0, 0, 0.5);
   border: 1px solid #222;
-  transition: all 0.3s ease;
+  transition: all 0.3s ease, border-color 0.3s ease;
   animation: contentFadeIn 0.5s cubic-bezier(0.4, 0, 0.2, 1) forwards;
 }
 
@@ -574,7 +574,7 @@
 
 .modal-confirm-button:active {
   transform: translateY(0);
-}
+} 
 
 .trade-now-button {
   width: 100%;
@@ -601,4 +601,81 @@
 
 .trade-now-button:active {
   transform: translateY(0);
+} 
+
+.market-settled-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem 1rem;
+  margin: 1.5rem 0;
+  border-radius: 12px;
+  background-color: #1f1f1f; /* Slightly different background */
+  border: 1px solid #333;
+  text-align: center;
+}
+
+.settled-header, .settling-soon-header {
+  font-size: 1.3rem;
+  font-weight: 600;
+  color: #e0e0e0;
+  margin-bottom: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.settling-soon-header {
+  color: #f59e0b; /* Amber color for settling soon */
+}
+
+.winning-outcome {
+  font-size: 2.5rem;
+  font-weight: 700;
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
+  color: #000; /* Black text for contrast on colored background */
+  text-shadow: 1px 1px 2px rgba(0,0,0,0.2);
+}
+
+.winning-outcome.yes {
+  background-color: #4ade80; /* Green for YES */
+  box-shadow: 0 0 15px rgba(74, 222, 128, 0.5);
+}
+
+.winning-outcome.no {
+  background-color: #f87171; /* Red for NO */
+  box-shadow: 0 0 15px rgba(248, 113, 113, 0.5);
+}
+
+.settling-soon-text {
+  font-size: 1.2rem;
+  color: #f59e0b;
+  font-weight: 500;
+}
+
+.countdown-timer .settling-soon-message {
+  color: #f59e0b; /* Amber color */
+  font-style: italic;
+}
+
+.countdown-timer .settled-message {
+  color: #4ade80; /* Green color for settled */
+  font-style: italic;
+}
+
+/* Adjustments for when market is settled or settling */
+.saruman-container.market-is-settled .odds-container,
+.saruman-container.market-is-settling .odds-container,
+.saruman-container.market-is-settled .trade-now-button,
+.saruman-container.market-is-settling .trade-now-button {
+  display: none; /* Hide odds and trade button */
+}
+
+.saruman-container.market-is-settled {
+  border-color: #4CAF50; /* Green border when settled */
+}
+
+.saruman-container.market-is-settling {
+  border-color: #f59e0b; /* Amber border when settling */
 } 
