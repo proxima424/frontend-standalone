@@ -1,7 +1,7 @@
 import { createConfig, http } from 'wagmi';
 import { sepolia } from 'wagmi/chains';
 import { connectorsForWallets } from '@rainbow-me/rainbowkit';
-import { injectedWallet } from '@rainbow-me/rainbowkit/wallets';
+import { injectedWallet, metaMaskWallet,phantomWallet } from '@rainbow-me/rainbowkit/wallets';
 
 const alchemyRpcUrl = 'https://eth-sepolia.g.alchemy.com/v2/OgPHxoh1CfjVBkICZopJSd282MY-sbbs';
 
@@ -10,7 +10,9 @@ const connectors = connectorsForWallets(
     {
       groupName: 'Suggested',
       wallets: [
+        metaMaskWallet,
         injectedWallet, // Supports MetaMask and other browser extension wallets
+        phantomWallet, // Adds support for Phantom wallet
       ],
     },
   ],

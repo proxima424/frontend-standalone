@@ -10,6 +10,7 @@ import CreateMarketForm from '../components/CreateMarketForm'; // Kept for the c
 import MarketTile from '../components/MarketTile'; // Kept for other markets display
 import { PNP_FACTORY_ADDRESS, USDPNP_ADDRESS, ETH_SEPOLIA_CHAIN_ID, PNP_ABI } from '../contracts/contractConfig'; // Main factory address
 import WelcomePopup from '../components/WelcomePopup';
+import { BLOCKED_CREATOR_ADDRESSES } from '../config/blockedCreators'; // Import blocked addresses
 
 // Constants for fetching market data (event and read ABIs)
 const pnpMarketCreatedEventAbiItem = {
@@ -407,10 +408,15 @@ const Gandalf = () => {
         })
       );
 
+      // Filter out markets from blocked creators
+      const filteredMarkets = marketDetails.filter(
+        market => !BLOCKED_CREATOR_ADDRESSES.map(addr => addr.toLowerCase()).includes(market.creator.toLowerCase())
+      );
+
       // Sort markets by blockNumber descending (most recent first)
-      const sortedMarkets = marketDetails.sort((a, b) => b.blockNumber - a.blockNumber);
+      const sortedMarkets = filteredMarkets.sort((a, b) => b.blockNumber - a.blockNumber);
       
-      console.log("Processed market details (sorted by recency):", sortedMarkets);
+      console.log("Processed and filtered market details (sorted by recency):", sortedMarkets);
       setSampleMarkets(sortedMarkets);
     } catch (error) {
       console.error("Error fetching markets:", error);
