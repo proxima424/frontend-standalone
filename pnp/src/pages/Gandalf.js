@@ -1,7 +1,7 @@
 /* global BigInt */
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { useAccount, useChainId, usePublicClient, useWatchContractEvent, useContractRead, useContractWrite, useWaitForTransactionReceipt, useConnect, useDisconnect } from 'wagmi';
+import { useAccount, useChainId, usePublicClient, useWatchContractEvent, useContractRead, useContractWrite, useWaitForTransactionReceipt, useConnect, useDisconnect, useBlockNumber } from 'wagmi';
 import { decodeEventLog, formatEther, parseEther, keccak256, encodePacked } from 'viem';
 import { injected } from 'wagmi/connectors';
 import './Gandalf.css';
@@ -74,6 +74,8 @@ const DEFAULT_SARUMAN_DATA = {
 const SEPOLIA_CHAIN_ID = 11155111;
 
 const MINIMUM_BET_AMOUNT = 2;
+const MAX_MARKETS_TO_FETCH = 40; // Max markets for general display
+const MAX_SCAN_ITERATIONS = 500; // Max number of chunks to scan backwards
 
 const Gandalf = () => {
   const { address, isConnected } = useAccount();
@@ -89,6 +91,7 @@ const Gandalf = () => {
   const [sampleMarkets, setSampleMarkets] = useState([]);
 
   const publicClient = usePublicClient();
+  const { data: currentBlockNumber } = useBlockNumber(); // Get current block number
   const [sarumanDisplayData, setSarumanDisplayData] = useState(null);
   const [isLoadingData, setIsLoadingData] = useState(true);
   const [errorMessage, setErrorMessage] = useState(null);
@@ -286,211 +289,217 @@ const Gandalf = () => {
     }
   };
 
-  // Function to fetch markets from contract events
+  // Updated fetchMarkets to fetch a list of markets (chunked)
   const fetchMarkets = async () => {
+    if (!publicClient || !currentBlockNumber) {
+      console.log("Gandalf fetchMarkets: Public client or current block number not available yet.");
+      setIsLoadingData(true); // Keep loading until fetch can happen
+      return;
+    }
+
     try {
-      console.log("=== Fetching Markets from Contract ===");
-      
-      // Get all PNP_MarketCreated events
-      const events = await publicClient.getLogs({
-        address: PNP_FACTORY_ADDRESS,
-        event: {
-          type: 'event',
-          name: 'PNP_MarketCreated',
-          inputs: [
-            { indexed: true, name: 'conditionId', type: 'bytes32' },
-            { indexed: true, name: 'marketCreator', type: 'address' }
-          ]
-        },
-        fromBlock: 0n,
-        toBlock: 'latest'
-      });
+      console.log(`Gandalf fetchMarkets: Fetching latest ${MAX_MARKETS_TO_FETCH} markets, scanning back from ${currentBlockNumber}, max ${MAX_SCAN_ITERATIONS} chunks.`);
+      setIsLoadingData(true); // Set loading state for the list fetch
+      let allEvents = [];
+      const chunkSize = 499n;
+      let iterations = 0;
 
-      console.log("Found market events:", events);
+      for (let toBlock = currentBlockNumber; iterations < MAX_SCAN_ITERATIONS; toBlock -= chunkSize) {
+        if (toBlock < 0n) { // Stop if we somehow go past genesis
+            console.log("Gandalf fetchMarkets: Reached block 0 or below, stopping scan.");
+            break;
+        }
 
-      if (events.length === 0) {
-        console.log("No market events found");
-        setSampleMarkets([]);
-        return;
+        if (allEvents.length >= MAX_MARKETS_TO_FETCH) {
+          console.log(`Gandalf fetchMarkets: Reached ${MAX_MARKETS_TO_FETCH} markets. Stopping fetch.`);
+          break;
+        }
+
+        const fromChunkBlock = (toBlock - chunkSize + 1n) > 0n ? (toBlock - chunkSize + 1n) : 0n;
+        
+        // console.log(`Gandalf fetchMarkets: Fetching chunk: ${fromChunkBlock} to ${toBlock}`); // Optional: Verbose logging
+
+        const chunkEvents = await publicClient.getLogs({
+          address: PNP_FACTORY_ADDRESS,
+          event: pnpMarketCreatedEventAbiItem, // Use the defined ABI item
+          fromBlock: fromChunkBlock,
+          toBlock: toBlock
+        });
+
+        allEvents = [...chunkEvents, ...allEvents];
+
+        if (allEvents.length > MAX_MARKETS_TO_FETCH) {
+          allEvents = allEvents.slice(0, MAX_MARKETS_TO_FETCH);
+        }
+
+        if (fromChunkBlock === 0n) { // Reached the earliest possible block for this chunk
+            console.log("Gandalf fetchMarkets: Current chunk reached block 0.");
+            iterations++; // Count this iteration
+            break; // Stop if the current chunk started from block 0
+        }
+        iterations++;
       }
 
-      // Fetch details for each market
-      const marketDetails = await Promise.all(
-        events.map(async (event) => {
-          const conditionId = event.args.conditionId;
-          
-          // Fetch market details
-          const [question, endTime, reserve] = await Promise.all([
-            publicClient.readContract({
-              address: PNP_FACTORY_ADDRESS,
-              abi: PNP_ABI,
-              functionName: 'marketQuestion',
-              args: [conditionId]
-            }),
-            publicClient.readContract({
-              address: PNP_FACTORY_ADDRESS,
-              abi: PNP_ABI,
-              functionName: 'getMarketEndTime',
-              args: [conditionId]
-            }),
-            publicClient.readContract({
-              address: PNP_FACTORY_ADDRESS,
-              abi: PNP_ABI,
-              functionName: 'marketReserve',
-              args: [conditionId]
-            })
-          ]);
+      if (iterations >= MAX_SCAN_ITERATIONS && allEvents.length < MAX_MARKETS_TO_FETCH) {
+        console.log(`Gandalf fetchMarkets: Scanned max ${MAX_SCAN_ITERATIONS} chunks (approx ${MAX_SCAN_ITERATIONS * Number(chunkSize)} blocks) without finding ${MAX_MARKETS_TO_FETCH} markets. Found ${allEvents.length}.`);
+      }
 
-          // Get token IDs
-          const yesTokenId = await publicClient.readContract({
-            address: PNP_FACTORY_ADDRESS,
-            abi: PNP_ABI,
-            functionName: 'getYesTokenId',
-            args: [conditionId]
-          });
+      // Deduplicate and sort (newest first)
+      const uniqueEvents = allEvents
+        .sort((a, b) => {
+          if (b.blockNumber !== a.blockNumber) return Number(b.blockNumber - a.blockNumber);
+          if (b.transactionIndex !== a.transactionIndex) return Number(b.transactionIndex - a.transactionIndex);
+          return Number(b.logIndex - a.logIndex);
+        })
+        .filter((event, index, self) =>
+          index === self.findIndex((e) => (
+            e.blockNumber === event.blockNumber && e.transactionIndex === event.transactionIndex && e.logIndex === event.logIndex
+          ))
+        )
+        .slice(0, MAX_MARKETS_TO_FETCH);
 
-          const noTokenId = await publicClient.readContract({
-            address: PNP_FACTORY_ADDRESS,
-            abi: PNP_ABI,
-            functionName: 'getNoTokenId',
-            args: [conditionId]
-          });
+      console.log("Gandalf fetchMarkets: Found market events (chunked):", uniqueEvents.length);
 
-          // Get token supplies
-          const [yesSupply, noSupply] = await Promise.all([
-            publicClient.readContract({
-              address: PNP_FACTORY_ADDRESS,
-              abi: PNP_ABI,
-              functionName: 'totalSupply',
-              args: [yesTokenId]
-            }),
-            publicClient.readContract({
-              address: PNP_FACTORY_ADDRESS,
-              abi: PNP_ABI,
-              functionName: 'totalSupply',
-              args: [noTokenId]
-            })
-          ]);
+      if (uniqueEvents.length === 0) {
+        console.log("Gandalf fetchMarkets: No market events found in the specified range.");
+        setSampleMarkets([]); // Clear existing markets
+        // setIsLoadingData(false); // Keep true until Saruman data is loaded or default set
+        return; // Exit early, let useEffect handle Saruman loading
+      }
 
-          // Calculate prices using the price library
-          const yesPrice = await publicClient.readContract({
-            address: PRICE_LIBRARY,
-            abi: PRICE_LIBRARY_ABI,
-            functionName: 'getPrice',
-            args: [reserve, yesSupply, noSupply]
-          });
+      // Fetch details for each market found (for the list display)
+      const marketDetailsList = await Promise.all(
+        uniqueEvents.map(async (event) => {
+          try {
+            const condId = event.args.conditionId;
+            if (BLOCKED_CONDITION_IDS.includes(condId) || BLOCKED_CREATOR_ADDRESSES.includes(event.args.marketCreator)) {
+               console.log(`Gandalf fetchMarkets: Skipping blocked market/creator: ${condId}`);
+               return null; // Skip blocked items
+             }
 
-          const noPrice = await publicClient.readContract({
-            address: PRICE_LIBRARY,
-            abi: PRICE_LIBRARY_ABI,
-            functionName: 'getPrice',
-            args: [reserve, noSupply, yesSupply]
-          });
+            const [question, endTime, reserve] = await Promise.all([
+              publicClient.readContract({ address: PNP_FACTORY_ADDRESS, abi: FACTORY_READ_ABI, functionName: 'marketQuestion', args: [condId], chainId: ETH_SEPOLIA_CHAIN_ID }),
+              publicClient.readContract({ address: PNP_FACTORY_ADDRESS, abi: FACTORY_READ_ABI, functionName: 'marketEndTime', args: [condId], chainId: ETH_SEPOLIA_CHAIN_ID }),
+              publicClient.readContract({ address: PNP_FACTORY_ADDRESS, abi: FACTORY_READ_ABI, functionName: 'marketReserve', args: [condId], chainId: ETH_SEPOLIA_CHAIN_ID })
+            ]);
+           
+            const prices = await calculatePrices(reserve, condId); // Use existing price calculation
 
-          // Convert prices to numbers and calculate multipliers
-          const yesPriceFormatted = parseFloat(formatEther(yesPrice));
-          const noPriceFormatted = parseFloat(formatEther(noPrice));
-          const yesMultiplier = yesPriceFormatted > 0 ? (1 / yesPriceFormatted) : 0;
-          const noMultiplier = noPriceFormatted > 0 ? (1 / noPriceFormatted) : 0;
-
-          return {
-            id: conditionId,
-            question,
-            yesPrice: yesPriceFormatted,
-            noPrice: noPriceFormatted,
-            yesMultiplier: Number(yesMultiplier.toFixed(2)),
-            noMultiplier: Number(noMultiplier.toFixed(2)),
-            endTime: Number(endTime),
-            reserve: formatEther(reserve),
-            creator: event.args.marketCreator,
-            blockNumber: Number(event.blockNumber)
-          };
+            return {
+              id: condId,
+              question,
+              yesPrice: prices.yesPrice,
+              noPrice: prices.noPrice,
+              yesMultiplier: prices.yesMultiplier,
+              noMultiplier: prices.noMultiplier,
+              marketReserve: formatEther(reserve),
+              marketEndTime: Number(endTime),
+              creator: event.args.marketCreator // Include creator if needed for MarketTile display
+            };
+          } catch (detailError) {
+            console.error(`Gandalf fetchMarkets: Error fetching details for market ${event.args.conditionId}:`, detailError);
+            return null; // Skip markets that fail to fetch details
+          }
         })
       );
 
-      // Filter out markets from blocked creators and blocked condition IDs
-      const filteredMarkets = marketDetails.filter(
-        market => 
-          !BLOCKED_CREATOR_ADDRESSES.map(addr => addr.toLowerCase()).includes(market.creator.toLowerCase()) &&
-          !BLOCKED_CONDITION_IDS.includes(market.id)
-      );
+      const validMarketDetails = marketDetailsList.filter(detail => detail !== null);
+      console.log("Gandalf fetchMarkets: Fetched market details list:", validMarketDetails.length);
+      setSampleMarkets(validMarketDetails);
 
-      // Sort markets by blockNumber descending (most recent first)
-      const sortedMarkets = filteredMarkets.sort((a, b) => b.blockNumber - a.blockNumber);
-      
-      console.log("Processed and filtered market details (sorted by recency):", sortedMarkets);
-      setSampleMarkets(sortedMarkets);
     } catch (error) {
-      console.error("Error fetching markets:", error);
-      throw error; // Re-throw to allow .catch() to work in the caller
+      console.error("Gandalf fetchMarkets: Error fetching markets list:", error);
+      setErrorMessage("Error loading market list.");
+      setSampleMarkets([]); // Clear markets on error
+    } finally {
+      // Don't set isLoadingData to false here yet, wait for Saruman data below
+      // setIsLoadingData(false); 
     }
   };
 
-  // Fetch markets when component mounts
-  useEffect(() => {
-    if (publicClient) {
-      console.log("Fetching markets on component mount");
-      setIsLoadingData(true); // Set loading state while fetching
-      fetchMarkets()
-        .then(() => {
-          console.log("Markets fetched successfully");
-        })
-        .catch(error => {
-          console.error("Error fetching markets:", error);
-        });
-    }
-  }, [publicClient]);
-
-  // Watch for new market creation events
-  useWatchContractEvent({
-    address: PNP_FACTORY_ADDRESS,
-    abi: [pnpMarketCreatedEventAbiItem],
-    eventName: 'PNP_MarketCreated',
-    chainId: ETH_SEPOLIA_CHAIN_ID,
-    onLogs(logs) {
-      logs.forEach(async (log) => {
-        console.log('🎉 New market created! Refreshing markets...');
-        await fetchMarkets(); // Refresh all markets when a new one is created
-      });
-    },
-  });
-
+  // Fetch latest market for a specific creator (for Saruman display)
+  // Scans backwards in chunks to find the most recent market efficiently.
   const fetchLatestMarketByCreator = async (creator) => {
-    if (!publicClient || !creator) {
-      setErrorMessage("Client or Creator Address not available.");
+    if (!publicClient || !creator || !currentBlockNumber) {
+      setErrorMessage("Client, Creator Address, or Block Number not available.");
       setIsLoadingData(false);
       return;
     }
-    console.log(`Gandalf: Fetching latest market for creator: ${creator}`);
-    try {
-      const logs = await publicClient.getLogs({
-        address: PNP_FACTORY_ADDRESS,
-        event: pnpMarketCreatedEventAbiItem,
-        args: { marketCreator: creator },
-        fromBlock: 'earliest',
-        toBlock: 'latest'
-      });
+    console.log(`Gandalf: Fetching latest market for creator: ${creator}, scanning back from ${currentBlockNumber}`);
+    setIsLoadingData(true); // Ensure loading state is active
 
-      if (logs && logs.length > 0) {
-        // Sort logs by block number to get the latest
-        const sortedLogs = logs.sort((a, b) => Number(b.blockNumber) - Number(a.blockNumber));
-        const latestCondId = sortedLogs[0]?.args?.conditionId;
+    try {
+      let latestLog = null;
+      const chunkSize = 499n; // Match fetchMarkets chunk size, < 100k limit
+      let iterations = 0;
+      const maxScanIterationsForCreator = MAX_SCAN_ITERATIONS; // Use the same limit as fetchMarkets
+
+      for (let toBlock = currentBlockNumber; iterations < maxScanIterationsForCreator; toBlock -= chunkSize) {
+        if (toBlock < 0n) {
+          console.log("Gandalf (creator fetch): Reached block 0 or below, stopping scan.");
+          break;
+        }
+
+        const fromChunkBlock = (toBlock - chunkSize + 1n) > 0n ? (toBlock - chunkSize + 1n) : 0n;
         
+        // console.log(`Gandalf (creator fetch): Fetching chunk for creator: ${fromChunkBlock} to ${toBlock}`);
+
+        const chunkLogs = await publicClient.getLogs({
+          address: PNP_FACTORY_ADDRESS,
+          event: pnpMarketCreatedEventAbiItem,
+          args: { marketCreator: creator },
+          fromBlock: fromChunkBlock,
+          toBlock: toBlock
+        });
+
+        if (chunkLogs && chunkLogs.length > 0) {
+          // Sort logs within the chunk to get the latest one first
+          const sortedChunkLogs = chunkLogs.sort((a, b) => {
+            if (b.blockNumber !== a.blockNumber) return Number(b.blockNumber - a.blockNumber);
+            if (b.transactionIndex !== a.transactionIndex) return Number(b.transactionIndex - a.transactionIndex);
+            return Number(b.logIndex - a.logIndex);
+          });
+          
+          latestLog = sortedChunkLogs[0]; // Found the latest log in this chunk
+          console.log(`Gandalf (creator fetch): Found latest market in chunk [${fromChunkBlock}-${toBlock}] at block ${latestLog.blockNumber}`);
+          break; // Stop scanning, we found the most recent one
+        }
+
+        if (fromChunkBlock === 0n) {
+            console.log("Gandalf (creator fetch): Current chunk reached block 0.");
+            iterations++;
+            break; 
+        }
+        iterations++;
+      }
+
+      if (latestLog) {
+        const latestCondId = latestLog.args?.conditionId;
         if (latestCondId) {
-          console.log("Found latest market:", latestCondId);
-          await fetchMarketByConditionId(latestCondId);
+          console.log("Gandalf (creator fetch): Found latest market conditionId:", latestCondId);
+          await fetchMarketByConditionId(latestCondId); // Fetch details for the found market
         } else {
+          // This case should be unlikely if the event was decoded correctly
           setErrorMessage(`No valid conditionId found in latest market event for ${creator}.`);
           setSarumanDisplayData(DEFAULT_SARUMAN_DATA);
         }
       } else {
+        console.log(`Gandalf (creator fetch): No markets found for creator ${creator} within the scanned range (approx ${maxScanIterationsForCreator * Number(chunkSize)} blocks).`);
         setErrorMessage(`No markets found for creator: ${creator}. Displaying default market.`);
         setSarumanDisplayData(DEFAULT_SARUMAN_DATA);
       }
     } catch (err) {
       console.error("Gandalf: Error fetching latest market by creator:", err);
-      setErrorMessage(`Error fetching markets for ${creator}: ${(err.shortMessage || err.message)}`);
+      // Handle specific RPC errors if needed, e.g., rate limiting
+      if (err.message && err.message.includes("block range")) {
+          setErrorMessage(`Error fetching markets for ${creator}: RPC block range limit exceeded. Try refreshing.`)
+      } else {
+          setErrorMessage(`Error fetching markets for ${creator}: ${(err.shortMessage || err.message)}`);
+      }
       setSarumanDisplayData(DEFAULT_SARUMAN_DATA);
+    } finally {
+        // Loading state is handled within fetchMarketByConditionId or set directly on error/not found
+        // setIsLoadingData(false); // Removed this to let subsequent calls manage it
     }
   };
 
@@ -515,18 +524,26 @@ const Gandalf = () => {
         setIsLoadingData(false);
       }
     }
-  }, [conditionIdFromParams, creatorAddress, publicClient, sampleMarkets]);
+  }, [conditionIdFromParams, creatorAddress, publicClient, sampleMarkets, currentBlockNumber]); // Add currentBlockNumber dependency
 
   useEffect(() => {
     if(sarumanDisplayData || errorMessage) setIsLoadingData(false);
   }, [sarumanDisplayData, errorMessage]);
+
+  // Add this useEffect to fetch the list of markets for the tiles
+  useEffect(() => {
+    if (publicClient && currentBlockNumber) {
+      console.log("Gandalf: Triggering fetchMarkets due to client/block update.");
+      fetchMarkets();
+    }
+  }, [publicClient, currentBlockNumber]); // Re-run if client or block number changes
 
   const handleShowForm = () => setShowCreateForm(true);
   const handleHideForm = () => setShowCreateForm(false);
 
   const handleMarketSelect = (market) => {
     console.log("Market tile clicked:", market);
-    navigate(`/gandalf/market/${market.id}`);
+    navigate(`/gandalf/${market.id}/trade`);
   };
   
   let sarumanContent;
@@ -915,7 +932,7 @@ const Gandalf = () => {
               noPrice={market.noPrice}
               yesMultiplier={market.yesMultiplier}
               noMultiplier={market.noMultiplier}
-              onClick={() => handleMarketSelect(market)}
+              onClick={() => navigate(`/gandalf/${market.id}/trade`)}
             />
           ))}
         </div>
