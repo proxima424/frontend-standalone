@@ -1,18 +1,24 @@
-import React, { useState } from 'react';
-import './Navbar.css';
-import { useNavigate, useLocation } from 'react-router-dom';
-import { useAccount, useDisconnect, useWriteContract, useWaitForTransactionReceipt, useChainId } from 'wagmi';
-import { ConnectButton } from '@rainbow-me/rainbowkit';
+import React, { useState } from "react";
+import "./Navbar.css";
+import { useNavigate, useLocation } from "react-router-dom";
+import {
+  useAccount,
+  useDisconnect,
+  useWriteContract,
+  useWaitForTransactionReceipt,
+  useChainId,
+} from "wagmi";
+import { ConnectButton } from "@rainbow-me/rainbowkit";
 
-const USDPNP_ADDRESS = '0x77dE2966e1e5dD240ef3317B8d88d8945a4e9Bd6';
+const USDPNP_ADDRESS = "0x77dE2966e1e5dD240ef3317B8d88d8945a4e9Bd6";
 const USDPNP_ABI = [
   {
-    "inputs": [],
-    "name": "mint",
-    "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
-  }
+    inputs: [],
+    name: "mint",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
 ];
 
 const SEPOLIA_CHAIN_ID = 11155111;
@@ -34,7 +40,7 @@ const Navbar = () => {
   const handleMint = async () => {
     if (!isConnected) return;
     if (chainId !== SEPOLIA_CHAIN_ID) {
-      alert('Please switch to Sepolia testnet to continue');
+      alert("Please switch to Sepolia testnet to continue");
       return;
     }
     setIsMinting(true);
@@ -42,10 +48,10 @@ const Navbar = () => {
       await writeContract({
         address: USDPNP_ADDRESS,
         abi: USDPNP_ABI,
-        functionName: 'mint',
+        functionName: "mint",
       });
     } catch (error) {
-      console.error('Minting error:', error);
+      console.error("Minting error:", error);
       setIsMinting(false);
     }
   };
@@ -58,10 +64,10 @@ const Navbar = () => {
   }, [isSuccess]);
 
   const handleProtocolTitleClick = () => {
-    navigate('/');
+    navigate("/");
   };
 
-  const isGandalfPage = location.pathname.includes('/gandalf');
+  const isGandalfPage = location.pathname.includes("/gandalf");
 
   return (
     <nav className="navbar">
@@ -70,42 +76,45 @@ const Navbar = () => {
           <span>🌐 CREATE A PREDICTION MARKET ON ANY EVENT</span>
           <span>🔄 PERMISSIONLESS MARKETS</span>
           <span>📊 COMPLETELY ONCHAIN</span>
-          <span>🌐 PERPLEXITY SONAR API SETTLES MARKETS</span>   
+          <span>🌐 PERPLEXITY SONAR API SETTLES MARKETS</span>
           <span>📊 NETWORK OF AVS OPERATORS</span>
         </div>
       </div>
       <div className="navbar-content">
-        <div 
-          className="navbar-brand" 
+        <div
+          className="navbar-brand"
           onClick={handleProtocolTitleClick}
-          style={{ cursor: 'pointer' }}
+          style={{ cursor: "pointer" }}
         >
           pnp protocol
         </div>
         <div className="nav-links">
-          <button 
-            className="nav-button"
-            onClick={() => navigate('/docs')}
-          >
+          <button className="nav-button" onClick={() => navigate("/docs")}>
             How it works?
           </button>
-          <button 
-            className="nav-button" 
-            onClick={() => navigate('/gandalf')}
-          >
+
+          <button className="nav-button" onClick={() => navigate("/roadmap")}>
+            Roadmap
+          </button>
+
+          <button className="nav-button" onClick={() => navigate("/gandalf")}>
             PERPLEXITY MARKETS
           </button>
-          <button className="nav-button"
-          onClick={() => window.open('https://polynews.in', '_blank')}>POLY NEWS</button>
+          <button
+            className="nav-button"
+            onClick={() => window.open("https://polynews.in", "_blank")}
+          >
+            POLY NEWS
+          </button>
         </div>
         <div className="navbar-right">
           {isConnected && isGandalfPage && (
-            <button 
+            <button
               className="test-token-button"
               onClick={handleMint}
               disabled={isMinting || isConfirming}
             >
-              {isMinting || isConfirming ? 'Minting...' : 'Get Test Tokens'}
+              {isMinting || isConfirming ? "Minting..." : "Get Test Tokens"}
             </button>
           )}
           <ConnectButton.Custom>
@@ -120,18 +129,21 @@ const Navbar = () => {
               return (
                 <div
                   {...(!mounted && {
-                    'aria-hidden': true,
-                    'style': {
+                    "aria-hidden": true,
+                    style: {
                       opacity: 0,
-                      pointerEvents: 'none',
-                      userSelect: 'none',
+                      pointerEvents: "none",
+                      userSelect: "none",
                     },
                   })}
                 >
                   {(() => {
                     if (!mounted || !account || !chain) {
                       return (
-                        <button className="connect-button" onClick={openConnectModal}>
+                        <button
+                          className="connect-button"
+                          onClick={openConnectModal}
+                        >
                           Login
                         </button>
                       );
@@ -139,7 +151,10 @@ const Navbar = () => {
 
                     if (chain.id !== SEPOLIA_CHAIN_ID) {
                       return (
-                        <button className="connect-button" onClick={openChainModal}>
+                        <button
+                          className="connect-button"
+                          onClick={openChainModal}
+                        >
                           Switch to Sepolia
                         </button>
                       );
@@ -147,7 +162,10 @@ const Navbar = () => {
 
                     return (
                       <div className="wallet-container">
-                        <button className="address-button" onClick={openAccountModal}>
+                        <button
+                          className="address-button"
+                          onClick={openAccountModal}
+                        >
                           {account.displayName}
                         </button>
                       </div>
