@@ -1,24 +1,25 @@
-@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700&display=swap');
+@import url("https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700&display=swap");
 
 .navbar {
   width: 100%;
   height: 80px;
-  background-color: black;
+  background-color: #0a0a0a;
   position: sticky;
   top: 0;
   z-index: 10;
-  font-family: 'Poppins', sans-serif;
+  font-family: "Poppins", sans-serif;
   color: white;
   backdrop-filter: blur(10px);
   padding-bottom: 10px;
   margin-bottom: 20px;
+  border-bottom: 1px solid rgba(255, 192, 203, 0.2);
 }
 
 .navbar-content {
   max-width: 1200px;
   height: 100%;
   margin: 0 auto;
-  padding: 0 20px;
+  padding: 0 2px;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -30,7 +31,7 @@
 }
 
 .navbar-brand {
-  font-family: 'Orbitron', sans-serif;
+  font-family: "Orbitron", sans-serif;
   font-size: 28px;
   font-weight: 700;
   color: white;
@@ -57,7 +58,7 @@
 }
 
 .nav-button {
-  font-family: 'Orbitron', sans-serif;
+  font-family: "Orbitron", sans-serif;
   font-size: 16px;
   font-weight: 500;
   background: transparent;
@@ -70,7 +71,7 @@
 }
 
 .nav-button::after {
-  content: '';
+  content: "";
   position: absolute;
   width: 0;
   height: 2px;
@@ -92,7 +93,7 @@
 .search-button {
   background-color: transparent;
   color: white;
-  border: 2px solid #4CAF50;
+  border: 2px solid #4caf50;
   border-radius: 8px;
   padding: 10px 20px;
   margin-right: 20px;
@@ -102,17 +103,23 @@
 }
 
 .search-button:hover {
-  background-color: #4CAF50;
-  border-color: #4CAF50;
+  background-color: #4caf50;
+  border-color: #4caf50;
 }
 
 .login-button {
-  font-family: 'Orbitron', sans-serif;
+  font-family: "Orbitron", sans-serif;
   font-weight: 700;
   font-size: 18px;
   text-transform: uppercase;
   letter-spacing: 2px;
-  padding: 10px 20px;
+  padding: 8px 16px;
+  min-width: 120px;
+  max-width: 160px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-family: "Courier New", monospace;
   border: 2px solid white;
   background: transparent;
   color: white;
@@ -124,6 +131,76 @@
   background: white;
   color: black;
   text-shadow: none;
+}
+
+.connect-button {
+  font-family: "Orbitron", sans-serif;
+  font-weight: 700;
+  font-size: 16px;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  padding: 12px 24px;
+  background: linear-gradient(45deg, #ff69b4, #ff1493);
+  border: none;
+  color: white;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  border-radius: 4px;
+  box-shadow: 0 0 20px rgba(255, 105, 180, 0.3);
+}
+
+.connect-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 0 30px rgba(255, 105, 180, 0.5);
+}
+
+.wallet-container {
+  position: relative;
+  display: inline-block;
+}
+
+.address-button {
+  font-family: "Orbitron", sans-serif;
+  font-size: 14px;
+  letter-spacing: 1px;
+  padding: 10px 20px;
+  background: rgba(255, 105, 180, 0.1);
+  border: 1px solid #ff69b4;
+  color: #ff69b4;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  border-radius: 4px;
+  backdrop-filter: blur(5px);
+}
+
+.address-button:hover {
+  background: rgba(255, 105, 180, 0.2);
+  box-shadow: 0 0 20px rgba(255, 105, 180, 0.3);
+  transform: translateY(-1px);
+}
+
+.logout-button {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  margin-top: 4px;
+  padding: 8px 16px;
+  background: #1a1a1a;
+  border: 2px solid white;
+  color: white;
+  cursor: pointer;
+  font-size: 16px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  transition: all 0.3s ease;
+  width: 100%;
+  z-index: 1000;
+}
+
+.logout-button:hover {
+  background: white;
+  color: black;
 }
 
 .moving-strip {
@@ -154,4 +231,34 @@
   100% {
     transform: translateX(-100%);
   }
+}
+
+.test-token-button {
+  font-family: "Orbitron", sans-serif;
+  font-weight: 700;
+  font-size: 14px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  padding: 10px 20px;
+  margin-right: 16px;
+  background: rgba(255, 105, 180, 0.1);
+  border: 1px solid #ff69b4;
+  color: #ff69b4;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  border-radius: 4px;
+  backdrop-filter: blur(5px);
+}
+
+.test-token-button:hover:not(:disabled) {
+  background: rgba(255, 105, 180, 0.2);
+  box-shadow: 0 0 20px rgba(255, 105, 180, 0.3);
+  transform: translateY(-1px);
+}
+
+.test-token-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
 }

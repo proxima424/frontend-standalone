@@ -1,0 +1,32 @@
+.market-collateral {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.9rem;
+  padding: 5px 10px;
+  border-radius: 8px;
+  background-color: rgba(255, 105, 180, 0.1);
+  border: 1px solid rgba(255, 105, 180, 0.3);
+}
+
+.resolution-source {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.9rem;
+  padding: 5px 10px;
+  border-radius: 8px;
+  background-color: rgba(255, 105, 180, 0.1);
+  border: 2px solid #ff69b4;
+  box-shadow: 0 0 8px rgba(255, 105, 180, 0.2);
+}
+
+.market-footer {
+  margin-top: auto;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-top: 1rem;
+  border-top: 1px solid #3a3a3a;
+  gap: 1rem;
+} 
