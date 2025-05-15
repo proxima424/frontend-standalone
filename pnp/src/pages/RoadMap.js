@@ -14,41 +14,60 @@ function Roadmap() {
       timeframe: "Q1 2025",
       milestones: [
         {
-          title: "Solana Contract Testing",
-          description:
-            "Internal testing of Solana contracts and successful devnet launch",
-          status: "completed",
+          title: "Solana Devnet Launch",
+          description: [
+            "Rewrite Smart Contracts for SVM with E2E Testing",
+            "Deployment on Solana Devnet",
+          ],
+          status: "in-progress",
           date: "Jan 2025",
         },
         {
-          title: "X Bot Lite Launch",
-          description:
-            "Launch lite version of X bot with $PNP holding requirement for basic interactions",
+          title: "X Bot Launch",
+          description: [
+            "Launch v1 of PNP X bot - Requires $PNP to interact ) ",
+            "Add analytics features to PNP Bot",
+          ],
           status: "in-progress",
           date: "Feb 2025",
         },
         {
           title: "UI Enhancement",
-          description:
-            "Iterative UI improvements focusing on optimal positioning for Solana mainnet",
+          description: [
+            "Search bar for creating markets by a single prompt",
+            "Iterative UI improvements",
+            "Focusing on optimal positioning for Solana mainnet",
+          ],
           status: "in-progress",
           date: "Feb 2025",
         },
         {
           title: "PolyNews V1",
-          description:
-            "Launch PolyNews V1 with $PNP token requirement and semantic search functionality",
+          description: [
+            "Newspaper-style interface displaying future news powered by prediction market questions and outcomes.",
+            "Future analytics platform features accessible by holding $PNP."
+          ],
           status: "planned",
           date: "Mar 2025",
         },
         {
-          title: "Audit Preparation",
-          description:
+          title: "Solana Audit",
+          description: [
             "Prepare and submit Solana contracts for comprehensive security audit",
+          ],
           status: "planned",
           date: "Mar 2025",
         },
-      ],
+        {
+          title: "$PNP Utility",
+          description: [
+            "A portion of protocol-generated revenue will be utilized for $PNP token buybacks and burns",
+            "A comprehensive schedule detailing the token burn mechanics and frequency will be publicly released in the near future."
+          ],
+          status: "planned", 
+          date: "Ongoing"
+        }
+      ]
     },
     {
       id: "phase2",
@@ -58,16 +77,23 @@ function Roadmap() {
       milestones: [
         {
           title: "Solana Mainnet Launch",
-          description: "Full deployment of smart contracts on Solana mainnet",
+          description: ["Deployment of smart contracts on Solana mainnet"],
           status: "planned",
           date: "Apr 2025",
         },
         {
           title: "X Bot Markets Integration",
-          description:
-            "Enable market creation directly through X chat with $PNP holding requirement on Solana devnet",
+          description: [
+            "Enable market creation directly through X ",
+          ],
           status: "planned",
           date: "May 2025",
+        },
+        {
+          title: "🤫 Stealth Project Reveal",
+          description: ["Details to be announced soon! Get ready for something exciting."],
+          status: "planned",
+          date: "June 2025",
         },
       ],
     },
@@ -79,29 +105,33 @@ function Roadmap() {
       milestones: [
         {
           title: "Platform Enhancement",
-          description:
+          description: [
             "Launch full-fledged Solana app with comprehensive prediction markets and analytics dashboard",
+          ],
           status: "planned",
           date: "Jul 2025",
         },
         {
           title: "PolyNews Expansion",
-          description:
+          description: [
             "Major PolyNews upgrade with advanced features and full $PNP integration",
+          ],
           status: "planned",
           date: "Jul 2025",
         },
         {
           title: "Community Growth",
-          description:
+          description: [
             "Launch reward games and community initiatives on Telegram and X",
+          ],
           status: "planned",
           date: "Aug 2025",
         },
         {
           title: "Global Outreach",
-          description:
+          description: [
             "Begin worldwide on-ground promotions and increase platform usage globally",
+          ],
           status: "planned",
           date: "Sep 2025",
         },
@@ -167,8 +197,12 @@ function Roadmap() {
                   <div className="phase-timeframe">
                     <Calendar className="timeframe-icon" />
                     <span>
-                      {" "}
-                      <strong>End phase:</strong> placeholder
+                      {phase.id === 'phase1' && (
+                        <strong>End: End of May 2025</strong>
+                      )}
+                      {phase.id === 'phase2' && (
+                        <strong>End: Mid June 2025</strong>
+                      )}
                     </span>
                   </div>
                   <p className="phase-description">{phase.description}</p>
@@ -184,7 +218,14 @@ function Roadmap() {
                         </div>
                       </div>
                       <div className="milestone-content">
-                        <p>{milestone.description}</p>
+                        <ul style={{ listStyle: 'none', paddingLeft: '0', color: '#d1d1d1' }}>
+                          {milestone.description.map((point, i) => (
+                            <li key={i} style={{ marginBottom: '0.75rem', display: 'flex', alignItems: 'flex-start' }}>
+                              <ChevronRight size={18} style={{ marginRight: '0.5rem', color: '#ff8da1', flexShrink: 0, marginTop: '2px' }} />
+                              <span>{point}</span>
+                            </li>
+                          ))}
+                        </ul>
                       </div>
                     </div>
                   ))}
