@@ -1,0 +1,347 @@
+/* Main container */
+.roadmap-container {
+    min-height: 100vh;
+    background-color: black;
+    color: white;
+    padding: 2.5rem 1rem;
+  }
+  
+  .roadmap-content {
+    max-width: 1280px;
+    margin: 0 auto;
+  }
+  
+  /* Header styles */
+  .roadmap-header {
+    margin-bottom: 2.5rem;
+    text-align: center;
+    animation: fadeInDown 1.2s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  
+  .roadmap-title {
+    font-size: 2.5rem;
+    font-weight: bold;
+    margin-bottom: 1rem;
+    background: linear-gradient(to right, #ff69b4, #9b87f5);
+    background-size: 200% auto;
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    position: relative;
+    display: inline-block;
+    animation: shimmer 6s ease-in-out infinite;
+  }
+  
+  .roadmap-title::after {
+    content: "";
+    position: absolute;
+    bottom: -8px;
+    left: 0;
+    width: 100%;
+    height: 3px;
+    background: linear-gradient(to right, #ff69b4, #9b87f5);
+    transform: scaleX(0);
+    transform-origin: left;
+    animation: underlineExpand 1.2s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+  }
+  
+  .roadmap-subtitle {
+    font-size: 1.125rem;
+    color: #ffc0cb;
+    max-width: 48rem;
+    margin: 0 auto;
+    opacity: 0;
+    animation: fadeInUp 1.2s cubic-bezier(0.4, 0, 0.2, 1) 0.3s forwards;
+  }
+  
+  @keyframes fadeInDown {
+    0% {
+      opacity: 0;
+      transform: translateY(-30px);
+    }
+    100% {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+  
+  @keyframes fadeInUp {
+    0% {
+      opacity: 0;
+      transform: translateY(30px);
+    }
+    100% {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+  
+  @keyframes underlineExpand {
+    0% {
+      transform: scaleX(0);
+      opacity: 0;
+    }
+    100% {
+      transform: scaleX(1);
+      opacity: 1;
+    }
+  }
+  
+  @keyframes shimmer {
+    0% {
+      background-position: 0% 50%;
+    }
+    50% {
+      background-position: 100% 50%;
+    }
+    100% {
+      background-position: 0% 50%;
+    }
+  }
+  
+  .roadmap-title {
+    background-size: 200% auto;
+    animation: shimmer 6s ease-in-out infinite;
+  }
+  
+  /* Tabs styling */
+  .tabs-container {
+    margin-bottom: 2rem;
+  }
+  
+  .tabs-list {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    background-color: rgba(31, 31, 31, 0.6);
+    border-radius: 0.5rem;
+    padding: 0.25rem;
+    margin-bottom: 1rem;
+  }
+  
+  .tab-button {
+    padding: 0.5rem 1rem;
+    margin: 0.25rem;
+    border: none;
+    background: transparent;
+    color: #ffb6c1;
+    border-radius: 0.25rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+  
+  .tab-button.active {
+    background-color: rgba(255, 105, 180, 0.3);
+  
+    color: #ffc0cb;
+  }
+  
+  /* Phase content */
+  .phase-content {
+    display: none;
+    background-color: rgba(31, 31, 31, 0.3);
+    border-radius: 0.5rem;
+    padding: 1.5rem;
+    border: 1px solid rgba(255, 105, 180, 0.3);
+  }
+  
+  .phase-content.active {
+    display: block;
+  }
+  
+  .phase-header {
+    margin-bottom: 1.5rem;
+  }
+  
+  .phase-title-container {
+    display: flex;
+    align-items: center;
+    margin-bottom: 1rem;
+  }
+  
+  .phase-icon {
+    width: 1.5rem;
+    height: 1.5rem;
+    color: #ff8da1;
+  
+    margin-right: 0.5rem;
+  }
+  
+  .phase-title {
+    font-size: 1.5rem;
+    font-weight: bold;
+    color: #ff8da1;
+  }
+  
+  .phase-timeframe {
+    display: flex;
+    align-items: center;
+    margin-bottom: 1.5rem;
+    color: #ff8da1;
+  }
+  
+  .timeframe-icon {
+    width: 1.25rem;
+    height: 1.25rem;
+    margin-right: 0.5rem;
+  }
+  
+  .phase-description {
+    color: #d1d1d1;
+    margin-bottom: 1.5rem;
+  }
+  
+  /* Milestone grid */
+  .milestones-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+  }
+  
+  @media (min-width: 768px) {
+    .milestones-grid {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+  
+  @media (min-width: 1024px) {
+    .milestones-grid {
+      grid-template-columns: repeat(3, 1fr);
+    }
+  }
+  
+  /* Milestone card */
+  .milestone-card {
+    background-color: rgba(31, 31, 31, 0.7);
+    border-radius: 0.5rem;
+    border: 1px solid #333;
+    overflow: hidden;
+    position: relative;
+    padding: 1.5rem;
+  }
+  
+  .milestone-header {
+    padding-bottom: 0.5rem;
+  }
+  
+  .milestone-title-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 0.5rem;
+  }
+  
+  .milestone-title {
+    font-size: 1.25rem;
+    font-weight: bold;
+    color: #ff8da1;
+  }
+  
+  .milestone-date {
+    display: flex;
+    align-items: center;
+    color: #999;
+    font-size: 0.875rem;
+    margin-top: 0.5rem;
+  }
+  
+  .date-icon {
+    width: 1rem;
+    height: 1rem;
+    margin-right: 0.25rem;
+  }
+  
+  .milestone-content {
+    color: #d1d1d1;
+    padding-top: 0.5rem;
+  }
+  
+  .milestone-action {
+    position: absolute;
+    bottom: 0.75rem;
+    right: 0.75rem;
+  }
+  
+  .action-button {
+    padding: 0.375rem;
+    border-radius: 9999px;
+    background-color: hotpink;
+    cursor: pointer;
+    transition: background-color 0.2s;
+  }
+  
+  .action-button:hover {
+    background-color: rgb(244, 158, 172);
+  }
+  
+  .action-icon {
+    width: 1rem;
+    height: 1rem;
+    color: #e0daff;
+  }
+  
+  /* Status badges */
+  .status-badge {
+    padding: 0.25rem 0.5rem;
+    font-size: 0.75rem;
+    border-radius: 9999px;
+    border: 1px solid;
+  }
+  
+  .status-badge.completed {
+    background-color: rgba(255, 192, 203, 0.3);
+    color: #e0daff;
+    border-color: #9b87f5;
+  }
+  
+  .status-badge.in-progress {
+    background-color: rgba(59, 130, 246, 0.3);
+    color: #bfdbfe;
+    border-color: #3b82f6;
+  }
+  
+  .status-badge.planned {
+    background-color: rgba(75, 85, 99, 0.5);
+    color: #d1d1d1;
+    border-color: #6b7280;
+  }
+  
+  /* Current focus badge */
+  .current-focus {
+    margin-top: 4rem;
+    text-align: center;
+  }
+  
+  .focus-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.5rem 1rem;
+    border-radius: 9999px;
+    background-color: rgba(255, 192, 203, 0.4);
+    border: 1px solid rgba(255, 192, 203, 0.6);
+  }
+  
+  .focus-icon {
+    width: 1.25rem;
+    height: 1.25rem;
+    color: #ffc0cb;
+    margin-right: 0.5rem;
+  }
+  
+  /* Media queries for responsive design */
+  @media (min-width: 768px) {
+    .roadmap-container {
+      padding: 2.5rem 1.5rem;
+    }
+  
+    .roadmap-title {
+      font-size: 3rem;
+    }
+  }
+  
+  @media (min-width: 1024px) {
+    .roadmap-container {
+      padding: 2.5rem 2rem;
+    }
+  }
+  
