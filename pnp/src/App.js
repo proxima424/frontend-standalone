@@ -129,6 +129,11 @@ function App() {
     // Providers are now in index.js, so App just returns the Router and its content
     <Router>
       <Navbar />
+      <div className="global-bg-effects">
+        <div className="blur-circle top-left"></div>
+        <div className="blur-circle bottom-right"></div>
+        <div className="grid-overlay"></div>
+      </div>
       <Routes>
         <Route path="/" element={<HomePage />} />
         <Route path="/price_markets" element={<PriceMarkets />} />

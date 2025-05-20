@@ -1,10 +1,32 @@
 import "./Roadmap.css";
-import React, { useState } from "react";
-import { MapPin, Calendar, ChevronRight, Layers } from "lucide-react";
+import React, { useState, useEffect } from "react";
+import { MapPin, Calendar, ChevronRight, Layers, CheckCircle, Clock, Calendar as CalendarIcon } from "lucide-react";
 
 function Roadmap() {
-  // State to track active tab
   const [activeTab, setActiveTab] = useState("phase1");
+  const [isVisible, setIsVisible] = useState({});
+
+  useEffect(() => {
+    const observerOptions = {
+      root: null,
+      rootMargin: '0px',
+      threshold: 0.15
+    };
+
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          setIsVisible(prev => ({ ...prev, [entry.target.id]: true }));
+        }
+      });
+    }, observerOptions);
+
+    document.querySelectorAll('.milestone-card').forEach(card => {
+      observer.observe(card);
+    });
+
+    return () => observer.disconnect();
+  }, [activeTab]);
 
   const phases = [
     {
@@ -12,6 +34,7 @@ function Roadmap() {
       title: "Phase 1: Foundation & Testing",
       description: "Core development, testing, and initial launches",
       timeframe: "Q1 2025",
+      progress: 45,
       milestones: [
         {
           title: "Solana Devnet Launch",
@@ -74,6 +97,7 @@ function Roadmap() {
       title: "Phase 2: Mainnet Integration",
       description: "Mainnet deployment and advanced features",
       timeframe: "Q2 2025",
+      progress: 10,
       milestones: [
         {
           title: "Solana Mainnet Launch",
@@ -102,6 +126,7 @@ function Roadmap() {
       title: "Phase 3: Platform Expansion",
       description: "Global expansion and community growth",
       timeframe: "Q3 2025",
+      progress: 0,
       milestones: [
         {
           title: "Platform Enhancement",
@@ -152,18 +177,36 @@ function Roadmap() {
       }
     };
 
+    const StatusIcon = () => {
+      switch (status) {
+        case "completed":
+          return <CheckCircle size={12} className="status-icon" />;
+        case "in-progress":
+          return <Clock size={12} className="status-icon" />;
+        case "planned":
+        default:
+          return <CalendarIcon size={12} className="status-icon" />;
+      }
+    };
+
     return (
       <span className={getStatusStyles()}>
+        <StatusIcon />
         {status.charAt(0).toUpperCase() + status.slice(1)}
       </span>
     );
   };
 
+  const activePhase = phases.find(phase => phase.id === activeTab);
+  
   return (
     <div className="roadmap-container">
       <div className="roadmap-content">
         <header className="roadmap-header">
-          <h1 className="roadmap-title">Project Roadmap</h1>
+          <div className="title-wrapper">
+            <h1 className="roadmap-title">Project Roadmap</h1>
+            <div className="title-accent"></div>
+          </div>
           <p className="roadmap-subtitle">
             Our strategic plan for development and delivery, outlining key
             milestones and timelines.
@@ -178,7 +221,11 @@ function Roadmap() {
                 className={`tab-button ${activeTab === phase.id ? "active" : ""}`}
                 onClick={() => setActiveTab(phase.id)}
               >
-                {phase.title.split(":")[0]}
+                <span className="tab-title">{phase.title.split(":")[0]}</span>
+                <div className="progress-indicator">
+                  <div className="progress-bar" style={{ width: `${phase.progress}%` }}></div>
+                  <span className="progress-text">{phase.progress}%</span>
+                </div>
               </button>
             ))}
           </div>
@@ -198,10 +245,13 @@ function Roadmap() {
                     <Calendar className="timeframe-icon" />
                     <span>
                       {phase.id === 'phase1' && (
-                        <strong>End: End of May 2025</strong>
+                        <strong>Timeline: January - May 2025</strong>
                       )}
                       {phase.id === 'phase2' && (
-                        <strong>End: Mid June 2025</strong>
+                        <strong>Timeline: April - June 2025</strong>
+                      )}
+                      {phase.id === 'phase3' && (
+                        <strong>Timeline: July - September 2025</strong>
                       )}
                     </span>
                   </div>
@@ -210,23 +260,33 @@ function Roadmap() {
 
                 <div className="milestones-grid">
                   {phase.milestones.map((milestone, index) => (
-                    <div key={index} className="milestone-card">
+                    <div 
+                      id={`${phase.id}-milestone-${index}`} 
+                      key={index} 
+                      className={`milestone-card ${isVisible[`${phase.id}-milestone-${index}`] ? 'visible' : ''}`}
+                      style={{ animationDelay: `${index * 0.15}s` }}
+                    >
                       <div className="milestone-header">
                         <div className="milestone-title-container">
                           <h3 className="milestone-title">{milestone.title}</h3>
                           <StatusBadge status={milestone.status} />
                         </div>
+                        <div className="milestone-date">
+                          <Calendar size={14} className="date-icon" />
+                          <span>{milestone.date}</span>
+                        </div>
                       </div>
                       <div className="milestone-content">
-                        <ul style={{ listStyle: 'none', paddingLeft: '0', color: '#d1d1d1' }}>
+                        <ul className="milestone-list">
                           {milestone.description.map((point, i) => (
-                            <li key={i} style={{ marginBottom: '0.75rem', display: 'flex', alignItems: 'flex-start' }}>
-                              <ChevronRight size={18} style={{ marginRight: '0.5rem', color: '#ff8da1', flexShrink: 0, marginTop: '2px' }} />
+                            <li key={i} className="milestone-list-item">
+                              <ChevronRight size={18} className="list-icon" />
                               <span>{point}</span>
                             </li>
                           ))}
                         </ul>
                       </div>
+                      <div className={`milestone-glow ${milestone.status}`}></div>
                     </div>
                   ))}
                 </div>
@@ -235,10 +295,29 @@ function Roadmap() {
           </div>
         </div>
 
+        <div className="roadmap-timeline">
+          <div className="timeline-container">
+            <div className="timeline-track">
+              {phases.map((phase, index) => (
+                <div 
+                  key={phase.id} 
+                  className={`timeline-node ${activeTab === phase.id ? 'active' : ''} ${index === 0 ? 'first' : ''} ${index === phases.length - 1 ? 'last' : ''}`}
+                  onClick={() => setActiveTab(phase.id)}
+                >
+                  <div className="node-dot">
+                    {activeTab === phase.id && <div className="node-pulse"></div>}
+                  </div>
+                  <div className="node-label">{phase.title.split(":")[0]}</div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+
         <div className="current-focus">
           <div className="focus-badge">
             <MapPin className="focus-icon" />
-            <span>Current Focus: Q1 2025 Objectives</span>
+            <span>Current Focus: {activePhase ? activePhase.title.split(":")[1].trim() : ""}</span>
           </div>
         </div>
       </div>
