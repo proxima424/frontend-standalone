@@ -484,3 +484,9 @@
 .create-market-form .form-group textarea#question {
   width: auto; /* Let flexbox handle the width */
 } 
+
+@media (max-width: 768px) {
+  .create-market-form {
+    padding: 0.2rem;
+  }
+}

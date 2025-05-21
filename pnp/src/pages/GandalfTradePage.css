@@ -1,249 +1,434 @@
+/* Glassmorphic Trade Page Design */
+
+/* Base overlay with glassmorphism effect */
 .gandalf-trade-page-overlay {
   position: fixed;
   top: 0;
   left: 0;
   width: 100%;
   height: 100%;
-  background-color: rgba(255, 182, 193, 0.3); /* Light pink with transparency */
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px); /* For Safari */
+  background: linear-gradient(135deg, rgba(61, 51, 121, 0.7), rgba(233, 103, 159, 0.5));
+  backdrop-filter: blur(15px);
+  -webkit-backdrop-filter: blur(15px);
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 1000; /* Ensure it's above other content */
+  z-index: 1000;
+  padding: 20px;
 }
 
+/* Modal content with glassmorphism */
 .gandalf-trade-modal-content {
-  background-color: #1a1a1a; /* Dark background for the modal itself */
-  padding: 30px;
-  border-radius: 12px;
-  box-shadow: 0 5px 20px rgba(0, 0, 0, 0.4);
+  background: rgba(26, 24, 38, 0.8);
+  border-radius: 24px;
+  box-shadow: 
+    0 10px 30px rgba(0, 0, 0, 0.4),
+    0 0 0 1px rgba(255, 255, 255, 0.1) inset;
   width: 90%;
-  max-width: 500px; /* Max width of the modal */
-  color: #e0e0e0; /* Light text color */
-  border: 1px solid #333;
-  position: relative; /* For the close button positioning */
+  max-width: 520px;
+  color: #f2f2f2;
+  padding: 36px;
+  position: relative;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  overflow: hidden;
+  transition: all 0.3s ease;
 }
 
+.gandalf-trade-modal-content::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: radial-gradient(
+    circle at top right,
+    rgba(255, 255, 255, 0.1),
+    transparent 80%
+  );
+  pointer-events: none;
+}
+
+/* Close button with subtle hover effect */
 .gandalf-trade-modal-close {
   position: absolute;
-  top: 15px;
-  right: 15px;
-  background: none;
+  top: 20px;
+  right: 20px;
+  background: rgba(255, 255, 255, 0.1);
   border: none;
-  color: #aaa;
+  color: #f2f2f2;
   font-size: 24px;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
   cursor: pointer;
-  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  line-height: 0;
 }
 
 .gandalf-trade-modal-close:hover {
-  color: #fff;
+  background: rgba(255, 255, 255, 0.2);
+  transform: rotate(90deg);
 }
 
+/* Typography */
 .gandalf-trade-modal-title {
-  font-size: 24px;
-  font-weight: 600;
+  font-size: 28px;
+  font-weight: 700;
   margin-top: 0;
-  margin-bottom: 15px;
+  margin-bottom: 24px;
   color: #fff;
   text-align: center;
+  letter-spacing: 0.5px;
+  line-height: 1.2;
 }
 
 .gandalf-trade-modal-question {
   font-size: 18px;
-  margin-bottom: 20px;
+  margin-bottom: 28px;
   text-align: center;
-  color: #c0c0c0;
-  line-height: 1.5;
+  color: #e0e0e0;
+  line-height: 1.6;
+  font-weight: 500;
+  padding: 0 8px;
 }
 
+/* Prices display with glass cards */
 .gandalf-trade-prices {
-    display: flex;
-    justify-content: space-around;
-    margin-bottom: 20px;
-    font-size: 14px;
-    color: #b0b0b0;
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 28px;
+  font-size: 15px;
+  gap: 12px;
 }
 
 .gandalf-trade-prices p {
-    margin: 0 5px;
-    padding: 5px 10px;
-    background-color: #252525;
-    border-radius: 6px;
+  margin: 0;
+  padding: 12px 16px;
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 16px;
+  flex: 1;
+  text-align: center;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  transition: transform 0.2s ease;
 }
 
+.gandalf-trade-prices p:hover {
+  transform: translateY(-2px);
+  background: rgba(255, 255, 255, 0.12);
+}
+
+/* Bet input section */
 .gandalf-trade-modal-bet-section {
-  /* Styles for the bet input and buttons container */
-  margin-top: 20px;
+  margin-top: 24px;
 }
 
 .trade-modal-input-container {
   display: flex;
   align-items: center;
-  margin-bottom: 10px;
-  background-color: #282828;
-  border: 1px solid #444;
-  border-radius: 8px;
-  padding: 5px 10px;
+  margin-bottom: 16px;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 16px;
+  padding: 5px 16px;
+  transition: all 0.3s ease;
+}
+
+.trade-modal-input-container:focus-within {
+  background: rgba(255, 255, 255, 0.12);
+  border-color: rgba(255, 255, 255, 0.2);
+  box-shadow: 0 0 0 2px rgba(110, 91, 236, 0.3);
 }
 
 .trade-modal-input {
   flex-grow: 1;
-  padding: 12px;
-  font-size: 16px;
-  border: none; /* Remove default border */
-  background-color: transparent; /* Inherit from container */
-  color: #e0e0e0;
-  outline: none; /* Remove focus outline */
+  padding: 14px;
+  font-size: 18px;
+  border: none;
+  background-color: transparent;
+  color: #f2f2f2;
+  outline: none;
+  font-weight: 500;
 }
 
 .trade-modal-input::placeholder {
-  color: #777;
+  color: rgba(255, 255, 255, 0.4);
 }
 
 .trade-modal-input.input-error {
-  border-left: 3px solid #ff6b6b; /* Error indicator */
+  border-left: 3px solid rgba(255, 107, 107, 0.8);
 }
 
 .trade-modal-input-label {
   font-size: 16px;
-  color: #aaa;
-  margin-left: 10px;
-  font-weight: 500;
+  color: #d0d0d0;
+  margin-left: 8px;
+  font-weight: 600;
+  letter-spacing: 0.5px;
 }
 
+/* Messages and warnings */
 .gandalf-trade-modal-warning {
-  color: #ffc107; /* Amber warning color */
-  font-size: 13px;
-  margin-top: -5px;
-  margin-bottom: 15px;
+  color: #ffcc00;
+  font-size: 14px;
+  margin: -5px 0 18px;
   text-align: center;
+  padding: 8px 12px;
+  border-radius: 8px;
+  background: rgba(255, 204, 0, 0.1);
+  backdrop-filter: blur(4px);
 }
 
 .gandalf-trade-error {
-  color: #ff6b6b; /* Red error color */
-  font-size: 14px;
-  margin-bottom: 15px;
+  color: #ff6b6b;
+  font-size: 15px;
+  margin-bottom: 18px;
   text-align: center;
-  padding: 10px;
-  background-color: rgba(255, 107, 107, 0.1);
+  padding: 12px;
+  background: rgba(255, 107, 107, 0.15);
   border: 1px solid rgba(255, 107, 107, 0.3);
-  border-radius: 6px;
+  border-radius: 12px;
+  backdrop-filter: blur(4px);
 }
 
+/* Action buttons */
 .trade-modal-bet-actions {
   display: flex;
   justify-content: space-between;
-  margin-top: 20px;
+  margin-top: 24px;
+  gap: 16px;
 }
 
 .gandalf-trade-modal-button {
   flex-grow: 1;
-  padding: 12px 15px;
+  padding: 16px;
   font-size: 16px;
-  font-weight: 600;
+  font-weight: 700;
   border: none;
-  border-radius: 8px;
+  border-radius: 16px;
   cursor: pointer;
-  transition: background-color 0.2s ease, transform 0.1s ease;
+  transition: all 0.25s ease;
   color: #fff;
+  letter-spacing: 0.5px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
 }
 
 .gandalf-trade-modal-button.yes {
-  background-color: #28a745; /* Green for YES */
-  margin-right: 5px; /* Space between buttons */
+  background: linear-gradient(135deg, #28a745, #20c997);
+  margin-right: 0;
 }
 
-.gandalf-trade-modal-button.yes:hover {
-  background-color: #218838;
+.gandalf-trade-modal-button.yes:hover:not(:disabled) {
+  background: linear-gradient(135deg, #218838, #1cad82);
+  transform: translateY(-3px);
+  box-shadow: 0 8px 15px rgba(0, 0, 0, 0.3);
 }
 
 .gandalf-trade-modal-button.no {
-  background-color: #dc3545; /* Red for NO */
-  margin-left: 5px; /* Space between buttons */
+  background: linear-gradient(135deg, #dc3545, #e83e8c);
+  margin-left: 0;
 }
 
-.gandalf-trade-modal-button.no:hover {
-  background-color: #c82333;
+.gandalf-trade-modal-button.no:hover:not(:disabled) {
+  background: linear-gradient(135deg, #c82333, #d63384);
+  transform: translateY(-3px);
+  box-shadow: 0 8px 15px rgba(0, 0, 0, 0.3);
 }
 
 .gandalf-trade-modal-button:disabled {
-  background-color: #555;
-  color: #999;
+  background: #555;
+  color: #a0a0a0;
   cursor: not-allowed;
+  opacity: 0.7;
+  transform: none;
+  box-shadow: none;
 }
 
 .gandalf-trade-modal-button:active:not(:disabled) {
-    transform: scale(0.98);
+  transform: scale(0.98);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
 }
 
-.gandalf-trade-modal-status {
-  margin-top: 20px;
-  font-size: 14px;
-  text-align: center;
-  padding: 10px;
-  border-radius: 6px;
-  background-color: #2a2a2a;
-  border: 1px solid #444;
-  color: #ccc;
-}
-
-/* Add styles for the approval button */
+/* Approval button with gradient */
 .gandalf-trade-modal-button.approve {
   width: 100%;
-  margin: 10px 0;
-  background-color: #6e5bec;
+  margin: 10px 0 18px;
+  background: linear-gradient(135deg, #6e5bec, #8174e8);
   color: white;
-  padding: 12px 15px;
+  padding: 16px;
   border: none;
-  border-radius: 8px;
-  font-weight: 600;
+  border-radius: 16px;
+  font-weight: 700;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all 0.25s ease;
+  letter-spacing: 0.5px;
 }
 
 .gandalf-trade-modal-button.approve:hover:not(:disabled) {
-  background-color: #5b4ad4;
-  transform: translateY(-2px);
+  background: linear-gradient(135deg, #5b4ad4, #6e5be0);
+  transform: translateY(-3px);
+  box-shadow: 0 8px 15px rgba(0, 0, 0, 0.3);
 }
 
 .gandalf-trade-modal-button.approve:disabled {
-  background-color: #a8a8a8;
+  background: linear-gradient(135deg, #5d5d5d, #6e6e6e);
   cursor: not-allowed;
+  opacity: 0.7;
 }
 
 .gandalf-trade-modal-button.approve.approved {
-  background-color: #34c759;
+  background: linear-gradient(135deg, #34c759, #28a745);
 }
 
+/* Status messages */
 .gandalf-trade-modal-info {
   color: #6e5bec;
   text-align: center;
-  margin: 8px 0;
+  margin: 12px 0;
   font-size: 14px;
+  background: rgba(110, 91, 236, 0.1);
+  padding: 8px 12px;
+  border-radius: 8px;
+  border: 1px solid rgba(110, 91, 236, 0.2);
 }
 
-/* Add styles for approval status indicator */
+/* Approval status indicator */
 .approval-status-indicator {
   width: 100%;
-  margin: 10px 0;
-  background-color: #34c759;
-  padding: 12px 15px;
-  border-radius: 8px;
+  margin: 10px 0 18px;
+  background: linear-gradient(135deg, #34c759, #2ecc71);
+  padding: 16px;
+  border-radius: 16px;
   text-align: center;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  transition: all 0.3s ease;
 }
 
 .approved-text {
   color: white;
-  font-weight: 600;
+  font-weight: 700;
   display: flex;
   align-items: center;
   justify-content: center;
+  letter-spacing: 0.5px;
 }
 
 .approved-text:before {
   content: '✓';
-  margin-right: 5px;
+  margin-right: 8px;
   font-weight: bold;
-} 
+  font-size: 18px;
+}
+
+.gandalf-trade-modal-status {
+  margin-top: 24px;
+  font-size: 15px;
+  text-align: center;
+  padding: 14px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: #e0e0e0;
+  backdrop-filter: blur(4px);
+}
+
+/* Loading state */
+.gandalf-trade-loading {
+  text-align: center;
+  padding: 30px;
+  color: #fff;
+}
+
+.gandalf-trade-loading h2 {
+  font-size: 24px;
+  margin-bottom: 16px;
+}
+
+/* Animation for loading state */
+@keyframes pulse {
+  0% { opacity: 0.6; }
+  50% { opacity: 1; }
+  100% { opacity: 0.6; }
+}
+
+.gandalf-trade-loading:after {
+  content: '...';
+  animation: pulse 1.5s infinite;
+  display: inline-block;
+}
+
+/* Media queries for better responsiveness */
+@media (max-width: 768px) {
+  .gandalf-trade-modal-content {
+    padding: 24px;
+    width: 95%;
+  }
+  
+  .gandalf-trade-prices {
+    flex-direction: row;
+    flex-wrap: wrap;
+  }
+  
+  .gandalf-trade-prices p {
+    flex: 1 0 100%;
+    margin-bottom: 10px;
+  }
+}
+
+@media (max-width: 480px) {
+  .gandalf-trade-modal-content {
+    padding: 20px;
+    border-radius: 18px;
+  }
+  
+  .gandalf-trade-modal-title {
+    font-size: 24px;
+  }
+  
+  .gandalf-trade-modal-question {
+    font-size: 16px;
+  }
+  
+  .trade-modal-bet-actions {
+    flex-direction: column;
+    gap: 12px;
+  }
+  
+  .gandalf-trade-modal-button {
+    padding: 14px;
+  }
+  
+  .gandalf-trade-modal-close {
+    top: 15px;
+    right: 15px;
+    width: 36px;
+    height: 36px;
+  }
+  
+  .trade-modal-input {
+    padding: 12px;
+    font-size: 16px;
+  }
+}
+
+/* Add a subtle animation to the modal when it appears */
+@keyframes modalFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.gandalf-trade-modal-content {
+  animation: modalFadeIn 0.3s ease forwards;
+}

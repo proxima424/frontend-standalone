@@ -97,7 +97,7 @@ function Roadmap() {
       title: "Phase 2: Mainnet Integration",
       description: "Mainnet deployment and advanced features",
       timeframe: "Q2 2025",
-      progress: 10,
+      progress: 0,
       milestones: [
         {
           title: "Solana Mainnet Launch",

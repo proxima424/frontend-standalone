@@ -679,3 +679,10 @@
 .saruman-container.market-is-settling {
   border-color: #f59e0b; /* Amber border when settling */
 } 
+
+@media (max-width: 768px) {
+  .odds-container {
+    display: flex;
+    flex-direction: column;
+  }
+}
