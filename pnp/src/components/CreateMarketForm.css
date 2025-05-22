@@ -385,6 +385,30 @@
   margin-right: 0.1em;
 }
 
+.button-group {
+  display: flex;
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.twitter-share-button {
+  background-color: #1DA1F2;
+  color: white;
+  padding: 0.6rem 1rem;
+  border: none;
+  border-radius: 8px;
+  font-weight: 600;
+  text-decoration: none;
+  display: inline-block;
+  transition: background-color 0.2s ease;
+  z-index: 100;
+}
+
+.twitter-share-button:hover {
+  background-color: #0d8de0;
+}
+
+
 /* Adjust close button on success screen if it was .simple-close-button */
 .market-success-screen .simple-close-button {
     position: absolute;

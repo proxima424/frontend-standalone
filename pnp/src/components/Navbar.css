@@ -43,7 +43,7 @@
 .navbar-content {
   border-radius: 25px;
   box-shadow: 0 0 10px 3px rgba(236, 66, 157, 0.467);
-  max-width: 80%;
+  max-width: 90%;
   height: 100%;
   margin: 10px auto;
   padding: 20px;
@@ -195,10 +195,10 @@
 .connect-button {
   font-family: "Orbitron", sans-serif;
   font-weight: 600;
-  font-size: 15px;
+  font-size: 10px;
   text-transform: uppercase;
   letter-spacing: 2px;
-  padding: 10px 22px;
+  padding: 10px 7px;
   background: linear-gradient(45deg, #ff69b4, #ff1493, #ff69b4);
   background-size: 200% auto;
   border: none;
@@ -338,10 +338,10 @@
 .test-token-button {
   font-family: "Orbitron", sans-serif;
   font-weight: 700;
-  font-size: 14px;
+  font-size: 10px;
   text-transform: uppercase;
   letter-spacing: 1px;
-  padding: 10px 20px;
+  padding: 10px 7px;
   margin-right: 16px;
   background: rgba(255, 105, 180, 0.15);
   border: 1px solid #ff69b4;
