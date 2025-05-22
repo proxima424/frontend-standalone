@@ -7,8 +7,9 @@
 
 .alpha-container {
   display: flex;
+  flex-direction: row;
   width: 100%;
-  min-height: 420px;
+  min-height: 420px; 
   margin-bottom: 3rem;
   border: 1px solid #333;
   border-radius: 12px;
@@ -487,3 +488,15 @@
   position: relative;
 }
 
+@media (max-width: 768px) {
+  .gandalf-container {
+    padding: 1rem;
+  }
+  .alpha-container {
+    display: flex;
+    flex-direction: column;
+  }
+  .alpha-left {
+    min-height: 400px;
+  }
+}

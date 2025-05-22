@@ -1,7 +1,6 @@
 {
   "name": "pnp",
   "version": "0.1.0",
-  "private": true,
   "dependencies": {
     "@privy-io/react-auth": "^1.99.0",
     "@privy-io/wagmi": "^0.2.13",
@@ -30,23 +29,6 @@
     "wagmi": "^2.15.2",
     "zustand": "^4.5.0"
   },
-  "overrides": {
-    "react-scripts": {
-      "typescript": "^5"
-    }
-  },
-  "scripts": {
-    "start": "react-scripts start",
-    "build": "CI=false react-scripts build",
-    "test": "react-scripts test",
-    "eject": "react-scripts eject"
-  },
-  "eslintConfig": {
-    "extends": [
-      "react-app",
-      "react-app/jest"
-    ]
-  },
   "browserslist": {
     "production": [
       ">0.2%",
@@ -58,5 +40,23 @@
       "not dead",
       "not op_mini all"
     ]
+  },
+  "eslintConfig": {
+    "extends": [
+      "react-app",
+      "react-app/jest"
+    ]
+  },
+  "overrides": {
+    "react-scripts": {
+      "typescript": "^5"
+    }
+  },
+  "private": true,
+  "scripts": {
+    "start": "react-scripts start",
+    "build": "CI=false react-scripts build",
+    "test": "react-scripts test",
+    "eject": "react-scripts eject"
   }
 }

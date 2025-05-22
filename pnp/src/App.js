@@ -14,7 +14,7 @@ import UserMarkets from "./pages/UserMarkets";
 import Gandalf from "./pages/Gandalf";
 import GandalfTradePage from "./pages/GandalfTradePage";
 import Docs from "./pages/Docs";
-import Roadmap from "./pages/RoadMap";
+import Roadmap from "./pages/Roadmap";
 
 // Removed RainbowKit and Wagmi specific imports and config from here,
 // as they are now handled in index.js and wagmi.js
@@ -129,6 +129,11 @@ function App() {
     // Providers are now in index.js, so App just returns the Router and its content
     <Router>
       <Navbar />
+      <div className="global-bg-effects">
+        <div className="blur-circle top-left"></div>
+        <div className="blur-circle bottom-right"></div>
+        <div className="grid-overlay"></div>
+      </div>
       <Routes>
         <Route path="/" element={<HomePage />} />
         <Route path="/price_markets" element={<PriceMarkets />} />

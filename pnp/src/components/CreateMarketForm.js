@@ -53,7 +53,7 @@ const CreateMarketForm = ({ onClose }) => {
   const [showApproveSuccessMessage, setShowApproveSuccessMessage] = useState(false);
   const [userBalance, setUserBalance] = useState('0');
   const [marketCreationSuccessDetails, setMarketCreationSuccessDetails] = useState(null);
-  const [redirectCountdown, setRedirectCountdown] = useState(5);
+  const [redirectCountdown, setRedirectCountdown] = useState(1000);
   const [showGuidelines, setShowGuidelines] = useState(false);
 
   const { data: walletClient } = useWalletClient();
@@ -292,7 +292,7 @@ const CreateMarketForm = ({ onClose }) => {
         <p className="success-liquidity">
           Initial Liquidity: <span className="success-amount">{marketCreationSuccessDetails.collateral} USDC</span>
         </p>
-        
+
         <div className="success-transaction">
           <p>Transaction Hash:</p>
           <a 
@@ -307,21 +307,32 @@ const CreateMarketForm = ({ onClose }) => {
 
         <p className="redirect-countdown-message">
           Redirecting to your markets in 
-          <span className="countdown-seconds">{redirectCountdown}</span>
+          <span className="countdown-seconds"> {redirectCountdown} </span>
           seconds...
         </p>
 
-        <button 
-          className="go-to-market-button"
-          onClick={() => {
-            if (address) {
-              navigate(`/gandalf/user/${address}`);
-              if (onClose) onClose();
-            }
-          }}
-        >
-          View Your Markets
-        </button>
+        <div className="button-group">
+          <button 
+            className="go-to-market-button"
+            onClick={() => {
+              if (address) {
+                navigate(`/gandalf/user/${address}`);
+                if (onClose) onClose();
+              }
+            }}
+          >
+            View Your Markets
+          </button>
+
+          <a
+            href={`https://twitter.com/intent/tweet?text=${encodeURIComponent(`I just created a prediction market: "${marketCreationSuccessDetails.question}" 🚀\nCheck it out on pnp.exchange!`)}&url=https://pnp.exchange`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="twitter-share-button"
+          >
+            Share on Twitter
+          </a>
+        </div>
       </div>
     );
   }

@@ -125,7 +125,7 @@ const SEPOLIA_CHAIN_ID = 11155111;
 
 const MINIMUM_BET_AMOUNT = 2;
 const MAX_MARKETS_TO_FETCH = 40; // Max markets for general display
-const MAX_SCAN_ITERATIONS = 500; // Max number of chunks to scan backwards
+const MAX_SCAN_ITERATIONS = 500n; // Max number of chunks to scan backwards
 
 const Gandalf = () => {
   const { address, isConnected } = useAccount();
@@ -656,7 +656,7 @@ const Gandalf = () => {
 
   const handleMarketSelect = (market) => {
     console.log("Market tile clicked:", market);
-    navigate(`/gandalf/${market.id}/trade`);
+    navigate(`/gandalf/market/${market.id}`);
   };
 
   let sarumanContent;
@@ -1038,7 +1038,7 @@ const Gandalf = () => {
   // Function to navigate to the trade page
   const navigateToTrade = () => {
     if (sarumanDisplayData?.id) {
-      navigate(`/gandalf/${sarumanDisplayData.id}/trade`);
+      navigate(`/gandalf/market/${sarumanDisplayData.id}`);
     }
   };
 
@@ -1161,7 +1161,7 @@ const Gandalf = () => {
               noPrice={market.noPrice}
               yesMultiplier={market.yesMultiplier}
               noMultiplier={market.noMultiplier}
-              onClick={() => navigate(`/gandalf/${market.id}/trade`)}
+              onClick={() => handleMarketSelect(market)}
             />
           ))}
         </div>

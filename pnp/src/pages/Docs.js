@@ -768,6 +768,95 @@ const findComponentById = (id) => {
   return WhatIsPnpContent; // Default to the first subpage
 };
 
+// Add this new component before the Docs component
+const MobileNav = ({ docsStructure, activePageId, setActivePageId }) => {
+  const [isOpen, setIsOpen] = useState(false);
+
+  return (
+    <div className="mobile-docs-nav">
+      <button 
+        className="mobile-docs-nav-toggle"
+        onClick={() => setIsOpen(!isOpen)}
+        aria-label={isOpen ? "Close menu" : "Open menu"}
+      >
+        <svg 
+          viewBox="0 0 24 24" 
+          width="24" 
+          height="24" 
+          stroke="currentColor" 
+          strokeWidth="2" 
+          fill="none" 
+          strokeLinecap="round" 
+          strokeLinejoin="round"
+        >
+          {isOpen ? (
+            <path d="M6 18L18 6M6 6l12 12" />
+          ) : (
+            <path d="M4 6h16M4 12h16M4 18h16" />
+          )}
+        </svg>
+      </button>
+      
+      {isOpen && (
+        <div className="mobile-docs-nav-content">
+          <div className="mobile-docs-nav-header">
+            <h3>Documentation</h3>
+            <button 
+              className="mobile-docs-nav-close"
+              onClick={() => setIsOpen(false)}
+              aria-label="Close menu"
+            >
+              <svg 
+                viewBox="0 0 24 24" 
+                width="24" 
+                height="24" 
+                stroke="currentColor" 
+                strokeWidth="2" 
+                fill="none" 
+                strokeLinecap="round" 
+                strokeLinejoin="round"
+              >
+                <path d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          </div>
+          <ul>
+            {docsStructure.map(section => (
+              <li key={section.id}>
+                <button 
+                  onClick={() => {
+                    setActivePageId(section.subpages.length > 0 ? section.subpages[0].id : section.id);
+                    setIsOpen(false);
+                  }}
+                  className={activePageId === section.id || section.subpages.some(sp => sp.id === activePageId) ? 'nav-section-active' : ''}
+                >
+                  {section.title}
+                </button>
+                {section.subpages.length > 0 && (
+                  <ul>
+                    {section.subpages.map(subpage => (
+                      <li key={subpage.id}>
+                        <button 
+                          onClick={() => {
+                            setActivePageId(subpage.id);
+                            setIsOpen(false);
+                          }}
+                          className={activePageId === subpage.id ? 'nav-link-active' : ''}
+                        >
+                          {subpage.title}
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+    </div>
+  );
+};
 
 const Docs = () => {
   const [activePageId, setActivePageId] = useState('what-is-pnp'); // Default to first subpage
@@ -810,6 +899,11 @@ const Docs = () => {
           <ActiveComponent />
         </main>
       </div>
+      <MobileNav 
+        docsStructure={docsStructure}
+        activePageId={activePageId}
+        setActivePageId={setActivePageId}
+      />
     </div>
   );
 };
