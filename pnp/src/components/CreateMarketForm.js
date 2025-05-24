@@ -325,7 +325,7 @@ const CreateMarketForm = ({ onClose }) => {
           </button>
 
           <a
-            href={`https://twitter.com/intent/tweet?text=${encodeURIComponent(`I just created a prediction market: "${marketCreationSuccessDetails.question}" 🚀\nCheck it out on pnp.exchange!`)}&url=https://pnp.exchange`}
+            href={`https://twitter.com/intent/tweet?text=${encodeURIComponent(`I just created a prediction market: "${marketCreationSuccessDetails.question}" 🚀\nCheck it out on pnp.exchange!`)}&url=https://pnp.exchange/gandalf/user/${address}`}
             target="_blank"
             rel="noopener noreferrer"
             className="twitter-share-button"
