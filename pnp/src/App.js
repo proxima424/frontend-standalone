@@ -170,6 +170,7 @@ function App() {
           element={<GandalfTradePage />}
         />
         <Route path="/roadmap" element={<Roadmap />} />
+        <Route path="/settled" element={<MarketAIReasoning />} />
       </Routes>
     </Router>
   );

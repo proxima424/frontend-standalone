@@ -1,0 +1,419 @@
+/* MarketAIReasoning.module.css */
+/* to make them visible * /
+/* Inspired by Saruman.css, Gandalf.css, Roadmap.css */
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  
+  .pageContainer {
+    padding: 40px 20px;
+    min-height: 100vh;
+    background: linear-gradient(135deg, #1a0113, #0f0f0f); /* Dark pink to black gradient */
+    color: #f0f0f0; /* Light text color for contrast */
+    font-family: 'Poppins', sans-serif; /* Consistent font */
+    animation: fadeIn 0.8s ease-out;
+  }
+  
+  .header {
+    text-align: center;
+    margin-bottom: 40px;
+  }
+  
+  .title {
+    font-size: 3rem;
+    font-weight: 700;
+    color: #ff69b4; /* Hot Pink accent */
+    text-shadow: 0 0 10px #ff69b4, 0 0 20px #ff69b4;
+    margin-bottom: 10px;
+    letter-spacing: 1px;
+  }
+  
+  .subtitle {
+    font-size: 1.2rem;
+    color: #b0b0b0; /* Lighter grey for subtitle */
+    max-width: 600px;
+    margin: 0 auto;
+    line-height: 1.6;
+  }
+  
+  /* Filter Section */
+  .filterContainer {
+    margin-bottom: 30px;
+    text-align: center;
+  }
+  
+  .filterHeader {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 15px;
+    gap: 8px;
+  }
+  
+  .filterIcon {
+    color: #ff69b4;
+  }
+  
+  .filterLabel {
+    font-size: 1.1rem;
+    font-weight: 500;
+    color: #d0d0d0;
+  }
+  
+  .filterButtons {
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+    flex-wrap: wrap;
+  }
+  
+  .filterButton {
+    padding: 12px 24px;
+    border: 2px solid rgba(255, 105, 180, 0.3);
+    background: rgba(255, 255, 255, 0.05);
+    color: #d0d0d0;
+    border-radius: 25px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    backdrop-filter: blur(5px);
+    font-size: 0.95rem;
+  }
+  
+  .filterButton:hover {
+    border-color: rgba(255, 105, 180, 0.6);
+    background: rgba(255, 105, 180, 0.1);
+    transform: translateY(-2px);
+  }
+  
+  .filterButton.activeFilter {
+    background: linear-gradient(135deg, #ff69b4, #e055a0);
+    border-color: #ff69b4;
+    color: white;
+    box-shadow: 0 4px 15px rgba(255, 105, 180, 0.3);
+  }
+  
+  .yesButton.activeFilter {
+    background: linear-gradient(135deg, #00ff88, #00cc6a);
+    border-color: #00ff88;
+  }
+  
+  .noButton.activeFilter {
+    background: linear-gradient(135deg, #ff4757, #ff3742);
+    border-color: #ff4757;
+  }
+  
+  /* Results Info */
+  .resultsInfo {
+    text-align: center;
+    margin-bottom: 30px;
+    color: #b0b0b0;
+    font-size: 0.95rem;
+  }
+  
+  .resultsInfo p {
+    margin: 5px 0;
+  }
+  
+  .loadingContainer,
+  .errorContainer {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    min-height: 60vh;
+    text-align: center;
+  }
+  
+  .loadingSpinner {
+    border: 6px solid rgba(255, 105, 180, 0.3); /* Light pink border */
+    border-top: 6px solid #ff69b4; /* Hot Pink */
+    border-radius: 50%;
+    width: 60px;
+    height: 60px;
+    animation: spin 1s linear infinite;
+    margin-bottom: 20px;
+  }
+  
+  @keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+  }
+  
+  .loadingText,
+  .errorText {
+    font-size: 1.5rem;
+    color: #ff69b4;
+  }
+  
+  .errorDetails {
+    font-size: 1rem;
+    color: #cccccc;
+    margin-top: 10px;
+  }
+  
+  /* Settled Markets Table/Dashboard Styling */
+  .settledMarketsGrid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+    gap: 30px;
+    padding: 0 10px; /* Ensure some padding on smaller screens */
+    margin-bottom: 40px;
+  }
+  
+  .marketCard {
+    background: rgba(255, 255, 255, 0.03); /* Very subtle white background */
+    border: 1px solid rgba(255, 105, 180, 0.3); /* Pink border */
+    border-radius: 15px;
+    padding: 25px;
+    box-shadow: 0 8px 32px rgba(255, 105, 180, 0.1), 0 0 15px rgba(0,0,0,0.3) inset;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    display: flex;
+    flex-direction: column;
+    animation: fadeIn 0.5s ease-out forwards;
+  }
+  
+  .marketCard:hover {
+    transform: translateY(-10px) scale(1.02);
+    box-shadow: 0 12px 45px rgba(255, 105, 180, 0.2), 0 0 20px rgba(0,0,0,0.4) inset;
+    border-color: rgba(255, 105, 180, 0.6);
+  }
+  
+  .marketHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 15px;
+    gap: 15px;
+  }
+  
+  .marketQuestion {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: #ffc0cb; /* Lighter Pink */
+    line-height: 1.5;
+    flex: 1;
+    display: flex;
+    align-items: flex-start;
+  }
+  
+  .answerBadge {
+    padding: 8px 16px;
+    border-radius: 20px;
+    font-weight: 700;
+    font-size: 0.85rem;
+    text-align: center;
+    min-width: 60px;
+    flex-shrink: 0;
+  }
+  
+  .yesBadge {
+    background: linear-gradient(135deg, #00ff88, #00cc6a);
+    color: white;
+    box-shadow: 0 2px 10px rgba(0, 255, 136, 0.3);
+  }
+  
+  .noBadge {
+    background: linear-gradient(135deg, #ff4757, #ff3742);
+    color: white;
+    box-shadow: 0 2px 10px rgba(255, 71, 87, 0.3);
+  }
+  
+  .reasoningSection {
+    margin-top: auto; /* Pushes reasoning to the bottom if card height varies */
+    padding-top: 15px;
+    border-top: 1px dashed rgba(255, 105, 180, 0.2);
+  }
+  
+  .reasoningTitle {
+    font-size: 0.9rem;
+    font-weight: 500;
+    color: #ff69b4; /* Hot Pink */
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+  }
+  
+  .reasoningTitle svg {
+    margin-right: 8px;
+  }
+  
+  .marketReasoning {
+    font-size: 0.95rem;
+    color: #d0d0d0; /* Lighter grey for readability */
+    line-height: 1.7;
+    background: rgba(0, 0, 0, 0.2);
+    padding: 15px;
+    border-radius: 8px;
+    border-left: 3px solid #ff69b4;
+    max-height: 200px; /* Limit height */
+    overflow-y: auto; /* Allow scrolling for long reasoning */
+  }
+  
+  /* Custom scrollbar for reasoning */
+  .marketReasoning::-webkit-scrollbar {
+    width: 8px;
+  }
+  
+  .marketReasoning::-webkit-scrollbar-track {
+    background: rgba(0, 0, 0, 0.1);
+    border-radius: 10px;
+  }
+  
+  .marketReasoning::-webkit-scrollbar-thumb {
+    background-color: #ff69b4;
+    border-radius: 10px;
+    border: 2px solid transparent;
+    background-clip: content-box;
+  }
+  
+  .marketReasoning::-webkit-scrollbar-thumb:hover {
+    background-color: #e05aa0;
+  }
+  
+  /* Pagination Styles */
+  .paginationContainer {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 8px;
+    margin-top: 40px;
+    flex-wrap: wrap;
+  }
+  
+  .paginationButton {
+    padding: 12px 16px;
+    border: 2px solid rgba(255, 105, 180, 0.3);
+    background: rgba(255, 255, 255, 0.05);
+    color: #d0d0d0;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-weight: 500;
+    min-width: 44px;
+    height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    backdrop-filter: blur(5px);
+  }
+  
+  .paginationButton:hover:not(:disabled) {
+    border-color: rgba(255, 105, 180, 0.6);
+    background: rgba(255, 105, 180, 0.1);
+    transform: translateY(-2px);
+  }
+  
+  .paginationButton.active {
+    background: linear-gradient(135deg, #ff69b4, #e055a0);
+    border-color: #ff69b4;
+    color: white;
+    box-shadow: 0 4px 15px rgba(255, 105, 180, 0.3);
+  }
+  
+  .paginationButton:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+    transform: none;
+  }
+  
+  .paginationArrow {
+    border-radius: 50%;
+  }
+  
+  .noDataMessage {
+    text-align: center;
+    font-size: 1.3rem;
+    color: #ff69b4;
+    margin-top: 50px;
+    padding: 30px;
+    background: rgba(255, 105, 180, 0.05);
+    border: 1px dashed rgba(255, 105, 180, 0.3);
+    border-radius: 10px;
+  }
+  
+  /* Responsive adjustments */
+  @media (max-width: 768px) {
+    .title {
+      font-size: 2.5rem;
+    }
+    .subtitle {
+      font-size: 1rem;
+    }
+    .settledMarketsGrid {
+      grid-template-columns: 1fr; /* Single column on smaller screens */
+      gap: 20px;
+    }
+    .marketCard {
+      padding: 20px;
+    }
+    .marketHeader {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 10px;
+    }
+    .marketQuestion {
+      font-size: 1.1rem;
+    }
+    .marketReasoning {
+      font-size: 0.9rem;
+    }
+    .filterButtons {
+      gap: 10px;
+    }
+    .filterButton {
+      padding: 10px 18px;
+      font-size: 0.9rem;
+    }
+    .paginationContainer {
+      gap: 6px;
+    }
+    .paginationButton {
+      padding: 10px 12px;
+      min-width: 40px;
+      height: 40px;
+    }
+  }
+  
+  @media (max-width: 480px) {
+    .pageContainer {
+      padding: 20px 10px;
+    }
+    .title {
+      font-size: 2rem;
+    }
+    .filterButtons {
+      flex-direction: column;
+      align-items: center;
+    }
+    .filterButton {
+      width: 100%;
+      max-width: 250px;
+    }
+  }
+  
+  /* For the "Records found" text if you choose to display it */
+  .recordsFound {
+    text-align: center;
+    margin-bottom: 30px;
+    font-size: 1.1rem;
+    color: #aaa;
+  }
+  
+  /* Fallback for pre if used (though we aim for a richer display) */
+  .rawJsonFallback {
+    background: #1e1e1e;
+    padding: 15px;
+    border-radius: 8px;
+    overflow: auto;
+    max-height: 400px;
+    border: 1px solid #333;
+    color: #d4d4d4;
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 0.85rem;
+    margin-top: 20px;
+  } 
