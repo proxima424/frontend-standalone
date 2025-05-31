@@ -1,32 +1,10 @@
 import "./Roadmap.css";
-import React, { useState, useEffect } from "react";
-import { MapPin, Calendar, ChevronRight, Layers, CheckCircle, Clock, Calendar as CalendarIcon } from "lucide-react";
+import React, { useState } from "react";
+import { MapPin, Calendar, ChevronRight, Layers } from "lucide-react";
 
 function Roadmap() {
+  // State to track active tab
   const [activeTab, setActiveTab] = useState("phase1");
-  const [isVisible, setIsVisible] = useState({});
-
-  useEffect(() => {
-    const observerOptions = {
-      root: null,
-      rootMargin: '0px',
-      threshold: 0.15
-    };
-
-    const observer = new IntersectionObserver((entries) => {
-      entries.forEach(entry => {
-        if (entry.isIntersecting) {
-          setIsVisible(prev => ({ ...prev, [entry.target.id]: true }));
-        }
-      });
-    }, observerOptions);
-
-    document.querySelectorAll('.milestone-card').forEach(card => {
-      observer.observe(card);
-    });
-
-    return () => observer.disconnect();
-  }, [activeTab]);
 
   const phases = [
     {
@@ -34,13 +12,12 @@ function Roadmap() {
       title: "Phase 1: Foundation & Testing",
       description: "Core development, testing, and initial launches",
       timeframe: "Q1 2025",
-      progress: 45,
       milestones: [
         {
           title: "Solana Devnet Launch",
           description: [
-            "Rewrite Smart Contracts for SVM with E2E Testing.",
-            "Deployment on Solana Devnet.",
+            "Rewrite Smart Contracts for SVM with E2E Testing",
+            "Deployment on Solana Devnet",
           ],
           status: "in-progress",
           date: "Jan 2025",
@@ -48,8 +25,8 @@ function Roadmap() {
         {
           title: "X Bot Launch",
           description: [
-            "Launch v1 of PNP X bot - Requires $PNP to interact.",
-            "Add analytical features to the PNP Bot with real time access to all prediction markets",
+            "Launch v1 of PNP X bot - Requires $PNP to interact ) ",
+            "Add analytics features to PNP Bot",
           ],
           status: "in-progress",
           date: "Feb 2025",
@@ -57,9 +34,9 @@ function Roadmap() {
         {
           title: "UI Enhancement",
           description: [
-            "Search bar for creating markets with a single prompt.",
-            "Iterative UI improvements.",
-            "Focusing on optimal positioning for Solana mainnet.",
+            "Search bar for creating markets by a single prompt",
+            "Iterative UI improvements",
+            "Focusing on optimal positioning for Solana mainnet",
           ],
           status: "in-progress",
           date: "Feb 2025",
@@ -68,7 +45,7 @@ function Roadmap() {
           title: "PolyNews V1",
           description: [
             "Newspaper-style interface displaying future news powered by prediction market questions and outcomes.",
-            "Future analytics platform features accessible by holding $PNP.",
+            "Future analytics platform features accessible by holding $PNP."
           ],
           status: "planned",
           date: "Mar 2025",
@@ -76,7 +53,7 @@ function Roadmap() {
         {
           title: "Solana Audit",
           description: [
-            "Prepare and submit Solana contracts for a comprehensive security audit.",
+            "Prepare and submit Solana contracts for comprehensive security audit",
           ],
           status: "planned",
           date: "Mar 2025",
@@ -84,8 +61,8 @@ function Roadmap() {
         {
           title: "$PNP Utility",
           description: [
-            "A portion of protocol-generated revenue will be used for $PNP token buybacks and burns.",
-            "A comprehensive schedule detailing the token burn mechanics and frequency will be publicly released in the near future.",
+            "A portion of protocol-generated revenue will be utilized for $PNP token buybacks and burns",
+            "A comprehensive schedule detailing the token burn mechanics and frequency will be publicly released in the near future."
           ],
           status: "planned", 
           date: "Ongoing"
@@ -97,18 +74,17 @@ function Roadmap() {
       title: "Phase 2: Mainnet Integration",
       description: "Mainnet deployment and advanced features",
       timeframe: "Q2 2025",
-      progress: 0,
       milestones: [
         {
           title: "Solana Mainnet Launch",
-          description: ["Deployment of smart contracts on Solana mainnet."],
+          description: ["Deployment of smart contracts on Solana mainnet"],
           status: "planned",
           date: "Apr 2025",
         },
         {
           title: "X Bot Markets Integration",
           description: [
-            "Enable market creation directly through X.",
+            "Enable market creation directly through X ",
           ],
           status: "planned",
           date: "May 2025",
@@ -126,12 +102,11 @@ function Roadmap() {
       title: "Phase 3: Platform Expansion",
       description: "Global expansion and community growth",
       timeframe: "Q3 2025",
-      progress: 0,
       milestones: [
         {
           title: "Platform Enhancement",
           description: [
-            "Launch a full-fledged Solana app with a comprehensive prediction markets and analytics dashboard.",
+            "Launch full-fledged Solana app with comprehensive prediction markets and analytics dashboard",
           ],
           status: "planned",
           date: "Jul 2025",
@@ -139,7 +114,7 @@ function Roadmap() {
         {
           title: "PolyNews Expansion",
           description: [
-            "Major PolyNews upgrade with advanced features and full $PNP integration.",
+            "Major PolyNews upgrade with advanced features and full $PNP integration",
           ],
           status: "planned",
           date: "Jul 2025",
@@ -147,7 +122,7 @@ function Roadmap() {
         {
           title: "Community Growth",
           description: [
-            "Launch reward games and community initiatives on Telegram and X.",
+            "Launch reward games and community initiatives on Telegram and X",
           ],
           status: "planned",
           date: "Aug 2025",
@@ -155,7 +130,7 @@ function Roadmap() {
         {
           title: "Global Outreach",
           description: [
-            "Begin worldwide on-ground promotions and increase platform usage globally.",
+            "Begin worldwide on-ground promotions and increase platform usage globally",
           ],
           status: "planned",
           date: "Sep 2025",
@@ -177,36 +152,18 @@ function Roadmap() {
       }
     };
 
-    const StatusIcon = () => {
-      switch (status) {
-        case "completed":
-          return <CheckCircle size={12} className="status-icon" />;
-        case "in-progress":
-          return <Clock size={12} className="status-icon" />;
-        case "planned":
-        default:
-          return <CalendarIcon size={12} className="status-icon" />;
-      }
-    };
-
     return (
       <span className={getStatusStyles()}>
-        <StatusIcon />
         {status.charAt(0).toUpperCase() + status.slice(1)}
       </span>
     );
   };
 
-  const activePhase = phases.find(phase => phase.id === activeTab);
-  
   return (
     <div className="roadmap-container">
       <div className="roadmap-content">
         <header className="roadmap-header">
-          <div className="title-wrapper">
-            <h1 className="roadmap-title">Project Roadmap</h1>
-            <div className="title-accent"></div>
-          </div>
+          <h1 className="roadmap-title">Project Roadmap</h1>
           <p className="roadmap-subtitle">
             Our strategic plan for development and delivery, outlining key
             milestones and timelines.
@@ -221,11 +178,7 @@ function Roadmap() {
                 className={`tab-button ${activeTab === phase.id ? "active" : ""}`}
                 onClick={() => setActiveTab(phase.id)}
               >
-                <span className="tab-title">{phase.title.split(":")[0]}</span>
-                <div className="progress-indicator">
-                  <div className="progress-bar" style={{ width: `${phase.progress}%` }}></div>
-                  <span className="progress-text">{phase.progress}%</span>
-                </div>
+                {phase.title.split(":")[0]}
               </button>
             ))}
           </div>
@@ -245,13 +198,10 @@ function Roadmap() {
                     <Calendar className="timeframe-icon" />
                     <span>
                       {phase.id === 'phase1' && (
-                        <strong>Timeline: January - May 2025</strong>
+                        <strong>End: End of May 2025</strong>
                       )}
                       {phase.id === 'phase2' && (
-                        <strong>Timeline: April - June 2025</strong>
-                      )}
-                      {phase.id === 'phase3' && (
-                        <strong>Timeline: July - September 2025</strong>
+                        <strong>End: Mid June 2025</strong>
                       )}
                     </span>
                   </div>
@@ -260,33 +210,23 @@ function Roadmap() {
 
                 <div className="milestones-grid">
                   {phase.milestones.map((milestone, index) => (
-                    <div 
-                      id={`${phase.id}-milestone-${index}`} 
-                      key={index} 
-                      className={`milestone-card ${isVisible[`${phase.id}-milestone-${index}`] ? 'visible' : ''}`}
-                      style={{ animationDelay: `${index * 0.15}s` }}
-                    >
+                    <div key={index} className="milestone-card">
                       <div className="milestone-header">
                         <div className="milestone-title-container">
                           <h3 className="milestone-title">{milestone.title}</h3>
                           <StatusBadge status={milestone.status} />
                         </div>
-                        <div className="milestone-date">
-                          <Calendar size={14} className="date-icon" />
-                          <span>{milestone.date}</span>
-                        </div>
                       </div>
                       <div className="milestone-content">
-                        <ul className="milestone-list">
+                        <ul style={{ listStyle: 'none', paddingLeft: '0', color: '#d1d1d1' }}>
                           {milestone.description.map((point, i) => (
-                            <li key={i} className="milestone-list-item">
-                              <ChevronRight size={18} className="list-icon" />
+                            <li key={i} style={{ marginBottom: '0.75rem', display: 'flex', alignItems: 'flex-start' }}>
+                              <ChevronRight size={18} style={{ marginRight: '0.5rem', color: '#ff8da1', flexShrink: 0, marginTop: '2px' }} />
                               <span>{point}</span>
                             </li>
                           ))}
                         </ul>
                       </div>
-                      <div className={`milestone-glow ${milestone.status}`}></div>
                     </div>
                   ))}
                 </div>
@@ -295,29 +235,10 @@ function Roadmap() {
           </div>
         </div>
 
-        <div className="roadmap-timeline">
-          <div className="timeline-container">
-            <div className="timeline-track">
-              {phases.map((phase, index) => (
-                <div 
-                  key={phase.id} 
-                  className={`timeline-node ${activeTab === phase.id ? 'active' : ''} ${index === 0 ? 'first' : ''} ${index === phases.length - 1 ? 'last' : ''}`}
-                  onClick={() => setActiveTab(phase.id)}
-                >
-                  <div className="node-dot">
-                    {activeTab === phase.id && <div className="node-pulse"></div>}
-                  </div>
-                  <div className="node-label">{phase.title.split(":")[0]}</div>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-
         <div className="current-focus">
           <div className="focus-badge">
             <MapPin className="focus-icon" />
-            <span>Current Focus: {activePhase ? activePhase.title.split(":")[1].trim() : ""}</span>
+            <span>Current Focus: Q1 2025 Objectives</span>
           </div>
         </div>
       </div>
