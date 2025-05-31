@@ -14,7 +14,7 @@ import UserMarkets from "./pages/UserMarkets";
 import Gandalf from "./pages/Gandalf";
 import GandalfTradePage from "./pages/GandalfTradePage";
 import Docs from "./pages/Docs";
-import RoadMap from "./pages/RoadMap"
+import Roadmap from "./pages/Roadmap"
 import MarketAIReasoning from "./pages/MarketAIReasoning";
 
 // Removed RainbowKit and Wagmi specific imports and config from here,
@@ -167,7 +167,7 @@ function App() {
           path="/gandalf/:conditionId/trade"
           element={<GandalfTradePage />}
         />
-        <Route path="/roadmap" element={<RoadMap />} />
+        <Route path="/roadmap" element={<Roadmap />} />
         <Route path="/settled" element={<MarketAIReasoning />} />
       </Routes>
     </Router>
