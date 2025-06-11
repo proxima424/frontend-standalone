@@ -1084,6 +1084,21 @@ const Gandalf = () => {
         <div className="gandalf-error-banner">{errorMessage}</div>
       )}
 
+      {/* Small Create Market Button */}
+      <button className="create-market-button-small" onClick={handleShowForm}>
+        <span className="plus-icon-small">+</span>
+        <span className="create-text-small">Create</span>
+      </button>
+
+      {/* Create Market Modal */}
+      {showCreateForm && (
+        <div className="create-market-modal-overlay" onClick={handleHideForm}>
+          <div className="create-market-modal-content" onClick={(e) => e.stopPropagation()}>
+            <CreateMarketForm onClose={handleHideForm} />
+          </div>
+        </div>
+      )}
+
       {showSarumanModal && (
         <div
           className="gandalf-modal-overlay"
@@ -1161,19 +1176,7 @@ const Gandalf = () => {
       )}
 
       <div className="alpha-container">
-        <div className="alpha-left">
-          {showCreateForm ? (
-            <CreateMarketForm onClose={handleHideForm} />
-          ) : (
-            <button className="create-market-button" onClick={handleShowForm}>
-              <div className="plus-icon">+</div>
-              <div className="create-text">Create Market</div>
-            </button>
-          )}
-        </div>
-        <div className="alpha-right">
-          <div className="saruman-wrapper">{sarumanContent}</div>
-        </div>
+        <div className="saruman-wrapper-full">{sarumanContent}</div>
       </div>
 
       <div className="gamma-container">
