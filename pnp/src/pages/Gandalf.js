@@ -155,6 +155,10 @@ const Gandalf = () => {
 
   const navigate = useNavigate();
   const [showWelcomePopup, setShowWelcomePopup] = useState(true);
+  
+  // Filter state for Open/Close markets
+  const [marketFilter, setMarketFilter] = useState('open');
+  const [filteredMarkets, setFilteredMarkets] = useState([]);
 
   useEffect(() => {
     setIsCorrectChain(chainId === SEPOLIA_CHAIN_ID);
@@ -651,12 +655,41 @@ const Gandalf = () => {
     }
   }, [publicClient, currentBlockNumber]); // Re-run if client or block number changes
 
+  // Update filtered markets when sampleMarkets or filter changes
+  useEffect(() => {
+    const filtered = filterMarkets(sampleMarkets, marketFilter);
+    setFilteredMarkets(filtered);
+  }, [sampleMarkets, marketFilter]);
+
   const handleShowForm = () => setShowCreateForm(true);
   const handleHideForm = () => setShowCreateForm(false);
 
   const handleMarketSelect = (market) => {
     console.log("Market tile clicked:", market);
     navigate(`/gandalf/market/${market.id}`);
+  };
+
+  // Filter markets based on Open/Close status
+  const filterMarkets = (markets, filter) => {
+    if (filter === 'all') return markets;
+    
+    const currentTime = Math.floor(Date.now() / 1000);
+    
+    return markets.filter(market => {
+      const isOpen = market.marketEndTime > currentTime;
+      
+      if (filter === 'open') return isOpen;
+      if (filter === 'close') return !isOpen;
+      
+      return true;
+    });
+  };
+
+  // Handle filter change
+  const handleFilterChange = (filter) => {
+    setMarketFilter(filter);
+    const filtered = filterMarkets(sampleMarkets, filter);
+    setFilteredMarkets(filtered);
   };
 
   let sarumanContent;
@@ -1152,8 +1185,31 @@ const Gandalf = () => {
           />
         </div>
 
+        <div className="filter-container">
+          <div className="filter-buttons">
+            <button
+              className={`filter-button ${marketFilter === 'all' ? 'active' : ''}`}
+              onClick={() => handleFilterChange('all')}
+            >
+              All
+            </button>
+            <button
+              className={`filter-button ${marketFilter === 'open' ? 'active' : ''}`}
+              onClick={() => handleFilterChange('open')}
+            >
+              Open
+            </button>
+            <button
+              className={`filter-button ${marketFilter === 'close' ? 'active' : ''}`}
+              onClick={() => handleFilterChange('close')}
+            >
+              Close
+            </button>
+          </div>
+        </div>
+
         <div className="market-tiles-container">
-          {sampleMarkets.map((market) => (
+          {filteredMarkets.map((market) => (
             <MarketTile
               key={market.id}
               question={market.question}

@@ -168,6 +168,52 @@
   box-shadow: 0 0 0 2px rgba(255, 105, 180, 0.1);
 }
 
+.filter-container {
+  margin-bottom: 2rem;
+  width: 100%;
+}
+
+.filter-buttons {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.filter-button {
+  padding: 0.75rem 1.5rem;
+  border: 1px solid #333;
+  background: #1a1a1a;
+  color: #e0e0e0;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  font-weight: 500;
+  transition: all 0.3s ease;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.filter-button:hover {
+  border-color: #ff69b4;
+  color: #ff69b4;
+  background: rgba(255, 105, 180, 0.1);
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(255, 105, 180, 0.2);
+}
+
+.filter-button.active {
+  background: #ff69b4;
+  color: #000;
+  border-color: #ff69b4;
+  box-shadow: 0 0 10px rgba(255, 105, 180, 0.3);
+}
+
+.filter-button.active:hover {
+  background: #ff8fa3;
+  color: #000;
+  transform: translateY(-1px);
+}
+
 .market-tiles-container {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
