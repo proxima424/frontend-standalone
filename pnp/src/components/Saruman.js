@@ -167,7 +167,7 @@ const CountdownTimer = ({ endTime, isMarketSettled }) => {
 const Saruman = ({
   isLoading = false,
   marketData = {},
-  resolutionData = null, // New prop for resolution metadata
+  resolutionData = null, // Prop for resolution metadata
 }) => {
   const navigate = useNavigate();
   const { address } = useAccount();
@@ -179,8 +179,10 @@ const Saruman = ({
   const [modalAmount, setModalAmount] = useState('');
   const [userBalances, setUserBalances] = useState({ yesBalance: '0', noBalance: '0' });
   const [winningOutcome, setWinningOutcome] = useState(null); // YES, NO, or null
-  const [settlementData, setSettlementData] = useState(null); // Store settlement data from Supabase
+  const [settlementData, setSettlementData] = useState(null); // For market_ai_reasoning data
   const [isLoadingSettlementData, setIsLoadingSettlementData] = useState(false);
+  const [resolutionDetails, setResolutionDetails] = useState(null); // For market_ai_resolution data
+  const [isLoadingResolutionDetails, setIsLoadingResolutionDetails] = useState(false);
 
   const publicClient = usePublicClient();
 
@@ -478,6 +480,40 @@ const Saruman = ({
     
     fetchSettlementData();
   }, [conditionId, isMarketSettled]);
+  
+  // Fetch resolution details from market_ai_resolution table
+  useEffect(() => {
+    const fetchResolutionDetails = async () => {
+      if (!conditionId) return;
+      
+      try {
+        setIsLoadingResolutionDetails(true);
+        
+        // Query Supabase for the resolution details using the condition ID
+        const { data, error } = await supabase
+          .from('market_ai_resolution')
+          .select('*')
+          .eq('condition_id', conditionId)
+          .single();
+        
+        if (error) {
+          console.error('Error fetching resolution details:', error);
+          return;
+        }
+        
+        if (data) {
+          console.log('Resolution details found:', data);
+          setResolutionDetails(data);
+        }
+      } catch (err) {
+        console.error('Error in fetchResolutionDetails:', err);
+      } finally {
+        setIsLoadingResolutionDetails(false);
+      }
+    };
+    
+    fetchResolutionDetails();
+  }, [conditionId]);
 
   if (isLoading || isLoadingMarketSettled || (isMarketSettled && isLoadingWinningTokenId)) {
     return (
@@ -552,15 +588,15 @@ const Saruman = ({
         </div>
         
         {/* Resolution Status Indicator */}
-        {resolutionData && (
-          <div className={`resolution-indicator ${resolutionData.resolvable ? 'resolvable' : 'not-resolvable'}`}>
-            {resolutionData.resolvable ? (
+        {(resolutionData || resolutionDetails) && (
+          <div className={`resolution-indicator ${(resolutionDetails?.resolvable || resolutionData?.resolvable) ? 'resolvable' : 'not-resolvable'}`}>
+            {(resolutionDetails?.resolvable || resolutionData?.resolvable) ? (
               <div className="indicator-icon checkmark">✓</div>
             ) : (
               <div className="indicator-icon cross">✕</div>
             )}
             <span className="indicator-text">
-              {resolutionData.resolvable ? 'Resolvable' : 'Not Resolvable'}
+              {(resolutionDetails?.resolvable || resolutionData?.resolvable) ? 'Resolvable' : 'Not Resolvable'}
             </span>
           </div>
         )}
@@ -699,33 +735,35 @@ const Saruman = ({
       )}
 
       {/* Resolution Metadata Section */}
-      {resolutionData && (
+      {resolutionData || resolutionDetails ? (
         <div className="resolution-metadata">
           <div className="metadata-header">
             <h3>Settlement Criteria</h3>
           </div>
           
           <div className="metadata-content">
-            {resolutionData.reasoning && (
+            {/* Use resolutionDetails from DB if available, otherwise fall back to resolutionData prop */}
+            {(resolutionDetails?.reasoning || resolutionData?.reasoning) && (
               <div className="metadata-field">
                 <div className="field-label">Reasoning</div>
-                <div className="field-value">{resolutionData.reasoning}</div>
+                <div className="field-value">{resolutionDetails?.reasoning || resolutionData?.reasoning}</div>
               </div>
             )}
             
-            {resolutionData.settlement_criteria && (
+            {(resolutionDetails?.settlement_criteria || resolutionData?.settlement_criteria) && (
               <div className="metadata-field">
                 <div className="field-label">Settlement Criteria</div>
-                <div className="field-value">{resolutionData.settlement_criteria}</div>
+                <div className="field-value">{resolutionDetails?.settlement_criteria || resolutionData?.settlement_criteria}</div>
               </div>
             )}
             
-            {resolutionData.resolution_sources && resolutionData.resolution_sources.length > 0 && (
+            {((resolutionDetails?.resolution_sources && resolutionDetails.resolution_sources.length > 0) || 
+               (resolutionData?.resolution_sources && resolutionData.resolution_sources.length > 0)) && (
               <div className="metadata-field">
                 <div className="field-label">Resolution Sources</div>
                 <div className="field-value">
                   <ul className="sources-list">
-                    {resolutionData.resolution_sources.map((source, index) => (
+                    {(resolutionDetails?.resolution_sources || resolutionData?.resolution_sources || []).map((source, index) => (
                       <li key={index}>{source}</li>
                     ))}
                   </ul>
@@ -733,15 +771,18 @@ const Saruman = ({
               </div>
             )}
             
-            {resolutionData.suggested_improvements && resolutionData.suggested_improvements !== 'None' && (
+            {((resolutionDetails?.suggested_improvements && resolutionDetails.suggested_improvements !== 'None') || 
+               (resolutionData?.suggested_improvements && resolutionData.suggested_improvements !== 'None')) && (
               <div className="metadata-field">
                 <div className="field-label">Suggested Improvements</div>
-                <div className="field-value suggested-improvements">{resolutionData.suggested_improvements}</div>
+                <div className="field-value suggested-improvements">
+                  {resolutionDetails?.suggested_improvements || resolutionData?.suggested_improvements}
+                </div>
               </div>
             )}
           </div>
         </div>
-      )}
+      ) : null}
       
       <div className="market-footer">
         <div className="footer-top-row">
