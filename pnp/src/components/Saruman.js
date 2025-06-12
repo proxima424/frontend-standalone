@@ -64,7 +64,7 @@ const PNP_ABI = [
   {
     "inputs": [{ "internalType": "bytes32", "name": "", "type": "bytes32" }],
     "name": "winningTokenId",
-    "outputs": [{ "internalType": "uint256", "name": "", "type": "uint256" }],
+    "outputs": [{ "internalType": "uint256", name: "", type: "uint256" }],
     "stateMutability": "view",
     "type": "function"
   }
@@ -168,6 +168,8 @@ const Saruman = ({
   isLoading = false,
   marketData = {},
   resolutionData = null, // Prop for resolution metadata
+  openMarkets = [], // Add prop for open markets
+  onNextMarket = () => {}, // Add prop for handling next market navigation
 }) => {
   const navigate = useNavigate();
   const { address } = useAccount();
@@ -183,6 +185,7 @@ const Saruman = ({
   const [isLoadingSettlementData, setIsLoadingSettlementData] = useState(false);
   const [resolutionDetails, setResolutionDetails] = useState(null); // For market_ai_resolution data
   const [isLoadingResolutionDetails, setIsLoadingResolutionDetails] = useState(false);
+  const [resolutionFetchAttempted, setResolutionFetchAttempted] = useState(false);
 
   const publicClient = usePublicClient();
 
@@ -509,6 +512,7 @@ const Saruman = ({
         console.error('Error in fetchResolutionDetails:', err);
       } finally {
         setIsLoadingResolutionDetails(false);
+        setResolutionFetchAttempted(true);
       }
     };
     
@@ -547,39 +551,21 @@ const Saruman = ({
     containerClass += " market-is-settling";
   }
 
+  // Determine if we should show the Next button
+  // Only show if we have more than one open market and the current market is not settled
+  const showNextButton = openMarkets.length > 1 && !(isMarketSettled || isTimeUp);
+
   return (
     <div className={containerClass}>
-      {showYesModal && (
-        <div className="modal-overlay">
-          <div className="modal-content">
-            <button className="modal-close" onClick={() => setShowYesModal(false)}>×</button>
-            <h2>Let's Go!</h2>
-            <p>Ready to make your deposit?</p>
-            <div className="modal-input-container">
-              <input
-                type="number"
-                value={modalAmount}
-                onChange={(e) => setModalAmount(e.target.value)}
-                placeholder="Enter amount"
-                className="modal-input"
-                min="0"
-                step="0.01"
-              />
-              <span className="modal-input-label">USDC</span>
-            </div>
-            <button 
-              className="modal-confirm-button"
-              onClick={() => {
-                setShowYesModal(false);
-                setShowDepositField('yes');
-                setDepositAmount(modalAmount);
-              }}
-              disabled={!modalAmount || isNaN(modalAmount) || parseFloat(modalAmount) <= 0}
-            >
-              Continue
-            </button>
-          </div>
-        </div>
+      {/* Next Market Button */}
+      {showNextButton && (
+        <button 
+          className="next-market-button" 
+          onClick={onNextMarket}
+          aria-label="View next open market"
+        >
+          Next Market <span className="next-arrow">→</span>
+        </button>
       )}
       
       <div className="market-header">
@@ -587,7 +573,6 @@ const Saruman = ({
           {String(question)}
         </div>
         
-        {/* Resolution Status Indicator */}
         {(resolutionData || resolutionDetails) && (
           <div className={`resolution-indicator ${(resolutionDetails?.resolvable || resolutionData?.resolvable) ? 'resolvable' : 'not-resolvable'}`}>
             {(resolutionDetails?.resolvable || resolutionData?.resolvable) ? (
@@ -596,7 +581,7 @@ const Saruman = ({
               <div className="indicator-icon cross">✕</div>
             )}
             <span className="indicator-text">
-              {(resolutionDetails?.resolvable || resolutionData?.resolvable) ? 'Resolvable' : 'Not Resolvable'}
+              {(resolutionDetails?.resolvable || resolutionData?.resolvable) ? 'AI Resolvable' : 'Needs Review'}
             </span>
           </div>
         )}
@@ -609,7 +594,6 @@ const Saruman = ({
             {winningOutcome} WON
           </div>
           
-          {/* Display Settlement Reasoning when available */}
           {isLoadingSettlementData ? (
             <div className="settlement-reasoning-loading">
               <div className="mini-spinner"></div>
@@ -619,24 +603,6 @@ const Saruman = ({
             <div className="settlement-reasoning">
               <h4>Settlement Reasoning</h4>
               <p>{settlementData.reasoning || "No reasoning provided."}</p>
-              
-              {/* Additional settlement data if available */}
-              {settlementData.sources && (
-                <div className="settlement-sources">
-                  <h5>Sources Used</h5>
-                  <ul>
-                    {settlementData.sources.map((source, index) => (
-                      <li key={index}>{source}</li>
-                    ))}
-                  </ul>
-                </div>
-              )}
-              
-              {settlementData.settlement_time && (
-                <div className="settlement-time">
-                  Settled on: {new Date(settlementData.settlement_time).toLocaleString()}
-                </div>
-              )}
             </div>
           ) : null}
         </div>
@@ -653,36 +619,14 @@ const Saruman = ({
               <div className="price-value">${Number(yesPrice).toFixed(2)}</div>
               <div className="multiplier">×{Number(yesMultiplier).toFixed(2)}</div>
               <div className="user-balance">
-                Your Balance: {userBalances.yesBalance} YES
+                Balance: {parseFloat(userBalances.yesBalance).toFixed(2)}
               </div>
-              {showDepositField === 'yes' ? (
-                <div className="deposit-field">
-                  <input
-                    type="number"
-                    value={depositAmount}
-                    onChange={(e) => {
-                      console.log("Input changed:", e.target.value);
-                      setDepositAmount(e.target.value);
-                    }}
-                    placeholder="Enter amount"
-                    className="deposit-input"
-                  />
-                  <button 
-                    onClick={() => handleDeposit(true)}
-                    disabled={isMinting || isTransactionLoading}
-                    className="deposit-button"
-                  >
-                    {isMinting || isTransactionLoading ? 'Processing...' : 'Confirm'}
-                  </button>
-                </div>
-              ) : (
-                <button 
-                  onClick={() => handleDepositClick(true)}
-                  className="deposit-trigger"
-                >
-                  Deposit
-                </button>
-              )}
+              <button 
+                onClick={() => handleDepositClick(true)}
+                className="deposit-trigger"
+              >
+                Buy YES
+              </button>
             </div>
             
             <div className="odds-column no-column">
@@ -690,36 +634,14 @@ const Saruman = ({
               <div className="price-value">${Number(noPrice).toFixed(2)}</div>
               <div className="multiplier">×{Number(noMultiplier).toFixed(2)}</div>
               <div className="user-balance">
-                Your Balance: {userBalances.noBalance} NO
+                Balance: {parseFloat(userBalances.noBalance).toFixed(2)}
               </div>
-              {showDepositField === 'no' ? (
-                <div className="deposit-field">
-                  <input
-                    type="number"
-                    value={depositAmount}
-                    onChange={(e) => {
-                      console.log("Input changed:", e.target.value);
-                      setDepositAmount(e.target.value);
-                    }}
-                    placeholder="Enter amount"
-                    className="deposit-input"
-                  />
-                  <button 
-                    onClick={() => handleDeposit(false)}
-                    disabled={isMinting || isTransactionLoading}
-                    className="deposit-button"
-                  >
-                    {isMinting || isTransactionLoading ? 'Processing...' : 'Confirm'}
-                  </button>
-                </div>
-              ) : (
-                <button 
-                  onClick={() => handleDepositClick(false)}
-                  className="deposit-trigger"
-                >
-                  Deposit
-                </button>
-              )}
+              <button 
+                onClick={() => handleDepositClick(false)}
+                className="deposit-trigger"
+              >
+                Buy NO
+              </button>
             </div>
           </div>
 
@@ -728,13 +650,12 @@ const Saruman = ({
               className="trade-now-button" 
               onClick={() => navigate(`/gandalf/${marketData.id}/trade`)}
             >
-              Trade Now
+              Click to Trade
             </button>
           )}
         </>
       )}
 
-      {/* Resolution Metadata Section */}
       {resolutionData || resolutionDetails ? (
         <div className="resolution-metadata">
           <div className="metadata-header">
@@ -742,17 +663,16 @@ const Saruman = ({
           </div>
           
           <div className="metadata-content">
-            {/* Use resolutionDetails from DB if available, otherwise fall back to resolutionData prop */}
             {(resolutionDetails?.reasoning || resolutionData?.reasoning) && (
               <div className="metadata-field">
-                <div className="field-label">Reasoning</div>
+                <div className="field-label">AI Analysis</div>
                 <div className="field-value">{resolutionDetails?.reasoning || resolutionData?.reasoning}</div>
               </div>
             )}
             
             {(resolutionDetails?.settlement_criteria || resolutionData?.settlement_criteria) && (
               <div className="metadata-field">
-                <div className="field-label">Settlement Criteria</div>
+                <div className="field-label">Criteria</div>
                 <div className="field-value">{resolutionDetails?.settlement_criteria || resolutionData?.settlement_criteria}</div>
               </div>
             )}
@@ -760,7 +680,7 @@ const Saruman = ({
             {((resolutionDetails?.resolution_sources && resolutionDetails.resolution_sources.length > 0) || 
                (resolutionData?.resolution_sources && resolutionData.resolution_sources.length > 0)) && (
               <div className="metadata-field">
-                <div className="field-label">Resolution Sources</div>
+                <div className="field-label">Sources</div>
                 <div className="field-value">
                   <ul className="sources-list">
                     {(resolutionDetails?.resolution_sources || resolutionData?.resolution_sources || []).map((source, index) => (
@@ -770,16 +690,22 @@ const Saruman = ({
                 </div>
               </div>
             )}
-            
-            {((resolutionDetails?.suggested_improvements && resolutionDetails.suggested_improvements !== 'None') || 
-               (resolutionData?.suggested_improvements && resolutionData.suggested_improvements !== 'None')) && (
-              <div className="metadata-field">
-                <div className="field-label">Suggested Improvements</div>
-                <div className="field-value suggested-improvements">
-                  {resolutionDetails?.suggested_improvements || resolutionData?.suggested_improvements}
-                </div>
-              </div>
-            )}
+          </div>
+        </div>
+      ) : resolutionFetchAttempted && !isLoadingResolutionDetails ? (
+        <div className="resolution-metadata">
+          <div className="metadata-header">
+            <h3>Settlement Criteria</h3>
+          </div>
+          
+          <div className="resolution-generating">
+            <div className="generating-icon">
+              <div className="mini-spinner"></div>
+            </div>
+            <div className="generating-text">
+              <p>AI analyzing market question...</p>
+              <p>Settlement criteria coming soon</p>
+            </div>
           </div>
         </div>
       ) : null}
@@ -788,25 +714,25 @@ const Saruman = ({
         <div className="footer-top-row">
           <div className="market-collateral">
             <div className="usdc-icon">
-              <img src="/usdc.svg" alt="USDC" width="18" height="18" />
+              <img src="/usdc.svg" alt="USDC" width="14" height="14" />
             </div>
-            Collateral: {collateralTokenAddress ? `Token (${collateralTokenAddress.slice(0,6)}...)` : "N/A"}
+            USDC Collateral
           </div>
           
           <div className="resolution-source">
-            <img src="/globe.svg" alt="Globe" className="globe-icon" width="16" height="16" />
-            Settled by {resolutionSource}
+            <img src="/globe.svg" alt="Globe" className="globe-icon" width="14" height="14" />
+            {resolutionSource} AI
           </div>
         </div>
         
         <div className="footer-bottom-row">
-          <div className="market-metric market-reserve">
-            <div className="metric-label">Market Reserve</div>
+          <div className="market-metric">
+            <div className="metric-label">Reserve</div>
             <div className="metric-value">${marketReserve}</div>
           </div>
           
-          <div className="market-metric market-countdown">
-            <div className="metric-label">Time Remaining</div>
+          <div className="market-metric">
+            <div className="metric-label">Time Left</div>
             <CountdownTimer endTime={marketEndTime} isMarketSettled={isMarketSettled} />
           </div>
         </div>

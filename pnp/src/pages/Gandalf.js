@@ -181,6 +181,9 @@ const Gandalf = () => {
   // Filter state for Open/Close markets
   const [marketFilter, setMarketFilter] = useState('open');
   const [filteredMarkets, setFilteredMarkets] = useState([]);
+  
+  // State to track current market index for the Next button
+  const [currentMarketIndex, setCurrentMarketIndex] = useState(0);
 
   useEffect(() => {
     setIsCorrectChain(chainId === SEPOLIA_CHAIN_ID);
@@ -643,12 +646,21 @@ const Gandalf = () => {
     } else {
       // Check if we have markets from events
       if (sampleMarkets && sampleMarkets.length > 0) {
-        console.log(
-          "Gandalf: Displaying most recent market from fetched events."
-        );
-        // Use the first market from sampleMarkets (which is now sorted by most recent first)
-        const mostRecentMarket = sampleMarkets[0];
-        fetchMarketByConditionId(mostRecentMarket.id);
+        // Find an open market to display by default (if available)
+        const currentTime = Math.floor(Date.now() / 1000);
+        const openMarkets = sampleMarkets.filter(market => market.marketEndTime > currentTime);
+        
+        if (openMarkets.length > 0) {
+          console.log("Gandalf: Displaying first open market from fetched events.");
+          // Use the first open market from filtered markets
+          const defaultOpenMarket = openMarkets[0];
+          fetchMarketByConditionId(defaultOpenMarket.id);
+        } else {
+          console.log("Gandalf: No open markets found, displaying most recent market.");
+          // Fallback to most recent market if no open markets
+          const mostRecentMarket = sampleMarkets[0];
+          fetchMarketByConditionId(mostRecentMarket.id);
+        }
       } else {
         console.log("Gandalf: No markets found, displaying default market.");
         setSarumanDisplayData(DEFAULT_SARUMAN_DATA);
@@ -706,6 +718,30 @@ const Gandalf = () => {
       return true;
     });
   };
+  
+  // Handler for "Next Market" button in Saruman
+  const handleNextMarket = () => {
+    // Get only open markets
+    const currentTime = Math.floor(Date.now() / 1000);
+    const openMarkets = sampleMarkets.filter(market => market.marketEndTime > currentTime);
+    
+    if (openMarkets.length <= 1) return; // Do nothing if we have 0 or 1 open markets
+    
+    // Find the index of the current market in open markets
+    const currentMarketId = sarumanDisplayData?.id;
+    const currentIndex = openMarkets.findIndex(market => market.id === currentMarketId);
+    
+    // Calculate the next market index (with wraparound)
+    const nextIndex = (currentIndex + 1) % openMarkets.length;
+    
+    // Navigate to the next market
+    const nextMarket = openMarkets[nextIndex];
+    console.log(`Navigating to next open market: ${nextMarket.question}`);
+    fetchMarketByConditionId(nextMarket.id);
+    
+    // Update current index
+    setCurrentMarketIndex(nextIndex);
+  };
 
   // Handle filter change
   const handleFilterChange = (filter) => {
@@ -714,15 +750,24 @@ const Gandalf = () => {
     setFilteredMarkets(filtered);
   };
 
+  // Get open markets for the Next button
+  const getOpenMarkets = () => {
+    const currentTime = Math.floor(Date.now() / 1000);
+    return sampleMarkets.filter(market => market.marketEndTime > currentTime);
+  };
+  
   let sarumanContent;
   if (isLoadingData) {
     sarumanContent = <Saruman isLoading={true} />;
   } else if (sarumanDisplayData) {
+    const openMarkets = getOpenMarkets();
     sarumanContent = (
       <Saruman 
         isLoading={false} 
         marketData={sarumanDisplayData} 
         resolutionData={SAMPLE_RESOLUTION_DATA}
+        openMarkets={openMarkets}
+        onNextMarket={handleNextMarket}
       />
     );
   } else {
@@ -731,6 +776,8 @@ const Gandalf = () => {
         isLoading={false} 
         marketData={DEFAULT_SARUMAN_DATA} 
         resolutionData={SAMPLE_NON_RESOLVABLE_DATA}
+        openMarkets={[]}
+        onNextMarket={handleNextMarket}
       />
     );
   }
