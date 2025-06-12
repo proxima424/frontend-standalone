@@ -4,9 +4,15 @@ import { useContractWrite, useWaitForTransactionReceipt, usePublicClient, useAcc
 import { parseEther, keccak256, encodePacked, formatEther } from 'viem';
 import { PNP_FACTORY_ADDRESS } from '../contracts/contractConfig';
 import { useNavigate } from 'react-router-dom';
+import { createClient } from '@supabase/supabase-js';
 import './Saruman.css';
 
 const USDPNP_ADDRESS = '0xf506826e42047EB538F567539fFb8db74a093FD8'; // For checking collateral
+
+// Initialize Supabase client
+const supabaseUrl = process.env.REACT_APP_SUPABASE_URL;
+const supabaseAnonKey = process.env.REACT_APP_SUPABASE_ANON_KEY;
+const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
 // ABI for mintDecisionTokens and getTokenIds
 const PNP_ABI = [
@@ -161,6 +167,7 @@ const CountdownTimer = ({ endTime, isMarketSettled }) => {
 const Saruman = ({
   isLoading = false,
   marketData = {},
+  resolutionData = null, // New prop for resolution metadata
 }) => {
   const navigate = useNavigate();
   const { address } = useAccount();
@@ -172,6 +179,8 @@ const Saruman = ({
   const [modalAmount, setModalAmount] = useState('');
   const [userBalances, setUserBalances] = useState({ yesBalance: '0', noBalance: '0' });
   const [winningOutcome, setWinningOutcome] = useState(null); // YES, NO, or null
+  const [settlementData, setSettlementData] = useState(null); // Store settlement data from Supabase
+  const [isLoadingSettlementData, setIsLoadingSettlementData] = useState(false);
 
   const publicClient = usePublicClient();
 
@@ -436,6 +445,40 @@ const Saruman = ({
     }
   }, [tokenIds.yesTokenId, tokenIds.noTokenId, address]);
 
+  // Fetch settlement data from Supabase when market is settled
+  useEffect(() => {
+    const fetchSettlementData = async () => {
+      if (!conditionId || !isMarketSettled) return;
+      
+      try {
+        setIsLoadingSettlementData(true);
+        
+        // Query Supabase for the settlement data using the condition ID
+        const { data, error } = await supabase
+          .from('market_ai_reasoning')
+          .select('*')
+          .eq('condition_id', conditionId)
+          .single();
+        
+        if (error) {
+          console.error('Error fetching settlement data:', error);
+          return;
+        }
+        
+        if (data) {
+          console.log('Settlement data found:', data);
+          setSettlementData(data);
+        }
+      } catch (err) {
+        console.error('Error in fetchSettlementData:', err);
+      } finally {
+        setIsLoadingSettlementData(false);
+      }
+    };
+    
+    fetchSettlementData();
+  }, [conditionId, isMarketSettled]);
+
   if (isLoading || isLoadingMarketSettled || (isMarketSettled && isLoadingWinningTokenId)) {
     return (
       <div className="saruman-container saruman-loading-container">
@@ -503,8 +546,24 @@ const Saruman = ({
         </div>
       )}
       
-      <div className="market-question">
-        {String(question)}
+      <div className="market-header">
+        <div className="market-question">
+          {String(question)}
+        </div>
+        
+        {/* Resolution Status Indicator */}
+        {resolutionData && (
+          <div className={`resolution-indicator ${resolutionData.resolvable ? 'resolvable' : 'not-resolvable'}`}>
+            {resolutionData.resolvable ? (
+              <div className="indicator-icon checkmark">✓</div>
+            ) : (
+              <div className="indicator-icon cross">✕</div>
+            )}
+            <span className="indicator-text">
+              {resolutionData.resolvable ? 'Resolvable' : 'Not Resolvable'}
+            </span>
+          </div>
+        )}
       </div>
       
       {isMarketSettled && winningOutcome ? (
@@ -513,6 +572,37 @@ const Saruman = ({
           <div className={`winning-outcome ${winningOutcome.toLowerCase()}`}>
             {winningOutcome} WON
           </div>
+          
+          {/* Display Settlement Reasoning when available */}
+          {isLoadingSettlementData ? (
+            <div className="settlement-reasoning-loading">
+              <div className="mini-spinner"></div>
+              <span>Loading settlement reasoning...</span>
+            </div>
+          ) : settlementData ? (
+            <div className="settlement-reasoning">
+              <h4>Settlement Reasoning</h4>
+              <p>{settlementData.reasoning || "No reasoning provided."}</p>
+              
+              {/* Additional settlement data if available */}
+              {settlementData.sources && (
+                <div className="settlement-sources">
+                  <h5>Sources Used</h5>
+                  <ul>
+                    {settlementData.sources.map((source, index) => (
+                      <li key={index}>{source}</li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+              
+              {settlementData.settlement_time && (
+                <div className="settlement-time">
+                  Settled on: {new Date(settlementData.settlement_time).toLocaleString()}
+                </div>
+              )}
+            </div>
+          ) : null}
         </div>
       ) : isTimeUp && !isMarketSettled ? (
         <div className="market-settled-container">
@@ -606,6 +696,51 @@ const Saruman = ({
             </button>
           )}
         </>
+      )}
+
+      {/* Resolution Metadata Section */}
+      {resolutionData && (
+        <div className="resolution-metadata">
+          <div className="metadata-header">
+            <h3>Settlement Criteria</h3>
+          </div>
+          
+          <div className="metadata-content">
+            {resolutionData.reasoning && (
+              <div className="metadata-field">
+                <div className="field-label">Reasoning</div>
+                <div className="field-value">{resolutionData.reasoning}</div>
+              </div>
+            )}
+            
+            {resolutionData.settlement_criteria && (
+              <div className="metadata-field">
+                <div className="field-label">Settlement Criteria</div>
+                <div className="field-value">{resolutionData.settlement_criteria}</div>
+              </div>
+            )}
+            
+            {resolutionData.resolution_sources && resolutionData.resolution_sources.length > 0 && (
+              <div className="metadata-field">
+                <div className="field-label">Resolution Sources</div>
+                <div className="field-value">
+                  <ul className="sources-list">
+                    {resolutionData.resolution_sources.map((source, index) => (
+                      <li key={index}>{source}</li>
+                    ))}
+                  </ul>
+                </div>
+              </div>
+            )}
+            
+            {resolutionData.suggested_improvements && resolutionData.suggested_improvements !== 'None' && (
+              <div className="metadata-field">
+                <div className="field-label">Suggested Improvements</div>
+                <div className="field-value suggested-improvements">{resolutionData.suggested_improvements}</div>
+              </div>
+            )}
+          </div>
+        </div>
       )}
       
       <div className="market-footer">

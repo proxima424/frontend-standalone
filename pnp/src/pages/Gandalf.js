@@ -121,6 +121,28 @@ const DEFAULT_SARUMAN_DATA = {
   marketEndTime: BigInt(Math.floor(Date.now() / 1000) + 24 * 60 * 60),
 };
 
+// Sample resolution data for demonstration
+const SAMPLE_RESOLUTION_DATA = {
+  resolvable: true,
+  reasoning: "This question is resolvable because cryptocurrency market performance can be objectively measured using publicly available price data and market metrics at the end of the specified time period.",
+  settlement_criteria: "The question will be resolved as 'YES' if the total cryptocurrency market cap increases by more than 3% during the specified day, as measured by CoinMarketCap or CoinGecko. Otherwise, it will be resolved as 'NO'.",
+  resolution_sources: [
+    "CoinMarketCap total market capitalization data",
+    "CoinGecko global cryptocurrency statistics",
+    "Official exchange price feeds (Binance, Coinbase)"
+  ],
+  suggested_improvements: "None"
+};
+
+// Sample non-resolvable market data for demonstration
+const SAMPLE_NON_RESOLVABLE_DATA = {
+  resolvable: false,
+  reasoning: "This question is not resolvable because 'good day' is subjective and lacks specific, measurable criteria. The outcome cannot be objectively verified using reliable data sources.",
+  settlement_criteria: "No clear settlement criteria can be established due to the subjective nature of the question.",
+  resolution_sources: [],
+  suggested_improvements: "Rephrase the question with specific, measurable criteria such as 'Will Bitcoin's price increase by more than 5% today?' or 'Will the total crypto market cap exceed $2.5 trillion by end of day?'"
+};
+
 const SEPOLIA_CHAIN_ID = 11155111;
 
 const MINIMUM_BET_AMOUNT = 2;
@@ -697,11 +719,19 @@ const Gandalf = () => {
     sarumanContent = <Saruman isLoading={true} />;
   } else if (sarumanDisplayData) {
     sarumanContent = (
-      <Saruman isLoading={false} marketData={sarumanDisplayData} />
+      <Saruman 
+        isLoading={false} 
+        marketData={sarumanDisplayData} 
+        resolutionData={SAMPLE_RESOLUTION_DATA}
+      />
     );
   } else {
     sarumanContent = (
-      <Saruman isLoading={false} marketData={DEFAULT_SARUMAN_DATA} />
+      <Saruman 
+        isLoading={false} 
+        marketData={DEFAULT_SARUMAN_DATA} 
+        resolutionData={SAMPLE_NON_RESOLVABLE_DATA}
+      />
     );
   }
 
