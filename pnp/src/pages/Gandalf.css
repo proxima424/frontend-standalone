@@ -9,13 +9,14 @@
   display: flex;
   flex-direction: row;
   width: 100%;
-  min-height: 420px; 
+  min-height: 500px; 
   margin-bottom: 3rem;
   border: 1px solid #333;
   border-radius: 12px;
   background-color: #111;
   box-shadow: 0 5px 15px rgba(0, 0, 0, 0.4);
   overflow: visible;
+  position: relative;
 }
 
 .alpha-left {
@@ -166,6 +167,52 @@
   outline: none;
   border-color: #ff69b4;
   box-shadow: 0 0 0 2px rgba(255, 105, 180, 0.1);
+}
+
+.filter-container {
+  margin-bottom: 2rem;
+  width: 100%;
+}
+
+.filter-buttons {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.filter-button {
+  padding: 0.75rem 1.5rem;
+  border: 1px solid #333;
+  background: #1a1a1a;
+  color: #e0e0e0;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  font-weight: 500;
+  transition: all 0.3s ease;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.filter-button:hover {
+  border-color: #ff69b4;
+  color: #ff69b4;
+  background: rgba(255, 105, 180, 0.1);
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(255, 105, 180, 0.2);
+}
+
+.filter-button.active {
+  background: #ff69b4;
+  color: #000;
+  border-color: #ff69b4;
+  box-shadow: 0 0 10px rgba(255, 105, 180, 0.3);
+}
+
+.filter-button.active:hover {
+  background: #ff8fa3;
+  color: #000;
+  transform: translateY(-1px);
 }
 
 .market-tiles-container {
@@ -488,15 +535,141 @@
   position: relative;
 }
 
+.saruman-wrapper-full {
+  position: relative;
+  z-index: 1;
+  height: 100%;
+  width: 100%;
+  padding: 1rem;
+  margin: 1rem;
+  border-radius: 8px;
+  background-color: #1a1a1a;
+  overflow: hidden;
+}
+
+.saruman-wrapper-full::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  padding: 1px;
+  background: repeating-conic-gradient(from var(--ants-angle, 0deg), #444 0% 2.5%, transparent 2.5% 5%);
+  -webkit-mask: 
+    linear-gradient(#fff 0 0) content-box, 
+    linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+          mask-composite: exclude;
+  animation: ants-rotate 4s linear infinite;
+  transition: background 0.3s ease;
+}
+
+.saruman-wrapper-full:hover::before {
+  background: repeating-conic-gradient(from var(--ants-angle, 0deg), #ff69b4 0% 2.5%, transparent 2.5% 5%);
+}
+
+.saruman-wrapper-full .saruman-container {
+  position: relative;
+  z-index: 1;
+  height: 100%;
+  background-color: transparent;
+  border: none;
+  box-shadow: none;
+  padding: 0;
+}
+
+/* Small Create Market Button */
+.create-market-button-small {
+  position: fixed;
+  top: 2rem;
+  right: 2rem;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.8rem 1.2rem;
+  background: linear-gradient(145deg, #ff69b4, #ff1493);
+  border: none;
+  border-radius: 25px;
+  color: white;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 15px rgba(255, 105, 180, 0.3);
+}
+
+.create-market-button-small:hover {
+  transform: translateY(-2px) scale(1.05);
+  box-shadow: 0 6px 20px rgba(255, 105, 180, 0.4);
+  background: linear-gradient(145deg, #ff1493, #dc143c);
+}
+
+.plus-icon-small {
+  font-size: 1.2rem;
+  font-weight: 300;
+  line-height: 1;
+}
+
+.create-text-small {
+  font-size: 0.9rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* Create Market Modal */
+.create-market-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.8);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+  backdrop-filter: blur(5px);
+}
+
+.create-market-modal-content {
+  background: #111;
+  border: 1px solid #333;
+  border-radius: 12px;
+  padding: 2rem;
+  max-width: 600px;
+  width: 90%;
+  max-height: 80vh;
+  overflow-y: auto;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+  animation: modalSlideIn 0.3s ease-out;
+}
+
+@keyframes modalSlideIn {
+  from {
+    opacity: 0;
+    transform: scale(0.9) translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
 @media (max-width: 768px) {
   .gandalf-container {
     padding: 1rem;
   }
   .alpha-container {
-    display: flex;
-    flex-direction: column;
-  }
-  .alpha-left {
     min-height: 400px;
+  }
+  .create-market-button-small {
+    top: 1rem;
+    right: 1rem;
+    padding: 0.6rem 1rem;
+  }
+  .plus-icon-small {
+    font-size: 1rem;
+  }
+  .create-text-small {
+    font-size: 0.8rem;
   }
 }

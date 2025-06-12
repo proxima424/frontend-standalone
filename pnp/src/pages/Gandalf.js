@@ -121,6 +121,28 @@ const DEFAULT_SARUMAN_DATA = {
   marketEndTime: BigInt(Math.floor(Date.now() / 1000) + 24 * 60 * 60),
 };
 
+// Sample resolution data for demonstration
+const SAMPLE_RESOLUTION_DATA = {
+  resolvable: true,
+  reasoning: "This question is resolvable because cryptocurrency market performance can be objectively measured using publicly available price data and market metrics at the end of the specified time period.",
+  settlement_criteria: "The question will be resolved as 'YES' if the total cryptocurrency market cap increases by more than 3% during the specified day, as measured by CoinMarketCap or CoinGecko. Otherwise, it will be resolved as 'NO'.",
+  resolution_sources: [
+    "CoinMarketCap total market capitalization data",
+    "CoinGecko global cryptocurrency statistics",
+    "Official exchange price feeds (Binance, Coinbase)"
+  ],
+  suggested_improvements: "None"
+};
+
+// Sample non-resolvable market data for demonstration
+const SAMPLE_NON_RESOLVABLE_DATA = {
+  resolvable: false,
+  reasoning: "This question is not resolvable because 'good day' is subjective and lacks specific, measurable criteria. The outcome cannot be objectively verified using reliable data sources.",
+  settlement_criteria: "No clear settlement criteria can be established due to the subjective nature of the question.",
+  resolution_sources: [],
+  suggested_improvements: "Rephrase the question with specific, measurable criteria such as 'Will Bitcoin's price increase by more than 5% today?' or 'Will the total crypto market cap exceed $2.5 trillion by end of day?'"
+};
+
 const SEPOLIA_CHAIN_ID = 11155111;
 
 const MINIMUM_BET_AMOUNT = 2;
@@ -155,6 +177,13 @@ const Gandalf = () => {
 
   const navigate = useNavigate();
   const [showWelcomePopup, setShowWelcomePopup] = useState(true);
+  
+  // Filter state for Open/Close markets
+  const [marketFilter, setMarketFilter] = useState('open');
+  const [filteredMarkets, setFilteredMarkets] = useState([]);
+  
+  // State to track current market index for the Next button
+  const [currentMarketIndex, setCurrentMarketIndex] = useState(0);
 
   useEffect(() => {
     setIsCorrectChain(chainId === SEPOLIA_CHAIN_ID);
@@ -617,12 +646,21 @@ const Gandalf = () => {
     } else {
       // Check if we have markets from events
       if (sampleMarkets && sampleMarkets.length > 0) {
-        console.log(
-          "Gandalf: Displaying most recent market from fetched events."
-        );
-        // Use the first market from sampleMarkets (which is now sorted by most recent first)
-        const mostRecentMarket = sampleMarkets[0];
-        fetchMarketByConditionId(mostRecentMarket.id);
+        // Find an open market to display by default (if available)
+        const currentTime = Math.floor(Date.now() / 1000);
+        const openMarkets = sampleMarkets.filter(market => market.marketEndTime > currentTime);
+        
+        if (openMarkets.length > 0) {
+          console.log("Gandalf: Displaying first open market from fetched events.");
+          // Use the first open market from filtered markets
+          const defaultOpenMarket = openMarkets[0];
+          fetchMarketByConditionId(defaultOpenMarket.id);
+        } else {
+          console.log("Gandalf: No open markets found, displaying most recent market.");
+          // Fallback to most recent market if no open markets
+          const mostRecentMarket = sampleMarkets[0];
+          fetchMarketByConditionId(mostRecentMarket.id);
+        }
       } else {
         console.log("Gandalf: No markets found, displaying default market.");
         setSarumanDisplayData(DEFAULT_SARUMAN_DATA);
@@ -651,6 +689,12 @@ const Gandalf = () => {
     }
   }, [publicClient, currentBlockNumber]); // Re-run if client or block number changes
 
+  // Update filtered markets when sampleMarkets or filter changes
+  useEffect(() => {
+    const filtered = filterMarkets(sampleMarkets, marketFilter);
+    setFilteredMarkets(filtered);
+  }, [sampleMarkets, marketFilter]);
+
   const handleShowForm = () => setShowCreateForm(true);
   const handleHideForm = () => setShowCreateForm(false);
 
@@ -659,16 +703,82 @@ const Gandalf = () => {
     navigate(`/gandalf/market/${market.id}`);
   };
 
+  // Filter markets based on Open/Close status
+  const filterMarkets = (markets, filter) => {
+    if (filter === 'all') return markets;
+    
+    const currentTime = Math.floor(Date.now() / 1000);
+    
+    return markets.filter(market => {
+      const isOpen = market.marketEndTime > currentTime;
+      
+      if (filter === 'open') return isOpen;
+      if (filter === 'close') return !isOpen;
+      
+      return true;
+    });
+  };
+  
+  // Handler for "Next Market" button in Saruman
+  const handleNextMarket = () => {
+    // Get only open markets
+    const currentTime = Math.floor(Date.now() / 1000);
+    const openMarkets = sampleMarkets.filter(market => market.marketEndTime > currentTime);
+    
+    if (openMarkets.length <= 1) return; // Do nothing if we have 0 or 1 open markets
+    
+    // Find the index of the current market in open markets
+    const currentMarketId = sarumanDisplayData?.id;
+    const currentIndex = openMarkets.findIndex(market => market.id === currentMarketId);
+    
+    // Calculate the next market index (with wraparound)
+    const nextIndex = (currentIndex + 1) % openMarkets.length;
+    
+    // Navigate to the next market
+    const nextMarket = openMarkets[nextIndex];
+    console.log(`Navigating to next open market: ${nextMarket.question}`);
+    fetchMarketByConditionId(nextMarket.id);
+    
+    // Update current index
+    setCurrentMarketIndex(nextIndex);
+  };
+
+  // Handle filter change
+  const handleFilterChange = (filter) => {
+    setMarketFilter(filter);
+    const filtered = filterMarkets(sampleMarkets, filter);
+    setFilteredMarkets(filtered);
+  };
+
+  // Get open markets for the Next button
+  const getOpenMarkets = () => {
+    const currentTime = Math.floor(Date.now() / 1000);
+    return sampleMarkets.filter(market => market.marketEndTime > currentTime);
+  };
+  
   let sarumanContent;
   if (isLoadingData) {
     sarumanContent = <Saruman isLoading={true} />;
   } else if (sarumanDisplayData) {
+    const openMarkets = getOpenMarkets();
     sarumanContent = (
-      <Saruman isLoading={false} marketData={sarumanDisplayData} />
+      <Saruman 
+        isLoading={false} 
+        marketData={sarumanDisplayData} 
+        resolutionData={SAMPLE_RESOLUTION_DATA}
+        openMarkets={openMarkets}
+        onNextMarket={handleNextMarket}
+      />
     );
   } else {
     sarumanContent = (
-      <Saruman isLoading={false} marketData={DEFAULT_SARUMAN_DATA} />
+      <Saruman 
+        isLoading={false} 
+        marketData={DEFAULT_SARUMAN_DATA} 
+        resolutionData={SAMPLE_NON_RESOLVABLE_DATA}
+        openMarkets={[]}
+        onNextMarket={handleNextMarket}
+      />
     );
   }
 
@@ -1051,6 +1161,21 @@ const Gandalf = () => {
         <div className="gandalf-error-banner">{errorMessage}</div>
       )}
 
+      {/* Small Create Market Button */}
+      <button className="create-market-button-small" onClick={handleShowForm}>
+        <span className="plus-icon-small">+</span>
+        <span className="create-text-small">Create</span>
+      </button>
+
+      {/* Create Market Modal */}
+      {showCreateForm && (
+        <div className="create-market-modal-overlay" onClick={handleHideForm}>
+          <div className="create-market-modal-content" onClick={(e) => e.stopPropagation()}>
+            <CreateMarketForm onClose={handleHideForm} />
+          </div>
+        </div>
+      )}
+
       {showSarumanModal && (
         <div
           className="gandalf-modal-overlay"
@@ -1128,19 +1253,7 @@ const Gandalf = () => {
       )}
 
       <div className="alpha-container">
-        <div className="alpha-left">
-          {showCreateForm ? (
-            <CreateMarketForm onClose={handleHideForm} />
-          ) : (
-            <button className="create-market-button" onClick={handleShowForm}>
-              <div className="plus-icon">+</div>
-              <div className="create-text">Create Market</div>
-            </button>
-          )}
-        </div>
-        <div className="alpha-right">
-          <div className="saruman-wrapper">{sarumanContent}</div>
-        </div>
+        <div className="saruman-wrapper-full">{sarumanContent}</div>
       </div>
 
       <div className="gamma-container">
@@ -1152,8 +1265,31 @@ const Gandalf = () => {
           />
         </div>
 
+        <div className="filter-container">
+          <div className="filter-buttons">
+            <button
+              className={`filter-button ${marketFilter === 'all' ? 'active' : ''}`}
+              onClick={() => handleFilterChange('all')}
+            >
+              All
+            </button>
+            <button
+              className={`filter-button ${marketFilter === 'open' ? 'active' : ''}`}
+              onClick={() => handleFilterChange('open')}
+            >
+              Open
+            </button>
+            <button
+              className={`filter-button ${marketFilter === 'close' ? 'active' : ''}`}
+              onClick={() => handleFilterChange('close')}
+            >
+              Close
+            </button>
+          </div>
+        </div>
+
         <div className="market-tiles-container">
-          {sampleMarkets.map((market) => (
+          {filteredMarkets.map((market) => (
             <MarketTile
               key={market.id}
               question={market.question}
